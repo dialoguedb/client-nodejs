@@ -1,0 +1,128 @@
+import { SettingsContainer } from "@/settings/class.SettingsContainer";
+import { apiRequest } from "@/utils/request";
+import { remove } from "./dialogue.remove";
+
+jest.mock("@/utils/request", () => ({
+  apiRequest: jest.fn(),
+}));
+
+describe("dialogue.remove", () => {
+  const apiRequestMock = apiRequest as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should remove dialogue successfully", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const input = {
+      id: dialogueId,
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(undefined);
+
+    await remove(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
+      method: "delete",
+      headers: expect.any(Headers),
+      body: JSON.stringify(input),
+    });
+  });
+
+  it("should throw error for invalid input - missing id", async () => {
+    const input = {} as any;
+
+    await expect(remove(input)).rejects.toThrow("Missing required 'id'");
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("should remove dialogue with namespace", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const input = {
+      id: "dialogue-123",
+      namespace: "my-namespace",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(undefined);
+
+    await remove(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    const callArgs = apiRequestMock.mock.calls[0];
+    const bodyArg = JSON.parse(callArgs[1].body);
+
+    expect(bodyArg.id).toBe("dialogue-123");
+    expect(bodyArg.namespace).toBe("my-namespace");
+  });
+
+  it("should set Authorization header correctly", async () => {
+    const key = "test-api-key-123";
+    const endpoint = "https://api.example.com";
+    const input = {
+      id: "dialogue-123",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(undefined);
+
+    await remove(input, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
+  });
+
+  it("should use correct endpoint path", async () => {
+    const endpoint = "https://api.example.com";
+    const input = {
+      id: "dialogue-abc",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(undefined);
+
+    await remove(input, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(`${endpoint}/dialogue`);
+  });
+
+  it("should handle API errors", async () => {
+    const input = {
+      id: "dialogue-123",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    const error = new Error("API Error: Dialogue not found");
+    apiRequestMock.mockRejectedValueOnce(error);
+
+    await expect(remove(input, settings)).rejects.toThrow(
+      "API Error: Dialogue not found"
+    );
+  });
+});

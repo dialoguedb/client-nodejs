@@ -1,0 +1,194 @@
+import { SettingsContainer } from "@/settings/class.SettingsContainer";
+import { apiRequest } from "@/utils/request";
+import { list } from "./messages.list";
+
+jest.mock("@/utils/request", () => ({
+  apiRequest: jest.fn(),
+}));
+
+describe("messages.list", () => {
+  const apiRequestMock = apiRequest as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should list messages successfully", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const input = {
+      dialogueId,
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    const mockResponse = {
+      items: [
+        {
+          id: "message-1",
+          dialogueId,
+          role: "user",
+          content: "Hello",
+        },
+        {
+          id: "message-2",
+          dialogueId,
+          role: "assistant",
+          content: "Hi there",
+        },
+      ],
+      next: undefined,
+    };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    const result = await list(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${dialogueId}/messages`,
+      {
+        method: "get",
+        headers: expect.any(Headers),
+        params: new URLSearchParams(),
+      }
+    );
+
+    expect(result).toEqual(mockResponse);
+  });
+
+  it("should list messages with limit parameter", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const input = {
+      dialogueId,
+      limit: 5,
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    const mockResponse = {
+      items: [],
+      next: undefined,
+    };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    await list(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    const expectedParams = new URLSearchParams();
+    expectedParams.set("limit", "5");
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${dialogueId}/messages`,
+      {
+        method: "get",
+        headers: expect.any(Headers),
+        params: expectedParams,
+      }
+    );
+  });
+
+  it("should list messages with next token for pagination", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const input = {
+      dialogueId,
+      next: "pagination-token-abc",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    const mockResponse = {
+      items: [],
+      next: "next-token",
+    };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    await list(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    const expectedParams = new URLSearchParams();
+    expectedParams.set("next", "pagination-token-abc");
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${dialogueId}/messages`,
+      {
+        method: "get",
+        headers: expect.any(Headers),
+        params: expectedParams,
+      }
+    );
+  });
+
+  it("should list messages with both limit and next parameters", async () => {
+    const key = "my-api-key";
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const input = {
+      dialogueId,
+      limit: 10,
+      next: "token-xyz",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    const mockResponse = {
+      items: [],
+      next: undefined,
+    };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    await list(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    const expectedParams = new URLSearchParams();
+    expectedParams.set("limit", "10");
+    expectedParams.set("next", "token-xyz");
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${dialogueId}/messages`,
+      {
+        method: "get",
+        headers: expect.any(Headers),
+        params: expectedParams,
+      }
+    );
+  });
+
+  it("should set Authorization header correctly", async () => {
+    const key = "test-api-key-123";
+    const endpoint = "https://api.example.com";
+    const input = {
+      dialogueId: "dialogue-123",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list(input, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const headers = callArgs[1].headers;
+
+    expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
+  });
+});
