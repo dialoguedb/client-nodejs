@@ -22,10 +22,7 @@ export class DialogueDB {
   #settings: SettingsContainer;
 
   constructor(settings?: SettingsContainer | Settings) {
-    console.log("hello??")
     this.#settings = useSettings(settings);
-    console.log("settings", this.#settings)
-
   }
 
   /**
