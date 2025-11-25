@@ -60,14 +60,20 @@ export class DialogueDBError extends Error {
 export async function apiRequest<T extends Record<string, any> | null>(
   url: string,
   options?: Omit<RequestInit, "headers"> & {
-    headers: Record<string, any>;
+    headers: Record<string, any> | Headers;
     params?: URLSearchParams;
   }
 ): Promise<T> {
   const { params, headers = {}, ...restOfOptions } = options ?? {};
 
+  // Convert Headers instance to plain object if needed
+  const headersObj =
+    headers instanceof Headers
+      ? Object.fromEntries(headers.entries())
+      : headers;
+
   const finalHeaders = {
-    ...headers,
+    ...headersObj,
     "User-Agent": `dialogue-db-nodejs.${version}`,
   };
 

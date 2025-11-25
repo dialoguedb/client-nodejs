@@ -1,4 +1,3 @@
-import { ulid } from "ulid";
 import { Memory } from "./class.memory";
 import * as memoryApi from "@/api/memory";
 import { IMemory } from "@/types";
@@ -10,7 +9,7 @@ jest.mock("@/api/memory", () => ({
 
 function createMockMemory(overrides: Partial<IMemory> = {}): IMemory {
   return {
-    key: ulid(),
+    key: Math.random().toString(36).slice(2),
     value: "test value",
     type: "string",
     metadata: {},

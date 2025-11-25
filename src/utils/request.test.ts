@@ -172,4 +172,37 @@ describe("apiRequest", () => {
       expect(dbError.message).toBe("Bad Gateway");
     }
   });
+
+  it("should correctly pass headers when using Headers instance", async () => {
+    const mockResponseData = { success: true };
+    const mockResponse = {
+      ok: true,
+      json: jest.fn().mockResolvedValue(mockResponseData),
+    } as unknown as Response;
+
+    fetchMock.mockResolvedValueOnce(mockResponse);
+
+    const headers = new Headers();
+    headers.set("Authorization", "Bearer my-api-key");
+    headers.set("Content-Type", "application/json");
+
+    await apiRequest("https://api.example.com/dialogue", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ id: "test" }),
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/dialogue",
+      expect.objectContaining({
+        method: "POST",
+        headers: {
+          authorization: "Bearer my-api-key",
+          "content-type": "application/json",
+          "User-Agent": expect.stringMatching(/^dialogue-db-nodejs\./),
+        },
+        body: JSON.stringify({ id: "test" }),
+      })
+    );
+  });
 });

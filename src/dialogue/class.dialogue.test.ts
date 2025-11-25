@@ -1,4 +1,3 @@
-import { ulid } from "ulid";
 import { Dialogue } from "./class.dialogue";
 import * as dialogueApi from "@/api/dialogue";
 import * as messageApi from "@/api/message";
@@ -24,7 +23,7 @@ jest.mock("@/api/messages", () => ({
 
 function createMockDialogue(overrides: Partial<IDialogue> = {}): IDialogue {
   return {
-    id: ulid(),
+    id: Math.random().toString(36).slice(2),
     expired: false,
     state: {},
     messages: [],
@@ -38,7 +37,7 @@ function createMockDialogue(overrides: Partial<IDialogue> = {}): IDialogue {
 
 function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
   return {
-    id: ulid(),
+    id: Math.random().toString(36).slice(2),
     dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
@@ -59,7 +58,7 @@ describe("Dialogue", () => {
 
   describe("constructor validation", () => {
     it("creates dialogue with valid data", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const dialogue = new Dialogue(createMockDialogue({ id }));
 
       expect(dialogue.id).toBe(id);
@@ -223,7 +222,7 @@ describe("Dialogue", () => {
     });
 
     it("saveState sets state and calls save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const newState = { step: 2 };
       const updatedModified = new Date().toISOString();
 
@@ -256,7 +255,7 @@ describe("Dialogue", () => {
     });
 
     it("saveTags sets tags and calls save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const newTags = ["important", "urgent"];
       const updatedModified = new Date().toISOString();
 
@@ -289,7 +288,7 @@ describe("Dialogue", () => {
     });
 
     it("calls API and clears dirty flag when dirty", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const updatedModified = new Date().toISOString();
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
@@ -308,7 +307,7 @@ describe("Dialogue", () => {
     });
 
     it("syncs state from server response after save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const serverState = { local: "value", server: "merged" };
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
@@ -326,7 +325,7 @@ describe("Dialogue", () => {
     });
 
     it("syncs tags from server response after save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const serverTags = ["tag1", "tag2", "server-added"];
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
@@ -344,7 +343,7 @@ describe("Dialogue", () => {
     });
 
     it("updates modified timestamp from server response", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const originalModified = "2024-01-01T00:00:00.000Z";
       const updatedModified = "2024-06-15T12:00:00.000Z";
 
@@ -365,8 +364,8 @@ describe("Dialogue", () => {
     });
 
     it("saves dirty messages when dialogue.save() is called", async () => {
-      const id = ulid();
-      const messageId = ulid();
+      const id = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
         ...createMockDialogue({ id }),
@@ -401,7 +400,7 @@ describe("Dialogue", () => {
     });
 
     it("only includes state in payload when non-empty", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
         ...createMockDialogue({ id }),
@@ -420,7 +419,7 @@ describe("Dialogue", () => {
     });
 
     it("only includes tags in payload when non-empty", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
         ...createMockDialogue({ id }),
@@ -439,7 +438,7 @@ describe("Dialogue", () => {
     });
 
     it("returns the dialogue instance for chaining", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
         ...createMockDialogue({ id }),
@@ -501,8 +500,8 @@ describe("Dialogue", () => {
 
   describe("saveMessage", () => {
     it("creates message via API and adds to local array", async () => {
-      const dialogueId = ulid();
-      const messageId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
       const messageContent = "Hello, world!";
 
       (messageApi.create as jest.Mock).mockResolvedValueOnce(
@@ -536,8 +535,8 @@ describe("Dialogue", () => {
     });
 
     it("returned message has working remove callback", async () => {
-      const dialogueId = ulid();
-      const messageId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
 
       (messageApi.create as jest.Mock).mockResolvedValueOnce(
         createMockMessage({ id: messageId })
@@ -557,9 +556,9 @@ describe("Dialogue", () => {
 
   describe("saveMessages", () => {
     it("creates multiple messages and adds all to local array", async () => {
-      const dialogueId = ulid();
-      const msg1Id = ulid();
-      const msg2Id = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const msg1Id = Math.random().toString(36).slice(2);
+      const msg2Id = Math.random().toString(36).slice(2);
 
       (messagesApi.create as jest.Mock).mockResolvedValueOnce([
         createMockMessage({ id: msg1Id, content: "First" }),
@@ -582,9 +581,9 @@ describe("Dialogue", () => {
 
   describe("loadMessages", () => {
     it("replaces local messages on initial load", async () => {
-      const dialogueId = ulid();
-      const existingMsgId = ulid();
-      const loadedMsgId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const existingMsgId = Math.random().toString(36).slice(2);
+      const loadedMsgId = Math.random().toString(36).slice(2);
 
       (messagesApi.list as jest.Mock).mockResolvedValueOnce({
         items: [createMockMessage({ id: loadedMsgId, content: "Loaded" })],
@@ -610,9 +609,9 @@ describe("Dialogue", () => {
     });
 
     it("appends messages when next: true", async () => {
-      const dialogueId = ulid();
-      const existingMsgId = ulid();
-      const loadedMsgId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const existingMsgId = Math.random().toString(36).slice(2);
+      const loadedMsgId = Math.random().toString(36).slice(2);
 
       // First load
       (messagesApi.list as jest.Mock).mockResolvedValueOnce({
@@ -639,7 +638,7 @@ describe("Dialogue", () => {
     });
 
     it("uses stored nextToken when next: true", async () => {
-      const dialogueId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
       const nextToken = "pagination-token-abc";
 
       (messagesApi.list as jest.Mock)
@@ -663,8 +662,8 @@ describe("Dialogue", () => {
     });
 
     it("returns loaded messages", async () => {
-      const dialogueId = ulid();
-      const msgId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const msgId = Math.random().toString(36).slice(2);
 
       (messagesApi.list as jest.Mock).mockResolvedValueOnce({
         items: [createMockMessage({ id: msgId })],
@@ -681,8 +680,8 @@ describe("Dialogue", () => {
 
   describe("deleteMessage", () => {
     it("calls API and removes from local array", async () => {
-      const dialogueId = ulid();
-      const messageId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
@@ -705,9 +704,9 @@ describe("Dialogue", () => {
     });
 
     it("does not remove other messages", async () => {
-      const dialogueId = ulid();
-      const keepMsgId = ulid();
-      const deleteMsgId = ulid();
+      const dialogueId = Math.random().toString(36).slice(2);
+      const keepMsgId = Math.random().toString(36).slice(2);
+      const deleteMsgId = Math.random().toString(36).slice(2);
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
@@ -763,8 +762,8 @@ describe("Dialogue", () => {
 
   describe("createThread", () => {
     it("creates thread with parent reference", async () => {
-      const parentId = ulid();
-      const threadId = ulid();
+      const parentId = Math.random().toString(36).slice(2);
+      const threadId = Math.random().toString(36).slice(2);
 
       (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
         createMockDialogue({ id: threadId })
@@ -782,7 +781,7 @@ describe("Dialogue", () => {
     });
 
     it("passes metadata and tags to thread", async () => {
-      const parentId = ulid();
+      const parentId = Math.random().toString(36).slice(2);
 
       (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
         createMockDialogue()
@@ -807,9 +806,9 @@ describe("Dialogue", () => {
 
   describe("getThreads", () => {
     it("returns array of Dialogue instances", async () => {
-      const parentId = ulid();
-      const thread1Id = ulid();
-      const thread2Id = ulid();
+      const parentId = Math.random().toString(36).slice(2);
+      const thread1Id = Math.random().toString(36).slice(2);
+      const thread2Id = Math.random().toString(36).slice(2);
 
       (dialogueApi.list as jest.Mock).mockResolvedValueOnce({
         items: [
@@ -855,7 +854,7 @@ describe("Dialogue", () => {
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const namespace = "test-ns";
       const state = { step: 1 };
       const tags = ["tag1"];
@@ -890,7 +889,7 @@ describe("Dialogue", () => {
     });
 
     it("works with JSON.stringify", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const dialogue = new Dialogue(
         createMockDialogue({ id, state: { key: "value" } })
       );
@@ -903,7 +902,7 @@ describe("Dialogue", () => {
     });
 
     it("includes messages in serialization", () => {
-      const messageId = ulid();
+      const messageId = Math.random().toString(36).slice(2);
       const dialogue = new Dialogue(
         createMockDialogue({
           messages: [createMockMessage({ id: messageId, content: "Hello" })],
@@ -920,7 +919,7 @@ describe("Dialogue", () => {
 
   describe("messages initialization", () => {
     it("creates Message instances from constructor data", () => {
-      const msgId = ulid();
+      const msgId = Math.random().toString(36).slice(2);
       const dialogue = new Dialogue(
         createMockDialogue({
           messages: [createMockMessage({ id: msgId, content: "Test" })],
@@ -933,7 +932,7 @@ describe("Dialogue", () => {
     });
 
     it("messages have working onRemoved callback", async () => {
-      const msgId = ulid();
+      const msgId = Math.random().toString(36).slice(2);
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 

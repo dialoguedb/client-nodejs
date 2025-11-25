@@ -2,7 +2,6 @@ import { get } from "@/api/dialogue";
 import { SettingsOrContainer } from "@/settings/class.SettingsContainer";
 import { useSettings } from "@/settings/useSettings";
 import { createDialogue } from "./createDialogue";
-import { ulid } from "ulid";
 import { UseDialogueInput, GetDialogueInput } from "@/types";
 import { Dialogue } from "@/dialogue/class.dialogue";
 
@@ -25,6 +24,6 @@ export async function getOrCreateDialogue(
     }
   } else {
     // no id, treat as new
-    return createDialogue({ id: ulid() }, settings);
+    return createDialogue({}, settings);
   }
 }

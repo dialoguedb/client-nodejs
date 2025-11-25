@@ -1,4 +1,3 @@
-import { ulid } from "ulid";
 import { Message } from "./class.message";
 import * as messageApi from "@/api/message";
 import { IMessage } from "@/types";
@@ -10,7 +9,7 @@ jest.mock("@/api/message", () => ({
 
 function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
   return {
-    id: ulid(),
+    id:Math.random().toString(36).slice(2),
     dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
@@ -24,7 +23,7 @@ function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
 }
 
 describe("Message", () => {
-  const dialogueId = ulid();
+  const dialogueId = Math.random().toString(36).slice(2);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -32,7 +31,7 @@ describe("Message", () => {
 
   describe("constructor validation", () => {
     it("creates message with valid data", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);;
       const message = new Message(dialogueId, createMockMessage({ id }));
 
       expect(message.id).toBe(id);
@@ -165,7 +164,7 @@ describe("Message", () => {
     });
 
     it("saveTags sets tags and calls save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const newTags = ["important"];
 
       (messageApi.update as jest.Mock).mockResolvedValueOnce({
@@ -196,7 +195,7 @@ describe("Message", () => {
     });
 
     it("calls API and clears dirty flag when dirty", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (messageApi.update as jest.Mock).mockResolvedValueOnce({
         ...createMockMessage({ id }),
@@ -213,7 +212,7 @@ describe("Message", () => {
     });
 
     it("syncs tags from server response after save", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const serverTags = ["tag1", "server-added"];
 
       (messageApi.update as jest.Mock).mockResolvedValueOnce({
@@ -230,7 +229,7 @@ describe("Message", () => {
     });
 
     it("updates modified timestamp from server response", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const originalModified = "2024-01-01T00:00:00.000Z";
       const updatedModified = "2024-06-15T12:00:00.000Z";
 
@@ -253,7 +252,7 @@ describe("Message", () => {
 
   describe("remove", () => {
     it("calls API remove", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
@@ -267,7 +266,7 @@ describe("Message", () => {
     });
 
     it("calls onRemoved callback after API remove", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const onRemoved = jest.fn();
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
@@ -281,7 +280,7 @@ describe("Message", () => {
     });
 
     it("does not fail if onRemoved is not provided", async () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
@@ -293,7 +292,7 @@ describe("Message", () => {
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const role = "assistant";
       const content = "Hello there";
       const metadata = { key: "value" };
@@ -320,7 +319,7 @@ describe("Message", () => {
     });
 
     it("works with JSON.stringify", () => {
-      const id = ulid();
+      const id = Math.random().toString(36).slice(2);
       const message = new Message(
         dialogueId,
         createMockMessage({ id, content: "test" })
