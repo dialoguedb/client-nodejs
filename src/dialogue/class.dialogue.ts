@@ -278,13 +278,12 @@ export class Dialogue {
   async getThreads(): Promise<Dialogue[]> {
     const response = await dialogueApi.list(
       {
-        query: "threads",
         threadOf: this.#id,
-      } as any,
+      },
       this.#settings
     );
 
-    return response.items.map((d: any) => new Dialogue(d, this.#settings));
+    return response.items.map((d) => new Dialogue(d, this.#settings));
   }
 
   /**

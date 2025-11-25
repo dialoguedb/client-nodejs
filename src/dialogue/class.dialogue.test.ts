@@ -823,7 +823,6 @@ describe("Dialogue", () => {
 
       expect(dialogueApi.list).toHaveBeenCalledWith(
         expect.objectContaining({
-          query: "threads",
           threadOf: parentId,
         }),
         expect.anything()

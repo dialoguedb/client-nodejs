@@ -39,6 +39,7 @@
   "author": "DialogueDB",
   "dependencies": {
     "node-fetch": "^2.7.0",
+    "p-retry": "^4.6.2",
     "ulid": "^2.3.0"
   },
   "devDependencies": {

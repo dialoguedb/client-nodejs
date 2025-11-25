@@ -1,7 +1,7 @@
 import { assertDialogue } from "@/utils/assertIsDialogue";
 // import { useSettings } from "@/settings/useSettings";
 import { get } from "@/api/dialogue";
-import { useDialogue } from "./useDialogue";
+import { getOrCreateDialogue } from "./useDialogue";
 import { createDialogue } from "./createDialogue";
 import { ulid } from "ulid";
 
@@ -33,7 +33,7 @@ describe("useDialogue", () => {
       id,
     });
 
-    const dialogue = await useDialogue();
+    const dialogue = await getOrCreateDialogue();
     expect(apiGetMock).toHaveBeenCalledTimes(0);
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
     expect(createDialogueMock).toHaveBeenCalledWith(
@@ -54,7 +54,7 @@ describe("useDialogue", () => {
       id: "some-ulid",
     });
 
-    const dialogue = await useDialogue({ id });
+    const dialogue = await getOrCreateDialogue({ id });
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
@@ -71,7 +71,7 @@ describe("useDialogue", () => {
       id,
     });
 
-    const dialogue = await useDialogue({ id });
+    const dialogue = await getOrCreateDialogue({ id });
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(createDialogueMock).toHaveBeenCalledTimes(0);

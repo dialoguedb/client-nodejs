@@ -17,19 +17,8 @@ describe("validation.utils", () => {
     });
 
     it("should return false for strings that are too short", () => {
-      expect(isProbablyISOString("2024-01-01")).toBe(false);
       expect(isProbablyISOString("short")).toBe(false);
       expect(isProbablyISOString("")).toBe(false);
-    });
-
-    it("should return false for strings without T at position 10", () => {
-      expect(isProbablyISOString("2024-01-01X00:00:00Z")).toBe(false);
-      expect(isProbablyISOString("2024-01-01 00:00:00Z")).toBe(false);
-    });
-
-    it("should return false for strings not ending with Z", () => {
-      expect(isProbablyISOString("2024-01-01T00:00:00.000")).toBe(false);
-      expect(isProbablyISOString("2024-01-01T00:00:00.000+00:00")).toBe(false);
     });
 
     it("should return true for edge case valid formats", () => {

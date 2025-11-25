@@ -2,6 +2,10 @@
 import { settings } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
+// errors
+export { DialogueDBError, withRetry } from "./utils/request";
+export type { ErrorType, RetryOptions } from "./utils/request";
+
 // dialogue class/utils
 import { DialogueDB } from "./dialogue/class.dialogue-db";
 import { createDialogue } from "./methods/createDialogue";

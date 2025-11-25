@@ -1,4 +1,4 @@
-import { apiRequest } from "./request";
+import { apiRequest, DialogueDBError } from "./request";
 import fetch, { Response } from "node-fetch";
 
 jest.mock("node-fetch", () => jest.fn());
@@ -32,60 +32,144 @@ describe("apiRequest", () => {
       expect.objectContaining({
         headers: {
           "Content-Type": "application/json",
-          "User-Agent": "dialogue-db-nodejs.0.0.1"
+          "User-Agent": "dialogue-db-nodejs.0.0.1",
         },
         agent: expect.any(Object),
       })
     );
   });
 
-  it("should throw an error when response is not ok", async () => {
+  it("should throw DialogueDBError when response is not ok", async () => {
     const mockResponse = {
       ok: false,
       status: 404,
-      text: jest.fn().mockResolvedValue("Not Found"),
+      statusText: "Not Found",
+      json: jest.fn().mockResolvedValue({
+        error: {
+          code: "DIALOGUE_NOT_FOUND",
+          type: "NOT_FOUND",
+          message: "Dialogue not found",
+          requestId: "req-123",
+        },
+      }),
     } as unknown as Response;
 
     fetchMock.mockResolvedValueOnce(mockResponse);
 
-    await expect(
-      apiRequest("https://api.example.com", {
+    try {
+      await apiRequest("https://api.example.com", {
         headers: { "Content-Type": "application/json" },
-      })
-    ).rejects.toThrow("Request to https://api.example.com failed: Not Found");
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.example.com",
-      expect.objectContaining({
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "dialogue-db-nodejs.0.0.1"
-        },
-        agent: expect.any(Object),
-      })
-    );
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.code).toBe("DIALOGUE_NOT_FOUND");
+      expect(dbError.type).toBe("NOT_FOUND");
+      expect(dbError.statusCode).toBe(404);
+      expect(dbError.message).toBe("Dialogue not found");
+      expect(dbError.requestId).toBe("req-123");
+      expect(dbError.retryable).toBe(false);
+    }
   });
 
-  it("should throw an error when fetch fails", async () => {
-    fetchMock.mockRejectedValueOnce(new Error("Network error"));
-
-    await expect(
-      apiRequest("https://api.example.com", {
-        headers: { "Content-Type": "application/json" },
-      })
-    ).rejects.toThrow(
-      "Request to https://api.example.com failed: Network error"
-    );
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.example.com",
-      expect.objectContaining({
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "dialogue-db-nodejs.0.0.1"
+  it("should throw DialogueDBError with retryable=true for 5xx errors", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+      json: jest.fn().mockResolvedValue({
+        error: {
+          code: "INTERNAL_ERROR",
+          type: "SERVER",
+          message: "Something went wrong",
         },
-        agent: expect.any(Object),
-      })
-    );
+      }),
+    } as unknown as Response;
+
+    fetchMock.mockResolvedValueOnce(mockResponse);
+
+    try {
+      await apiRequest("https://api.example.com", {
+        headers: { "Content-Type": "application/json" },
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.statusCode).toBe(500);
+      expect(dbError.retryable).toBe(true);
+    }
+  });
+
+  it("should throw DialogueDBError with retryable=true for 429 errors", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+      json: jest.fn().mockResolvedValue({
+        error: {
+          code: "RATE_LIMIT_EXCEEDED",
+          type: "RATE_LIMIT",
+          message: "Rate limit exceeded",
+        },
+      }),
+    } as unknown as Response;
+
+    fetchMock.mockResolvedValueOnce(mockResponse);
+
+    try {
+      await apiRequest("https://api.example.com", {
+        headers: { "Content-Type": "application/json" },
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.statusCode).toBe(429);
+      expect(dbError.retryable).toBe(true);
+    }
+  });
+
+  it("should throw DialogueDBError for network failures", async () => {
+    fetchMock.mockRejectedValueOnce(new Error("Connection refused"));
+
+    try {
+      await apiRequest("https://api.example.com", {
+        headers: { "Content-Type": "application/json" },
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.code).toBe("NETWORK_ERROR");
+      expect(dbError.type).toBe("SERVER");
+      expect(dbError.statusCode).toBe(0);
+      expect(dbError.message).toBe("Connection refused");
+    }
+  });
+
+  it("should handle non-JSON error responses gracefully", async () => {
+    const mockResponse = {
+      ok: false,
+      status: 502,
+      statusText: "Bad Gateway",
+      json: jest.fn().mockRejectedValue(new Error("Invalid JSON")),
+    } as unknown as Response;
+
+    fetchMock.mockResolvedValueOnce(mockResponse);
+
+    try {
+      await apiRequest("https://api.example.com", {
+        headers: { "Content-Type": "application/json" },
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.statusCode).toBe(502);
+      expect(dbError.code).toBe("UNKNOWN_ERROR");
+      expect(dbError.message).toBe("Bad Gateway");
+    }
   });
 });
