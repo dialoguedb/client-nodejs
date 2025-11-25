@@ -42,7 +42,7 @@ describe("update", () => {
     expect(spyGet).toHaveBeenCalledWith("apiKey");
     expect(spyGet).toHaveBeenCalledWith("endpoint");
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
+    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue/${id}`, {
       method: "put",
       headers,
       body: JSON.stringify(body),
@@ -79,7 +79,7 @@ describe("update", () => {
     expect(spyGet).toHaveBeenCalledWith("apiKey");
     expect(spyGet).toHaveBeenCalledWith("endpoint");
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
+    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue/${id}`, {
       method: "put",
       headers,
       body: JSON.stringify(body),

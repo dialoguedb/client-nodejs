@@ -50,9 +50,9 @@ describe("search", () => {
     expectedParams.set("query", "test search");
 
     expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
+      method: "POST",
       headers: expect.any(Headers),
-      params: expectedParams,
+      body: JSON.stringify(filters),
     });
 
     expect(result).toEqual(mockResponse);
@@ -75,25 +75,22 @@ describe("search", () => {
 
     await search(filters, settings);
 
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("limit", "5");
-
     expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
+      method: "POST",
       headers: expect.any(Headers),
-      params: expectedParams,
+      body: JSON.stringify(filters),
     });
   });
 
-  it("should search with created parameter", async () => {
+  it("should search with filter.created parameter", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
     const filters = {
       query: "test",
       object: "message" as const,
-      created: "2024-01-01T00:00:00.000Z",
+      filter: {
+        created: "2024-01-01T00:00:00.000Z",
+      },
     };
 
     const settings = new SettingsContainer();
@@ -103,200 +100,12 @@ describe("search", () => {
     apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
 
     await search(filters, settings);
-
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("created", "2024-01-01T00:00:00.000Z");
 
     expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
+      method: "POST",
       headers: expect.any(Headers),
-      params: expectedParams,
+      body: JSON.stringify(filters),
     });
-  });
-
-  it("should search with startDate and endDate parameters", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    const callArgs = apiRequestMock.mock.calls[0];
-    const params = callArgs[1].params;
-
-    expect(params.get("object")).toBe("message");
-    expect(params.get("query")).toBe("test");
-    expect(params.get("startDate")).toBe("2024-01-01");
-    expect(params.get("endDate")).toBe("2024-12-31");
-  });
-
-  it("should prefer created over startDate/endDate", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      created: "2024-01-01T00:00:00.000Z",
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("created", "2024-01-01T00:00:00.000Z");
-    // Should NOT include startDate/endDate when created is present
-
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
-      headers: expect.any(Headers),
-      params: expectedParams,
-    });
-  });
-
-  it("should search with dialogueId parameter", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      dialogueId: "dialogue-123",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("dialogueId", "dialogue-123");
-
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
-      headers: expect.any(Headers),
-      params: expectedParams,
-    });
-  });
-
-  it("should search with namespace parameter", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      namespace: "my-namespace",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("namespace", "my-namespace");
-
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
-      headers: expect.any(Headers),
-      params: expectedParams,
-    });
-  });
-
-  it("should search with threadOf parameter", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      threadOf: "parent-dialogue-123",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test");
-    expectedParams.set("threadOf", "parent-dialogue-123");
-
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "get",
-      headers: expect.any(Headers),
-      params: expectedParams,
-    });
-  });
-
-  it("should search with all parameters combined", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "comprehensive search",
-      object: "message" as const,
-      limit: 20,
-      dialogueId: "dialogue-123",
-      namespace: "my-namespace",
-      threadOf: "parent-123",
-      startDate: "2024-01-01",
-      endDate: "2024-12-31",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    const callArgs = apiRequestMock.mock.calls[0];
-    const params = callArgs[1].params;
-
-    expect(params.get("object")).toBe("message");
-    expect(params.get("query")).toBe("comprehensive search");
-    expect(params.get("limit")).toBe("20");
-    expect(params.get("startDate")).toBe("2024-01-01");
-    expect(params.get("endDate")).toBe("2024-12-31");
-    expect(params.get("dialogueId")).toBe("dialogue-123");
-    expect(params.get("namespace")).toBe("my-namespace");
-    expect(params.get("threadOf")).toBe("parent-123");
   });
 
   it("should set Authorization header correctly", async () => {
@@ -321,23 +130,4 @@ describe("search", () => {
     expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
   });
 
-  it("should log filters and params for debugging", async () => {
-    const filters = {
-      query: "test",
-      object: "message" as const,
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", "key");
-    settings.set("endpoint", "https://api.example.com");
-
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
-
-    await search(filters, settings);
-
-    expect(consoleLogSpy).toHaveBeenCalledWith({ filters });
-    expect(consoleLogSpy).toHaveBeenCalledWith({
-      params: expect.any(URLSearchParams),
-    });
-  });
 });

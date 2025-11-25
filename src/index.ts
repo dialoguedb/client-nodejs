@@ -3,7 +3,7 @@ import { settings } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
 // dialogue class/utils
-import { DialogueDB } from "./dialogue/class";
+import { DialogueDB } from "./dialogue/class.dialogue-db";
 import { createDialogue } from "./methods/createDialogue";
 import { getDialogue } from "./methods/getDialogue";
 import { listDialogues } from "./methods/listDialogues";

@@ -1,5 +1,5 @@
 import { IDialogue, IMessage, CreateMessageInput } from "@/types";
-import { update, list } from "@/api/dialogue";
+import * as dialogueApi from "@/api/dialogue";
 import * as messageApi from "@/api/message";
 import * as messagesApi from "@/api/messages";
 import { useSettings } from "@/settings/useSettings";
@@ -7,101 +7,183 @@ import {
   Settings,
   SettingsContainer,
 } from "@/settings/class.SettingsContainer";
-import { dialogueDefaults } from "@/methods/dialogueDefaults";
 import { safeParseJson, safeStringifyJson } from "@/utils/json";
-import { createDialogue } from "@/methods/createDialogue";
-import { initializeDialogue } from "@/methods/initializeDialogue";
+import { Message } from "./class.message";
+import { isPlainObject } from "@/utils/lodash";
 
 export class Dialogue {
-  public id: string;
-  public namespace?: string;
+  #id: string;
+  #namespace?: string;
+  #metadata: Record<string, any> = {};
+  #created: string;
+  #modified: string;
 
-  public messages: IMessage[] = [];
+  #messages: Message[] = [];
+  #state: Record<string, any> = {};
+  #tags: string[] = [];
 
-  public state: Record<string, any>;
-
-  public metadata: Record<string, any>;
-
-  public created: string = new Date().toISOString();
-  public modified: string;
-
-  public tags: string[] = [];
-
-  #nextToken?: string;
   #settings: SettingsContainer;
   #isDirty: boolean = false;
+  #nextToken?: string;
 
-  constructor(
-    dialogue: { id: string; namespace?: string } & Partial<IDialogue>,
-    settings?: SettingsContainer | Settings
-  ) {
-    this.id = dialogue.id;
-    this.namespace = dialogue.namespace;
-
-    this.setProperties(dialogueDefaults(dialogue));
+  constructor(dialogue: IDialogue, settings?: SettingsContainer | Settings) {
     this.#settings = useSettings(settings);
+    this.#setProperties(dialogue);
   }
 
-  setProperties(dialogue: IDialogue) {
-    this.id = dialogue.id;
-    this.namespace = dialogue.namespace;
+  #setProperties(dialogue: IDialogue): void {
+    // Required
+    if (!dialogue?.id || typeof dialogue.id !== "string") {
+      throw new Error("Dialogue id is required and must be a string");
+    }
 
-    this.messages = dialogue.messages;
-    this.state = safeParseJson(dialogue.state);
-    this.metadata = safeParseJson(dialogue.metadata);
+    this.#id = dialogue.id;
 
-    this.created = dialogue.created;
-    this.modified = dialogue.modified;
-    this.tags = dialogue.tags;
+    // Optional namespace
+    if (typeof dialogue.namespace === "string") {
+      this.#namespace = dialogue.namespace;
+    }
 
-    return this;
+    // Timestamps - default to now if missing
+    const now = new Date().toISOString();
+    this.#created =
+      typeof dialogue.created === "string" ? dialogue.created : now;
+    this.#modified =
+      typeof dialogue.modified === "string" ? dialogue.modified : this.#created;
+
+    // deep clone to prevent external mutation!
+    if (isPlainObject(dialogue.metadata)) {
+      this.#metadata = structuredClone(dialogue.metadata);
+    }
+
+    // deep clone to prevent external mutation!
+    if (isPlainObject(dialogue.state)) {
+      this.#state = structuredClone(dialogue.state);
+    }
+
+    if (Array.isArray(dialogue.tags)) {
+      if (dialogue.tags.every((a) => typeof a === "string")) {
+        this.#tags = [...dialogue.tags];
+      } else {
+        throw new Error("tags must be array of strings");
+      }
+    }
+
+    this.#messages = Array.isArray(dialogue.messages)
+      ? dialogue.messages.map((m) => this.#createMessage(m))
+      : [];
   }
 
-  setState(state: Record<string, any>) {
-    this.state = safeParseJson(safeStringifyJson(state));
+  #createMessage(message: IMessage): Message {
+    const msg = new Message(this.#id, message, this.#settings, {
+      onRemoved: () => {
+        this.#messages = this.#messages.filter((m) => m.id !== msg.id);
+      },
+    });
+    return msg;
+  }
+
+  // ============ Readonly Getters ============
+
+  get id(): string {
+    return this.#id;
+  }
+
+  get namespace(): string | undefined {
+    return this.#namespace;
+  }
+
+  get metadata(): Readonly<Record<string, any>> {
+    return { ...this.#metadata };
+  }
+
+  get created(): string {
+    return this.#created;
+  }
+
+  get modified(): string {
+    return this.#modified;
+  }
+
+  get messages(): readonly Message[] {
+    return this.#messages;
+  }
+
+  // ============ Mutable Getters/Setters ============
+
+  get state(): Record<string, any> {
+    return this.#state;
+  }
+
+  set state(value: Record<string, any>) {
+    this.#state = safeParseJson(safeStringifyJson(value));
     this.#isDirty = true;
   }
 
-  getState() {
-    return { ...this.state };
+  get tags(): string[] {
+    return this.#tags;
   }
-  getMetadata() {
-    return { ...this.metadata };
+
+  set tags(value: string[]) {
+    this.#tags = value;
+    this.#isDirty = true;
   }
 
   /**
-   * Add a message to the dialogue
-   * POSTs immediately to API, updates local cache
+   * Set state and save immediately
    */
+  async saveState(state: Record<string, any>): Promise<Dialogue> {
+    this.state = state;
+    return this.save();
+  }
 
-  async addMessage(message: CreateMessageInput) {
+  /**
+   * Set tags and save immediately
+   */
+  async saveTags(tags: string[]): Promise<Dialogue> {
+    this.tags = tags;
+    return this.save();
+  }
+
+  /**
+   * Create and save a message to the dialogue
+   */
+  async saveMessage(
+    message: Omit<CreateMessageInput, "dialogueId">
+  ): Promise<Message> {
     const created = await messageApi.create(
-      { ...message, dialogueId: this.id },
+      { ...message, dialogueId: this.#id },
       this.#settings
     );
-    this.messages.push(created as any);
-    return created;
+
+    const newMessage = this.#createMessage(created);
+    this.#messages.push(newMessage);
+
+    return newMessage;
   }
 
   /**
-   * Add multiple messages to the dialogue in a single batch operation
-   * More efficient than calling addMessage multiple times
+   * Create and save multiple messages to the dialogue
    */
-  async addMessages(
+  async saveMessages(
     messages: Array<{
       role: string;
       content: string;
       id?: string;
       created?: string;
     }>
-  ) {
+  ): Promise<Message[]> {
     const createdMessages = await Promise.all(
       messages.map((message) =>
-        messagesApi.create({ ...message, dialogueId: this.id }, this.#settings)
+        messagesApi.create({ ...message, dialogueId: this.#id }, this.#settings)
       )
     );
-    this.messages.push(...(createdMessages as any));
-    return createdMessages;
+
+    const newMessages = createdMessages.map((created) =>
+      this.#createMessage(created)
+    );
+    this.#messages.push(...newMessages);
+    return newMessages;
   }
 
   /**
@@ -110,20 +192,22 @@ export class Dialogue {
    */
   async loadMessages(options?: { limit?: number; next?: string }) {
     const { items, next } = await messagesApi.list(
-      { ...(options ?? {}), dialogueId: this.id },
+      { ...(options ?? {}), dialogueId: this.#id },
       this.#settings
     );
 
+    const loadedMessages = items.map((item) => this.#createMessage(item));
+
     if (options?.next) {
       // Pagination - append
-      this.messages.push(...(items as any));
+      this.#messages.push(...loadedMessages);
     } else {
       // Initial load - replace
-      this.messages = items as any;
+      this.#messages = loadedMessages;
     }
 
     this.#nextToken = next;
-    return items;
+    return loadedMessages;
   }
 
   /**
@@ -132,43 +216,41 @@ export class Dialogue {
    */
   async deleteMessage(messageId: string): Promise<void> {
     await messageApi.remove(
-      { dialogueId: this.id, id: messageId },
+      { dialogueId: this.#id, id: messageId },
       this.#settings
     );
-    this.messages = this.messages.filter((m: any) => m.id !== messageId);
+    this.#messages = this.#messages.filter((m) => m.id !== messageId);
   }
 
   /**
    * Create a child thread of this dialogue
    */
-  async createThread(input: {
-    metadata?: Record<string, any>;
-    tags?: string[];
-  }) {
-    return createDialogue(
-      {
-        ...input,
-        threadOf: this.id,
-      },
+  async createThread(
+    input: {
+      metadata?: Record<string, any>;
+      tags?: string[];
+    } = {}
+  ): Promise<Dialogue> {
+    const data = await dialogueApi.create(
+      { ...input, threadOf: this.#id },
       this.#settings
     );
+    return new Dialogue(data, this.#settings);
   }
 
   /**
    * Get all child threads
    */
-  async getThreads() {
-    const response = await list(
+  async getThreads(): Promise<Dialogue[]> {
+    const response = await dialogueApi.list(
       {
         query: "threads",
-        threadOf: this.id,
+        threadOf: this.#id,
       } as any,
       this.#settings
     );
 
-    return response.items.map((d: any) =>
-      initializeDialogue(d, this.#settings)
-    );
+    return response.items.map((d: any) => new Dialogue(d, this.#settings));
   }
 
   /**
@@ -176,7 +258,6 @@ export class Dialogue {
    */
   async end(): Promise<void> {
     // TODO: Implement when backend action endpoint is ready
-    // await api.dialogues.action(this.id, 'end');
     throw new Error(
       "end() action not yet implemented - backend endpoint needed"
     );
@@ -187,17 +268,16 @@ export class Dialogue {
    */
   async compact(): Promise<any> {
     // TODO: Implement when backend action endpoint is ready
-    // return api.dialogues.action(this.id, 'compact');
     throw new Error(
       "compact() action not yet implemented - backend endpoint needed"
     );
   }
 
   /**
-   * Check if there are unsaved changes
+   * Check if there are unsaved changes (dialogue or any messages)
    */
   get isDirty(): boolean {
-    return this.#isDirty;
+    return this.#isDirty || this.#messages.some((m) => m.isDirty);
   }
 
   /**
@@ -207,31 +287,49 @@ export class Dialogue {
     return !!this.#nextToken;
   }
 
-  async save() {
+  async save(): Promise<Dialogue> {
+    // Save any dirty messages
+    const dirtyMessages = this.#messages.filter((m) => m.isDirty);
+    if (dirtyMessages.length > 0) {
+      await Promise.all(dirtyMessages.map((m) => m.save()));
+    }
+
+    // Only save dialogue if it has changes
+    if (!this.#isDirty) {
+      return this;
+    }
+
     const payload: { id: string } & Record<string, any> = {
-      id: this.id,
+      id: this.#id,
     };
 
-    if (this.namespace) {
-      payload.namespace = this.namespace;
+    if (this.#state && Object.keys(this.#state).length) {
+      payload.state = this.#state;
     }
-    if (this.state && Object.keys(this.state).length) {
-      payload.state = this.state;
-    }
-    if (this.metadata && Object.keys(this.metadata).length) {
-      payload.metadata = this.metadata;
+    if (this.#tags && this.#tags.length) {
+      payload.tags = this.#tags;
     }
 
-    // Only call API if there are changes beyond just the id
-    if (Object.keys(payload).length === 1) {
-      return this; // Nothing to save
-    }
+    const updated = await dialogueApi.update(payload, this.#settings);
 
-    const req = await update(payload, this.#settings);
-
-    // Clear dirty flag after successful save
     this.#isDirty = false;
+    this.#modified = updated.modified;
+    this.#state = updated.state ?? {};
+    this.#tags = updated.tags ?? [];
 
-    return this.setProperties(req);
+    return this;
+  }
+
+  toJSON() {
+    return {
+      id: this.#id,
+      namespace: this.#namespace,
+      metadata: this.#metadata,
+      state: this.#state,
+      tags: this.#tags,
+      messages: this.#messages,
+      created: this.#created,
+      modified: this.#modified,
+    };
   }
 }

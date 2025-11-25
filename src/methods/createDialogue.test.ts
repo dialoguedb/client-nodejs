@@ -18,6 +18,13 @@ describe("createDialogue", () => {
 
     apiCreateMock.mockResolvedValueOnce({
       id,
+      expired: false,
+      state: {},
+      messages: [],
+      metadata: {},
+      tags: [],
+      created: new Date().toISOString(),
+      modified: new Date().toISOString(),
     });
 
     const dialogue = await createDialogue({ id });
@@ -39,6 +46,13 @@ describe("createDialogue", () => {
     apiCreateMock.mockResolvedValueOnce({
       id,
       namespace,
+      expired: false,
+      state: {},
+      messages: [],
+      metadata: {},
+      tags: [],
+      created: new Date().toISOString(),
+      modified: new Date().toISOString(),
     });
 
     const dialogue = await createDialogue({ id, namespace });
@@ -57,20 +71,22 @@ describe("createDialogue", () => {
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
 
-  it("will create if given id that does not exist", async () => {
-    const id = "non-existing-item-id";
+  it("will create with empty input when no id provided", async () => {
+    const id = "server-generated-id";
     apiCreateMock.mockResolvedValueOnce({
       id,
+      expired: false,
+      state: {},
+      messages: [],
+      metadata: {},
+      tags: [],
+      created: new Date().toISOString(),
+      modified: new Date().toISOString(),
     });
 
     const dialogue = await createDialogue();
     expect(apiCreateMock).toHaveBeenCalledTimes(1);
-    expect(apiCreateMock).toHaveBeenCalledWith(
-      {
-        id: expect.any(String),
-      },
-      expect.anything()
-    );
+    expect(apiCreateMock).toHaveBeenCalledWith({}, expect.anything());
     expect(typeof dialogue.id).toBe("string");
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
