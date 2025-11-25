@@ -1,6 +1,5 @@
 export interface IMemory {
   key: string;
-  projectId: string;
   namespace?: string;
   label?: string;
   description?: string;

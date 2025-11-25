@@ -3,10 +3,9 @@ import { settings } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
 // dialogue class/utils
-import { Dialogue } from "./dialogue/class.dialogue";
+import { DialogueDB } from "./dialogue/class";
 import { createDialogue } from "./methods/createDialogue";
 import { getDialogue } from "./methods/getDialogue";
-import { initializeDialogue } from "./methods/initializeDialogue";
 import { listDialogues } from "./methods/listDialogues";
 import { useDialogue } from "./methods/useDialogue";
 
@@ -57,8 +56,7 @@ export {
   createConfig,
 
   // expose the class
-  Dialogue,
-  initializeDialogue,
+  DialogueDB,
 
   // convenience functions
   useDialogue,

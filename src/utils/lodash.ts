@@ -111,3 +111,31 @@ export function toNumber(value: any): number {
   }
   return NaN;
 }
+
+export function isPlainObject(value: unknown): boolean {
+  if (
+    !(typeof value === "object" && value !== null) ||
+    Object.prototype.toString.call(value) !== "[object Object]"
+  ) {
+    return false;
+  }
+
+  const proto = Object.getPrototypeOf(value);
+
+  // Object.create(null)
+  if (proto === null) {
+    return true;
+  }
+
+  // Check if constructed by Object
+  const constructor =
+    Object.prototype.hasOwnProperty.call(proto, "constructor") &&
+    proto.constructor;
+
+  return (
+    typeof constructor === "function" &&
+    constructor instanceof constructor &&
+    Function.prototype.toString.call(constructor) ===
+      Function.prototype.toString.call(Object)
+  );
+}
