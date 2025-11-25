@@ -11,7 +11,7 @@ import { DialogueDB } from "./dialogue/class.dialogue-db";
 import { createDialogue } from "./methods/createDialogue";
 import { getDialogue } from "./methods/getDialogue";
 import { listDialogues } from "./methods/listDialogues";
-import { getOrCreateDialogue } from "./methods/useDialogue";
+import { getOrCreateDialogue } from "./methods/getOrCreateDialogue";
 
 // api things
 import * as dialogueApi from "./api/dialogue";

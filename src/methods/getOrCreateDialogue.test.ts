@@ -1,7 +1,7 @@
 import { assertDialogue } from "@/utils/assertIsDialogue";
 // import { useSettings } from "@/settings/useSettings";
 import { get } from "@/api/dialogue";
-import { getOrCreateDialogue } from "./useDialogue";
+import { getOrCreateDialogue } from "./getOrCreateDialogue";
 import { createDialogue } from "./createDialogue";
 
 jest.mock("@/api/dialogue", () => ({
