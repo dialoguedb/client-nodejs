@@ -6,6 +6,7 @@ import {
 } from "@/settings/class.SettingsContainer";
 import { useSettings } from "@/settings/useSettings";
 import { isPlainObject } from "@/utils/lodash";
+import { inspect } from "util";
 
 export interface MessageOptions {
   onRemoved?: () => void;
@@ -13,16 +14,17 @@ export interface MessageOptions {
 
 export class Message {
   #id: string;
-  #content: IMessage["content"];
-  #role: IMessage["role"];
-  #metadata: IMessage["metadata"];
-  #created: IMessage["created"];
-  #modified: IMessage["modified"];
-
-  #tags: string[] = [];
-  #isDirty = false;
-
   #dialogueId: string;
+  #role: string;
+  #content: IMessage["content"];
+  #created: string;
+
+  // Optional fields
+  #name?: string;
+  #metadata?: Record<string, string | number | boolean>;
+  #tags: string[] = [];
+
+  #isDirty = false;
   #settings: SettingsContainer;
   #onRemoved?: () => void;
 
@@ -44,13 +46,12 @@ export class Message {
   }
 
   #setProperties(message: IMessage): void {
-    // Required
+    // Required fields
     if (!message?.id || typeof message.id !== "string") {
       throw new Error("Message id is required and must be a string");
     }
     this.#id = message.id;
 
-    // Role - required, validate type
     if (!message?.role || typeof message.role !== "string") {
       throw new Error("Message role is required and must be a string");
     }
@@ -59,14 +60,16 @@ export class Message {
     // Content - can be string or structured
     this.#content = message.content ?? "";
 
-    // Timestamps - default to now if missing
+    // Timestamp
     const now = new Date().toISOString();
     this.#created =
       typeof message.created === "string" ? message.created : now;
-    this.#modified =
-      typeof message.modified === "string" ? message.modified : this.#created;
 
-    // Objects - deep clone
+    // Optional fields
+    if (typeof message.name === "string") {
+      this.#name = message.name;
+    }
+
     if (isPlainObject(message.metadata)) {
       this.#metadata = structuredClone(message.metadata);
     }
@@ -92,16 +95,16 @@ export class Message {
     return this.#content;
   }
 
-  get metadata(): Readonly<Record<string, any>> {
-    return structuredClone(this.#metadata);
+  get name(): string | undefined {
+    return this.#name;
   }
 
-  get created(): IMessage["created"] {
+  get metadata(): Readonly<Record<string, string | number | boolean>> | undefined {
+    return this.#metadata ? structuredClone(this.#metadata) : undefined;
+  }
+
+  get created(): string {
     return this.#created;
-  }
-
-  get modified(): IMessage["modified"] {
-    return this.#modified;
   }
 
   get tags(): string[] {
@@ -142,7 +145,6 @@ export class Message {
       this.#settings
     );
 
-    this.#modified = updated.modified;
     this.#tags = updated.tags ?? [];
     this.#isDirty = false;
   }
@@ -160,10 +162,14 @@ export class Message {
       id: this.#id,
       role: this.#role,
       content: this.#content,
-      metadata: this.#metadata,
-      tags: this.#tags,
       created: this.#created,
-      modified: this.#modified,
+      ...(this.#name !== undefined && { name: this.#name }),
+      ...(this.#metadata !== undefined && { metadata: this.#metadata }),
+      ...(this.#tags.length > 0 && { tags: this.#tags }),
     };
+  }
+
+  [inspect.custom]() {
+    return this.toJSON();
   }
 }

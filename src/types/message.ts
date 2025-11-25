@@ -5,11 +5,11 @@ export interface IMessage {
   dialogueId: string;
   role: string;
   content: MessageContent;
-  namespace: string;
   created: string;
-  modified: string;
-  tags: string[];
-  metadata: Record<string, string | number | boolean>;
+
+  name?: string;
+  metadata?: Record<string, string | number | boolean>;
+  tags?: string[];
 }
 
 export interface CreateMessageInput {
@@ -17,9 +17,9 @@ export interface CreateMessageInput {
   role: string;
   content: MessageContent;
   id?: string;
+  name?: string;
   tags?: string[];
   metadata?: Record<string, string | number | boolean>;
-  namespace?: string;
   created?: string;
 }
 

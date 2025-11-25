@@ -24,7 +24,9 @@ jest.mock("@/api/messages", () => ({
 function createMockDialogue(overrides: Partial<IDialogue> = {}): IDialogue {
   return {
     id: Math.random().toString(36).slice(2),
-    expired: false,
+    projectId: "test-project",
+    requestId: "test-request",
+    status: "active",
     state: {},
     messages: [],
     metadata: {},
@@ -41,11 +43,7 @@ function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
     dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
-    namespace: "test",
-    metadata: {},
-    tags: [],
     created: new Date().toISOString(),
-    modified: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -855,6 +853,9 @@ describe("Dialogue", () => {
   describe("toJSON", () => {
     it("returns plain object representation", () => {
       const id = Math.random().toString(36).slice(2);
+      const projectId = "test-project";
+      const requestId = "test-request";
+      const status = "active" as const;
       const namespace = "test-ns";
       const state = { step: 1 };
       const tags = ["tag1"];
@@ -865,6 +866,9 @@ describe("Dialogue", () => {
       const dialogue = new Dialogue(
         createMockDialogue({
           id,
+          projectId,
+          requestId,
+          status,
           namespace,
           state,
           tags,
@@ -878,6 +882,9 @@ describe("Dialogue", () => {
 
       expect(json).toEqual({
         id,
+        projectId,
+        requestId,
+        status,
         namespace,
         state,
         tags,

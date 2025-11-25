@@ -6,6 +6,7 @@ import { useSettings } from "@/settings/useSettings";
 import { IMemory } from "@/types";
 import * as memoryApi from "@/api/memory";
 import { isPlainObject } from "@/utils/lodash";
+import { inspect } from "util";
 
 export interface MemoryOptions {
   onRemoved?: () => void;
@@ -21,10 +22,9 @@ export class Memory {
   #metadata: IMemory["metadata"];
   #created: string;
   #modified: string;
-
   #tags: string[] = [];
-  #isDirty = false;
 
+  #isDirty = false;
   #settings: SettingsContainer;
   #onRemoved?: () => void;
 
@@ -190,9 +190,9 @@ export class Memory {
   toJSON() {
     return {
       key: this.#key,
-      namespace: this.#namespace,
-      label: this.#label,
-      description: this.#description,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      ...(this.#label !== undefined && { label: this.#label }),
+      ...(this.#description !== undefined && { description: this.#description }),
       value: this.#value,
       type: this.#type,
       metadata: this.#metadata,
@@ -200,5 +200,9 @@ export class Memory {
       created: this.#created,
       modified: this.#modified,
     };
+  }
+
+  [inspect.custom]() {
+    return this.toJSON();
   }
 }

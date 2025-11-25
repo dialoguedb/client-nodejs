@@ -45,12 +45,9 @@ export function isCreateMessageInput(
     }
   }
 
-  if (input.namespace) {
-    if (typeof input.namespace !== "string") {
-      return [false, "Property 'namespace' must be a string"];
-    }
-    if (input.namespace.length <= 4) {
-      return [false, "Property 'namespace' must have a length greater than 4"];
+  if (input.name) {
+    if (typeof input.name !== "string") {
+      return [false, "Property 'name' must be a string"];
     }
   }
 

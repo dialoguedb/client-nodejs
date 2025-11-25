@@ -4,10 +4,9 @@ import { defaults } from "@/utils/lodash";
 export function dialogueDefaults(options: Partial<IDialogue>): IDialogue {
   const properties = {
     id: "",
-
-    canceled: false,
-    expired: false,
-    expiresTimestamp: 0,
+    projectId: "",
+    requestId: "",
+    status: "active",
 
     messages: [],
     state: {},

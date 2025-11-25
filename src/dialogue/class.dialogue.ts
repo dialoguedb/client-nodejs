@@ -14,14 +14,28 @@ import {
 } from "@/settings/class.SettingsContainer";
 import { Message } from "./class.message";
 import { isPlainObject } from "@/utils/lodash";
+import { inspect } from "util";
 
 export class Dialogue {
   #id: string;
-  #namespace?: string;
-  #metadata: Record<string, any> = {};
+  #projectId: string;
+  #requestId: string;
+  #status: "active" | "ended" | "archived";
   #created: string;
   #modified: string;
 
+  // Optional fields
+  #namespace?: string;
+  #threadOf?: string;
+  #label?: string;
+  #previousId?: string;
+  #archivedAt?: string;
+  #endedAt?: string;
+  #totalMessages?: number;
+  #threadCount?: number;
+  #lastMessageCreated?: string;
+
+  #metadata: Record<string, any> = {};
   #messages: Message[] = [];
   #state: Record<string, any> = {};
   #tags: string[] = [];
@@ -30,6 +44,7 @@ export class Dialogue {
   #isDirty: boolean = false;
   #stateChanged: boolean = false;
   #tagsChanged: boolean = false;
+  #labelChanged: boolean = false;
   #nextToken?: string;
 
   constructor(dialogue: IDialogue, settings?: SettingsContainer | Settings) {
@@ -38,32 +53,58 @@ export class Dialogue {
   }
 
   #setProperties(dialogue: IDialogue): void {
-    // Required
+    // Required fields
     if (!dialogue?.id || typeof dialogue.id !== "string") {
       throw new Error("Dialogue id is required and must be a string");
     }
-
     this.#id = dialogue.id;
+    this.#projectId = dialogue.projectId;
+    this.#requestId = dialogue.requestId;
+    this.#status = dialogue.status;
 
-    // Optional namespace
-    if (typeof dialogue.namespace === "string") {
-      this.#namespace = dialogue.namespace;
-    }
-
-    // Timestamps - default to now if missing
+    // Timestamps
     const now = new Date().toISOString();
     this.#created =
       typeof dialogue.created === "string" ? dialogue.created : now;
     this.#modified =
       typeof dialogue.modified === "string" ? dialogue.modified : this.#created;
 
-    // deep clone to prevent external mutation!
-    if (isPlainObject(dialogue.metadata)) {
-      this.#metadata = structuredClone(dialogue.metadata);
+    // Optional string fields
+    if (typeof dialogue.namespace === "string") {
+      this.#namespace = dialogue.namespace;
+    }
+    if (typeof dialogue.threadOf === "string") {
+      this.#threadOf = dialogue.threadOf;
+    }
+    if (typeof dialogue.label === "string") {
+      this.#label = dialogue.label;
+    }
+    if (typeof dialogue.previousId === "string") {
+      this.#previousId = dialogue.previousId;
+    }
+    if (typeof dialogue.archivedAt === "string") {
+      this.#archivedAt = dialogue.archivedAt;
+    }
+    if (typeof dialogue.endedAt === "string") {
+      this.#endedAt = dialogue.endedAt;
+    }
+    if (typeof dialogue.lastMessageCreated === "string") {
+      this.#lastMessageCreated = dialogue.lastMessageCreated;
     }
 
-    // deep clone to prevent external mutation!
-    if (isPlainObject(dialogue.state)) {
+    // Optional number fields
+    if (typeof dialogue.totalMessages === "number") {
+      this.#totalMessages = dialogue.totalMessages;
+    }
+    if (typeof dialogue.threadCount === "number") {
+      this.#threadCount = dialogue.threadCount;
+    }
+
+    // Deep clone objects to prevent external mutation
+    if (dialogue.metadata && isPlainObject(dialogue.metadata)) {
+      this.#metadata = structuredClone(dialogue.metadata);
+    }
+    if (dialogue.state && isPlainObject(dialogue.state)) {
       this.#state = structuredClone(dialogue.state);
     }
 
@@ -89,13 +130,52 @@ export class Dialogue {
     return msg;
   }
 
-
   get id(): string {
     return this.#id;
   }
 
+  get projectId(): string {
+    return this.#projectId;
+  }
+
+  get requestId(): string {
+    return this.#requestId;
+  }
+
+  get status(): "active" | "ended" | "archived" {
+    return this.#status;
+  }
+
   get namespace(): string | undefined {
     return this.#namespace;
+  }
+
+  get threadOf(): string | undefined {
+    return this.#threadOf;
+  }
+
+  get previousId(): string | undefined {
+    return this.#previousId;
+  }
+
+  get archivedAt(): string | undefined {
+    return this.#archivedAt;
+  }
+
+  get endedAt(): string | undefined {
+    return this.#endedAt;
+  }
+
+  get totalMessages(): number | undefined {
+    return this.#totalMessages;
+  }
+
+  get threadCount(): number | undefined {
+    return this.#threadCount;
+  }
+
+  get lastMessageCreated(): string | undefined {
+    return this.#lastMessageCreated;
   }
 
   get metadata(): Readonly<Record<string, any>> {
@@ -117,6 +197,16 @@ export class Dialogue {
   /**
    * Mutable Getters/Setters
    */
+
+  get label(): string | undefined {
+    return this.#label;
+  }
+
+  set label(value: string | undefined) {
+    this.#label = value;
+    this.#isDirty = true;
+    this.#labelChanged = true;
+  }
 
   get state(): Record<string, any> {
     return structuredClone(this.#state);
@@ -342,15 +432,22 @@ export class Dialogue {
     if (this.#tagsChanged) {
       payload.tags = this.#tags;
     }
+    if (this.#labelChanged) {
+      payload.label = this.#label;
+    }
 
     const updated = await dialogueApi.update(payload, this.#settings);
 
     this.#isDirty = false;
     this.#stateChanged = false;
     this.#tagsChanged = false;
+    this.#labelChanged = false;
     this.#modified = updated.modified;
     this.#state = updated.state ?? {};
     this.#tags = updated.tags ?? [];
+    if (typeof updated.label === "string") {
+      this.#label = updated.label;
+    }
 
     return this;
   }
@@ -358,7 +455,18 @@ export class Dialogue {
   toJSON() {
     return {
       id: this.#id,
-      namespace: this.#namespace,
+      projectId: this.#projectId,
+      requestId: this.#requestId,
+      status: this.#status,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      ...(this.#threadOf !== undefined && { threadOf: this.#threadOf }),
+      ...(this.#label !== undefined && { label: this.#label }),
+      ...(this.#previousId !== undefined && { previousId: this.#previousId }),
+      ...(this.#archivedAt !== undefined && { archivedAt: this.#archivedAt }),
+      ...(this.#endedAt !== undefined && { endedAt: this.#endedAt }),
+      ...(this.#totalMessages !== undefined && { totalMessages: this.#totalMessages }),
+      ...(this.#threadCount !== undefined && { threadCount: this.#threadCount }),
+      ...(this.#lastMessageCreated !== undefined && { lastMessageCreated: this.#lastMessageCreated }),
       metadata: this.#metadata,
       state: this.#state,
       tags: this.#tags,
@@ -366,5 +474,9 @@ export class Dialogue {
       created: this.#created,
       modified: this.#modified,
     };
+  }
+
+  [inspect.custom]() {
+    return this.toJSON();
   }
 }

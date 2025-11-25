@@ -77,12 +77,9 @@ export function isUpdateDialogueInput(
     return [false, "Property 'id' must have a length greater than 4"];
   }
 
-  if (input.namespace) {
-    if (typeof input.namespace !== "string") {
-      return [false, "Property 'namespace' must be a string"];
-    }
-    if (input.namespace.length <= 4) {
-      return [false, "Property 'namespace' must have a length greater than 4"];
+  if (input.label) {
+    if (typeof input.label !== "string") {
+      return [false, "Property 'label' must be a string"];
     }
   }
   return [true];

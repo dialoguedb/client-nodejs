@@ -129,38 +129,24 @@ describe("validation.message", () => {
       expect(result[0]).toBe(true);
     });
 
-    it("should fail when namespace is not a string", () => {
+    it("should fail when name is not a string", () => {
       const input = {
         dialogueId: "dialogue-123",
         role: "user",
         content: "Hello",
-        namespace: 123,
+        name: 123,
       } as any;
       const result = isCreateMessageInput(input);
       expect(result[0]).toBe(false);
-      expect(result[1]).toBe("Property 'namespace' must be a string");
+      expect(result[1]).toBe("Property 'name' must be a string");
     });
 
-    it("should fail when namespace is too short", () => {
+    it("should pass with valid name", () => {
       const input = {
         dialogueId: "dialogue-123",
         role: "user",
         content: "Hello",
-        namespace: "abc",
-      };
-      const result = isCreateMessageInput(input);
-      expect(result[0]).toBe(false);
-      expect(result[1]).toBe(
-        "Property 'namespace' must have a length greater than 4"
-      );
-    });
-
-    it("should pass with valid namespace", () => {
-      const input = {
-        dialogueId: "dialogue-123",
-        role: "user",
-        content: "Hello",
-        namespace: "my-namespace",
+        name: "Tool Call",
       };
       const result = isCreateMessageInput(input);
       expect(result[0]).toBe(true);

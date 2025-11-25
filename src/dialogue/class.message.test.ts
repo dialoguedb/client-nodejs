@@ -9,15 +9,11 @@ jest.mock("@/api/message", () => ({
 
 function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
   return {
-    id:Math.random().toString(36).slice(2),
+    id: Math.random().toString(36).slice(2),
     dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
-    namespace: "test",
-    metadata: {},
-    tags: [],
     created: new Date().toISOString(),
-    modified: new Date().toISOString(),
     ...overrides,
   };
 }
@@ -91,12 +87,10 @@ describe("Message", () => {
     it("generates timestamps when not provided", () => {
       const msg = createMockMessage();
       delete (msg as any).created;
-      delete (msg as any).modified;
 
       const message = new Message(dialogueId, msg);
 
       expect(message.created).toBeDefined();
-      expect(message.modified).toBeDefined();
     });
   });
 
@@ -110,7 +104,7 @@ describe("Message", () => {
 
       originalMetadata.key = "mutated";
 
-      expect(message.metadata.key).toBe("original");
+      expect(message.metadata!.key).toBe("original");
     });
 
     it("metadata getter returns copy to prevent mutation", () => {
@@ -122,7 +116,7 @@ describe("Message", () => {
       const retrieved = message.metadata;
       (retrieved as any).key = "mutated";
 
-      expect(message.metadata.key).toBe("value");
+      expect(message.metadata!.key).toBe("value");
     });
 
     it("copies tags array from constructor", () => {
@@ -228,26 +222,6 @@ describe("Message", () => {
       expect(message.tags).toEqual(serverTags);
     });
 
-    it("updates modified timestamp from server response", async () => {
-      const id = Math.random().toString(36).slice(2);
-      const originalModified = "2024-01-01T00:00:00.000Z";
-      const updatedModified = "2024-06-15T12:00:00.000Z";
-
-      (messageApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMessage({ id }),
-        tags: ["tag"],
-        modified: updatedModified,
-      });
-
-      const message = new Message(
-        dialogueId,
-        createMockMessage({ id, modified: originalModified })
-      );
-      message.tags = ["tag"];
-      await message.save();
-
-      expect(message.modified).toBe(updatedModified);
-    });
   });
 
   describe("remove", () => {
@@ -298,11 +272,10 @@ describe("Message", () => {
       const metadata = { key: "value" };
       const tags = ["tag1"];
       const created = "2024-01-01T00:00:00.000Z";
-      const modified = "2024-01-02T00:00:00.000Z";
 
       const message = new Message(
         dialogueId,
-        createMockMessage({ id, role, content, metadata, tags, created, modified })
+        createMockMessage({ id, role, content, metadata, tags, created })
       );
 
       const json = message.toJSON();
@@ -311,10 +284,9 @@ describe("Message", () => {
         id,
         role,
         content,
+        created,
         metadata,
         tags,
-        created,
-        modified,
       });
     });
 

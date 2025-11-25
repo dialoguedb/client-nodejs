@@ -194,32 +194,20 @@ describe("validation.dialogue", () => {
       expect(result[1]).toBe("Property 'id' must have a length greater than 4");
     });
 
-    it("should fail when namespace is not a string", () => {
+    it("should fail when label is not a string", () => {
       const input = {
         id: "dialogue-123",
-        namespace: 123,
+        label: 123,
       } as any;
       const result = isUpdateDialogueInput(input);
       expect(result[0]).toBe(false);
-      expect(result[1]).toBe("Property 'namespace' must be a string");
+      expect(result[1]).toBe("Property 'label' must be a string");
     });
 
-    it("should fail when namespace is too short", () => {
+    it("should pass with valid label", () => {
       const input = {
         id: "dialogue-123",
-        namespace: "abc",
-      };
-      const result = isUpdateDialogueInput(input);
-      expect(result[0]).toBe(false);
-      expect(result[1]).toBe(
-        "Property 'namespace' must have a length greater than 4"
-      );
-    });
-
-    it("should pass with valid namespace", () => {
-      const input = {
-        id: "dialogue-123",
-        namespace: "my-namespace",
+        label: "my-label",
       };
       const result = isUpdateDialogueInput(input);
       expect(result[0]).toBe(true);
