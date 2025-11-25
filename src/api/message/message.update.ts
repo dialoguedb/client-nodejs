@@ -1,19 +1,19 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
-import { IMessage, CreateMessageInput } from "@/types";
-import { isCreateMessageInput } from "@/methods/validation.message";
+import { IMessage } from "@/types";
 
-export async function create(
-  input: CreateMessageInput,
+export interface UpdateMessageInput {
+  dialogueId: string;
+  id: string;
+  tags?: string[];
+}
+
+export async function update(
+  input: UpdateMessageInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const valid = isCreateMessageInput(input);
-  if (!valid[0]) {
-    throw new Error(valid[1]);
-  }
-
-  const { dialogueId, ...message } = input;
+  const { dialogueId, id, ...updates } = input;
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
@@ -21,11 +21,11 @@ export async function create(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   return apiRequest<IMessage>(
-    `${endpoint}/dialogue/${dialogueId}/message`,
+    `${endpoint}/dialogue/${dialogueId}/message/${id}`,
     {
-      method: "post",
+      method: "put",
       headers,
-      body: JSON.stringify(message),
+      body: JSON.stringify(updates),
     }
   );
 }

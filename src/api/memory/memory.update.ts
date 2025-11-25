@@ -1,28 +1,29 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
-import { IDialogue, UpdateDialogueInput } from "@/types/index";
 import { getConfig } from "@/settings";
-import { isUpdateDialogueInput } from "@/methods/validation.dialogue";
+import { IMemory } from "@/types";
+
+export interface UpdateMemoryInput {
+  key: string;
+  tags?: string[];
+}
 
 export async function update(
-  input: UpdateDialogueInput,
+  input: UpdateMemoryInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const valid = isUpdateDialogueInput(input);
-  if (!valid[0]) {
-    throw new Error(valid[1]);
-  }
+  const { key, ...updates } = input;
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  let url = `${endpoint}/dialogue/${input.id}`;
-
-  return apiRequest<IDialogue>(url, {
+  const req = await apiRequest<IMemory>(`${endpoint}/memory/${key}`, {
     method: "put",
     headers,
-    body: JSON.stringify(input),
+    body: JSON.stringify(updates),
   });
+
+  return req;
 }

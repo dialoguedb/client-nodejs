@@ -18,11 +18,9 @@ export async function create(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  const req = await apiRequest<IDialogue>(`${endpoint}/dialogue`, {
+  return apiRequest<IDialogue>(`${endpoint}/dialogue`, {
     method: "post",
     headers,
     body: JSON.stringify(input),
   });
-
-  return req;
 }

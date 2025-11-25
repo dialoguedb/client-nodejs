@@ -34,8 +34,9 @@ describe("memory.get", () => {
 
     apiRequestMock.mockResolvedValueOnce(mockResponse);
 
-    await get(input, settings);
+    const result = await get(input, settings);
 
+    expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/memory/${memoryKey}`,
@@ -67,8 +68,9 @@ describe("memory.get", () => {
 
     apiRequestMock.mockResolvedValueOnce(mockResponse);
 
-    await get(input, settings);
+    const result = await get(input, settings);
 
+    expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/memory/${memoryKey}`,

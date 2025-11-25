@@ -18,7 +18,7 @@ export async function get(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  await apiRequest<IMessage>(
+  return apiRequest<IMessage>(
     `${endpoint}/dialogue/${input.dialogueId}/messages/${input.id}`,
     {
       method: "get",
