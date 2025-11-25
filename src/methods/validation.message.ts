@@ -5,15 +5,7 @@ import {
   ListMessageFilters,
   InputValidatorResponse,
 } from "@/types";
-
-function isProbablyISOString(str: string) {
-  return (
-    typeof str === "string" &&
-    str.length >= 20 &&
-    str[10] === "T" &&
-    str[str.length - 1] === "Z"
-  );
-}
+import { isProbablyISOString } from "./validation.utils";
 
 export function isCreateMessageInput(
   input: CreateMessageInput

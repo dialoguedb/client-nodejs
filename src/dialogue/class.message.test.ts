@@ -11,6 +11,7 @@ jest.mock("@/api/message", () => ({
 function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
   return {
     id: ulid(),
+    dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
     namespace: "test",
@@ -28,8 +29,6 @@ describe("Message", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // ==================== Constructor & Validation ====================
 
   describe("constructor validation", () => {
     it("creates message with valid data", () => {
@@ -102,8 +101,6 @@ describe("Message", () => {
     });
   });
 
-  // ==================== Mutation Isolation ====================
-
   describe("mutation isolation", () => {
     it("deep clones metadata from constructor input", () => {
       const originalMetadata = { key: "original" };
@@ -158,8 +155,6 @@ describe("Message", () => {
     });
   });
 
-  // ==================== Tags Management ====================
-
   describe("tags management", () => {
     it("setting tags marks message as dirty", () => {
       const message = new Message(dialogueId, createMockMessage());
@@ -190,8 +185,6 @@ describe("Message", () => {
       expect(message.isDirty).toBe(false);
     });
   });
-
-  // ==================== Save Behavior ====================
 
   describe("save", () => {
     it("does not call API when not dirty", async () => {
@@ -258,8 +251,6 @@ describe("Message", () => {
     });
   });
 
-  // ==================== Remove ====================
-
   describe("remove", () => {
     it("calls API remove", async () => {
       const id = ulid();
@@ -299,8 +290,6 @@ describe("Message", () => {
       await expect(message.remove()).resolves.toBeUndefined();
     });
   });
-
-  // ==================== Serialization ====================
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
@@ -344,8 +333,6 @@ describe("Message", () => {
       expect(parsed.content).toBe("test");
     });
   });
-
-  // ==================== Readonly Properties ====================
 
   describe("readonly properties", () => {
     it("id is readonly", () => {

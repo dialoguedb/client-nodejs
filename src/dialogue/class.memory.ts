@@ -98,7 +98,6 @@ export class Memory {
     }
   }
 
-  // ============ Readonly Getters ============
 
   get key(): string {
     return this.#key;
@@ -139,7 +138,6 @@ export class Memory {
     return this.#modified;
   }
 
-  // ============ Mutable Getters/Setters ============
 
   get tags(): string[] {
     return [...this.#tags];

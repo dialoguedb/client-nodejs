@@ -26,8 +26,6 @@ describe("Memory", () => {
     jest.clearAllMocks();
   });
 
-  // ==================== Constructor & Validation ====================
-
   describe("constructor validation", () => {
     it("creates memory with valid data", () => {
       const key = "test-key";
@@ -116,8 +114,6 @@ describe("Memory", () => {
       expect(memory.modified).toBeDefined();
     });
   });
-
-  // ==================== Mutation Isolation ====================
 
   describe("mutation isolation", () => {
     it("deep clones object value from constructor input", () => {
@@ -224,8 +220,6 @@ describe("Memory", () => {
     });
   });
 
-  // ==================== Tags Management ====================
-
   describe("tags management", () => {
     it("setting tags marks memory as dirty", () => {
       const memory = new Memory(createMockMemory());
@@ -256,8 +250,6 @@ describe("Memory", () => {
       expect(memory.isDirty).toBe(false);
     });
   });
-
-  // ==================== Save Behavior ====================
 
   describe("save", () => {
     it("does not call API when not dirty", async () => {
@@ -321,8 +313,6 @@ describe("Memory", () => {
     });
   });
 
-  // ==================== Remove ====================
-
   describe("remove", () => {
     it("calls API remove with key", async () => {
       const key = "test-key";
@@ -349,8 +339,6 @@ describe("Memory", () => {
       expect(onRemoved).toHaveBeenCalled();
     });
   });
-
-  // ==================== Serialization ====================
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {

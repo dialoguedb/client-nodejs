@@ -6,7 +6,11 @@ import { ulid } from "ulid";
 import { UseDialogueInput, GetDialogueInput } from "@/types";
 import { Dialogue } from "@/dialogue/class.dialogue";
 
-export async function useDialogue(
+/**
+ * Gets an existing dialogue by ID, or creates a new one if it doesn't exist.
+ * If no ID is provided, creates a new dialogue with a generated ID.
+ */
+export async function getOrCreateDialogue(
   input?: UseDialogueInput,
   config?: SettingsOrContainer
 ) {

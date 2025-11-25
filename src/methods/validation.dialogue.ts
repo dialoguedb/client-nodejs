@@ -102,7 +102,7 @@ export function isListDialogueFilters(
 ): InputValidatorResponse {
   if (typeof input.limit !== "undefined") {
     if (
-      typeof typeof input.limit !== "string" ||
+      typeof input.limit !== "string" &&
       typeof input.limit !== "number"
     ) {
       return [false, "Property 'limit' should be a number or string"];
@@ -110,7 +110,7 @@ export function isListDialogueFilters(
   }
 
   if (typeof input.order !== "undefined") {
-    if (typeof typeof input.order !== "string") {
+    if (typeof input.order !== "string") {
       return [false, "Property 'order' should be a string"];
     }
     if (!["asc", "desc"].includes(input.order)) {
@@ -119,7 +119,7 @@ export function isListDialogueFilters(
   }
 
   if (typeof input.next !== "undefined") {
-    if (typeof typeof input.next !== "string") {
+    if (typeof input.next !== "string") {
       return [false, "Property 'next' should be a string"];
     }
   }

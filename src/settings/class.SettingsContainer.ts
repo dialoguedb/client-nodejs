@@ -9,10 +9,14 @@ export interface Settings {
 export type SettingsOrContainer = SettingsContainer | Settings;
 
 export class SettingsContainer {
-  #settings: Settings = {
-    apiKey: getEnvironmentVariable(API_KEY_ENV_NAME) || "",
-    endpoint: API_URL,
-  };
+  #settings: Settings;
+
+  constructor(options: Partial<Settings> = {}) {
+    this.#settings = {
+      apiKey: options.apiKey || getEnvironmentVariable(API_KEY_ENV_NAME) || "",
+      endpoint: options.endpoint || API_URL,
+    };
+  }
   get(key: keyof Settings) {
     return this.#settings[key];
   }

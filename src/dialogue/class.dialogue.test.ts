@@ -39,6 +39,7 @@ function createMockDialogue(overrides: Partial<IDialogue> = {}): IDialogue {
 function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
   return {
     id: ulid(),
+    dialogueId: "test-dialogue",
     role: "user",
     content: "test content",
     namespace: "test",
@@ -55,7 +56,6 @@ describe("Dialogue", () => {
     jest.clearAllMocks();
   });
 
-  // ==================== Constructor & Validation ====================
 
   describe("constructor validation", () => {
     it("creates dialogue with valid data", () => {
@@ -127,7 +127,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Deep Cloning / Mutation Isolation ====================
 
   describe("mutation isolation", () => {
     it("deep clones metadata to prevent external mutation", () => {
@@ -213,7 +212,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== State Management ====================
 
   describe("state management", () => {
     it("setting state marks dialogue as dirty", () => {
@@ -247,7 +245,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Tags Management ====================
 
   describe("tags management", () => {
     it("setting tags marks dialogue as dirty", () => {
@@ -281,7 +278,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Save Behavior ====================
 
   describe("save", () => {
     it("does not call API when not dirty", async () => {
@@ -461,7 +457,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== isDirty Cascade ====================
 
   describe("isDirty cascade", () => {
     it("isDirty reflects message dirty state", () => {
@@ -503,7 +498,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Message Operations ====================
 
   describe("saveMessage", () => {
     it("creates message via API and adds to local array", async () => {
@@ -766,7 +760,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Threading ====================
 
   describe("createThread", () => {
     it("creates thread with parent reference", async () => {
@@ -841,7 +834,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Unimplemented Methods ====================
 
   describe("unimplemented methods", () => {
     it("end() throws not implemented error", async () => {
@@ -861,7 +853,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Serialization ====================
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
@@ -927,7 +918,6 @@ describe("Dialogue", () => {
     });
   });
 
-  // ==================== Messages with Constructor ====================
 
   describe("messages initialization", () => {
     it("creates Message instances from constructor data", () => {

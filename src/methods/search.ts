@@ -33,7 +33,7 @@ export async function searchMessages(
   options: SearchOptions = {},
   config?: SettingsOrContainer
 ): Promise<Message[]> {
-  const result = await search<IMessage & { dialogueId: string }>(
+  const result = await search<IMessage>(
     { query, object: "message", ...options },
     useSettings(config)
   );

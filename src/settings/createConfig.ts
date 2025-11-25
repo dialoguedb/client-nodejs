@@ -1,8 +1,13 @@
 import { Settings, SettingsContainer } from "./class.SettingsContainer";
-import { settings } from "./index";
 
+/**
+ * Creates a new settings container with the provided options.
+ * Does NOT mutate the global settings singleton.
+ *
+ * For global configuration, use setGlobalConfig() instead.
+ */
 export function createConfig(
   options: Partial<Settings> = {}
 ): SettingsContainer {
-  return settings.use(options);
+  return new SettingsContainer(options);
 }

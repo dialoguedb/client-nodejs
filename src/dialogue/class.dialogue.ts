@@ -12,7 +12,6 @@ import {
   Settings,
   SettingsContainer,
 } from "@/settings/class.SettingsContainer";
-import { safeParseJson, safeStringifyJson } from "@/utils/json";
 import { Message } from "./class.message";
 import { isPlainObject } from "@/utils/lodash";
 
@@ -90,7 +89,6 @@ export class Dialogue {
     return msg;
   }
 
-  // ============ Readonly Getters ============
 
   get id(): string {
     return this.#id;
@@ -116,14 +114,16 @@ export class Dialogue {
     return [...this.#messages];
   }
 
-  // ============ Mutable Getters/Setters ============
+  /**
+   * Mutable Getters/Setters
+   */
 
   get state(): Record<string, any> {
     return structuredClone(this.#state);
   }
 
   set state(value: Record<string, any>) {
-    this.#state = safeParseJson(safeStringifyJson(value));
+    this.#state = structuredClone(value);
     this.#isDirty = true;
     this.#stateChanged = true;
   }
