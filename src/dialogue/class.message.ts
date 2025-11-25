@@ -93,7 +93,7 @@ export class Message {
   }
 
   get metadata(): Readonly<Record<string, any>> {
-    return { ...this.#metadata };
+    return structuredClone(this.#metadata);
   }
 
   get created(): IMessage["created"] {
@@ -105,11 +105,17 @@ export class Message {
   }
 
   get tags(): string[] {
-    return this.#tags;
+    return [...this.#tags];
   }
 
   set tags(value: string[]) {
-    this.#tags = value;
+    if (!Array.isArray(value)) {
+      throw new Error("tags must be an array");
+    }
+    if (!value.every((t) => typeof t === "string")) {
+      throw new Error("tags must be array of strings");
+    }
+    this.#tags = [...value];
     this.#isDirty = true;
   }
 

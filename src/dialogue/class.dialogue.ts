@@ -1,4 +1,9 @@
-import { IDialogue, IMessage, CreateMessageInput } from "@/types";
+import {
+  IDialogue,
+  IMessage,
+  CreateMessageInput,
+  ListMessageFilters,
+} from "@/types";
 import * as dialogueApi from "@/api/dialogue";
 import * as messageApi from "@/api/message";
 import * as messagesApi from "@/api/messages";
@@ -24,6 +29,8 @@ export class Dialogue {
 
   #settings: SettingsContainer;
   #isDirty: boolean = false;
+  #stateChanged: boolean = false;
+  #tagsChanged: boolean = false;
   #nextToken?: string;
 
   constructor(dialogue: IDialogue, settings?: SettingsContainer | Settings) {
@@ -106,27 +113,35 @@ export class Dialogue {
   }
 
   get messages(): readonly Message[] {
-    return this.#messages;
+    return [...this.#messages];
   }
 
   // ============ Mutable Getters/Setters ============
 
   get state(): Record<string, any> {
-    return this.#state;
+    return structuredClone(this.#state);
   }
 
   set state(value: Record<string, any>) {
     this.#state = safeParseJson(safeStringifyJson(value));
     this.#isDirty = true;
+    this.#stateChanged = true;
   }
 
   get tags(): string[] {
-    return this.#tags;
+    return [...this.#tags];
   }
 
   set tags(value: string[]) {
-    this.#tags = value;
+    if (!Array.isArray(value)) {
+      throw new Error("tags must be an array");
+    }
+    if (!value.every((t) => typeof t === "string")) {
+      throw new Error("tags must be array of strings");
+    }
+    this.#tags = [...value];
     this.#isDirty = true;
+    this.#tagsChanged = true;
   }
 
   /**
@@ -173,10 +188,14 @@ export class Dialogue {
       created?: string;
     }>
   ): Promise<Message[]> {
-    const createdMessages = await Promise.all(
-      messages.map((message) =>
-        messagesApi.create({ ...message, dialogueId: this.#id }, this.#settings)
-      )
+    const createdMessages = await messagesApi.create(
+      {
+        id: this.#id,
+        messages: messages.map((message) => ({
+          ...message,
+        })),
+      },
+      this.#settings
     );
 
     const newMessages = createdMessages.map((created) =>
@@ -188,17 +207,32 @@ export class Dialogue {
 
   /**
    * Load messages from API into local cache
-   * Replaces cache by default, or appends if using pagination
+   * Replaces cache by default, or appends if using pagination (next: true)
    */
-  async loadMessages(options?: { limit?: number; next?: string }) {
-    const { items, next } = await messagesApi.list(
-      { ...(options ?? {}), dialogueId: this.#id },
-      this.#settings
-    );
+  async loadMessages(
+    options?: Omit<ListMessageFilters, "dialogueId" | "next"> & {
+      next?: boolean;
+    }
+  ) {
+    const { next: shouldLoadNext, ...restOfOptions } = options || {};
+
+    // If requesting next page but no token exists, treat as fresh load
+    const isAppending = shouldLoadNext && !!this.#nextToken;
+
+    const payload: ListMessageFilters = {
+      ...(restOfOptions ?? {}),
+      dialogueId: this.#id,
+    };
+
+    if (isAppending) {
+      payload.next = this.#nextToken;
+    }
+
+    const { items, next } = await messagesApi.list(payload, this.#settings);
 
     const loadedMessages = items.map((item) => this.#createMessage(item));
 
-    if (options?.next) {
+    if (isAppending) {
       // Pagination - append
       this.#messages.push(...loadedMessages);
     } else {
@@ -303,16 +337,18 @@ export class Dialogue {
       id: this.#id,
     };
 
-    if (this.#state && Object.keys(this.#state).length) {
+    if (this.#stateChanged) {
       payload.state = this.#state;
     }
-    if (this.#tags && this.#tags.length) {
+    if (this.#tagsChanged) {
       payload.tags = this.#tags;
     }
 
     const updated = await dialogueApi.update(payload, this.#settings);
 
     this.#isDirty = false;
+    this.#stateChanged = false;
+    this.#tagsChanged = false;
     this.#modified = updated.modified;
     this.#state = updated.state ?? {};
     this.#tags = updated.tags ?? [];

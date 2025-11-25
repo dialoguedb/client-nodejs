@@ -118,7 +118,7 @@ export class Memory {
 
   get value(): Readonly<IMemory["value"]> {
     if (typeof this.#value === "object" && this.#value !== null) {
-      return Array.isArray(this.#value) ? [...this.#value] : { ...this.#value };
+      return structuredClone(this.#value);
     }
     return this.#value;
   }
@@ -128,7 +128,7 @@ export class Memory {
   }
 
   get metadata(): Readonly<Record<string, string | number | boolean>> {
-    return { ...this.#metadata };
+    return structuredClone(this.#metadata);
   }
 
   get created(): string {
@@ -142,11 +142,17 @@ export class Memory {
   // ============ Mutable Getters/Setters ============
 
   get tags(): string[] {
-    return this.#tags;
+    return [...this.#tags];
   }
 
   set tags(value: string[]) {
-    this.#tags = value;
+    if (!Array.isArray(value)) {
+      throw new Error("tags must be an array");
+    }
+    if (!value.every((t) => typeof t === "string")) {
+      throw new Error("tags must be array of strings");
+    }
+    this.#tags = [...value];
     this.#isDirty = true;
   }
 
