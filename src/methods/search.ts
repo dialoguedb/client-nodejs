@@ -18,11 +18,12 @@ export async function searchDialogues(
   options: SearchOptions = {},
   config?: SettingsOrContainer
 ): Promise<Dialogue[]> {
+  const settings = useSettings(config);
   const result = await search<IDialogue>(
     { query, object: "dialogue", ...options },
-    useSettings(config)
+    settings
   );
-  return result.items.map((d) => new Dialogue(d, config));
+  return result.items.map((d) => new Dialogue(d, settings));
 }
 
 /**
@@ -33,11 +34,12 @@ export async function searchMessages(
   options: SearchOptions = {},
   config?: SettingsOrContainer
 ): Promise<Message[]> {
+  const settings = useSettings(config);
   const result = await search<IMessage>(
     { query, object: "message", ...options },
-    useSettings(config)
+    settings
   );
-  return result.items.map((m) => new Message(m.dialogueId, m, config));
+  return result.items.map((m) => new Message(m.dialogueId, m, settings));
 }
 
 /**
@@ -48,9 +50,10 @@ export async function searchMemories(
   options: SearchOptions = {},
   config?: SettingsOrContainer
 ): Promise<Memory[]> {
+  const settings = useSettings(config);
   const result = await search<IMemory>(
     { query, object: "memory", ...options },
-    useSettings(config)
+    settings
   );
-  return result.items.map((m) => new Memory(m, config));
+  return result.items.map((m) => new Memory(m, settings));
 }

@@ -228,6 +228,22 @@ describe("Memory", () => {
       expect(memory.isDirty).toBe(true);
     });
 
+    it("throws when tags is not an array", () => {
+      const memory = new Memory(createMockMemory());
+
+      expect(() => {
+        memory.tags = "not-an-array" as any;
+      }).toThrow("Invalid tags: must be an array");
+    });
+
+    it("throws when tags contains non-strings", () => {
+      const memory = new Memory(createMockMemory());
+
+      expect(() => {
+        memory.tags = ["valid", 123 as any];
+      }).toThrow("Invalid tags: must be array of strings");
+    });
+
     it("saveTags sets tags and calls save", async () => {
       const key = "test-key";
       const newTags = ["important"];
@@ -392,6 +408,14 @@ describe("Memory", () => {
 
       expect(parsed.key).toBe(key);
       expect(parsed.value).toBe("test");
+    });
+
+    it("inspect.custom returns same as toJSON", () => {
+      const { inspect } = require("util");
+      const memory = new Memory(createMockMemory({ value: "test" }));
+
+      const json = memory.toJSON();
+      expect((memory as any)[inspect.custom]()).toEqual(json);
     });
   });
 });

@@ -66,6 +66,44 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(false);
     });
 
+    it("exposes all optional fields when provided", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          threadOf: "parent-123",
+          label: "Test Label",
+          previousId: "prev-456",
+          archivedAt: "2024-06-01T00:00:00.000Z",
+          endedAt: "2024-05-01T00:00:00.000Z",
+          totalMessages: 42,
+          threadCount: 3,
+          lastMessageCreated: "2024-07-01T00:00:00.000Z",
+        })
+      );
+
+      expect(dialogue.threadOf).toBe("parent-123");
+      expect(dialogue.label).toBe("Test Label");
+      expect(dialogue.previousId).toBe("prev-456");
+      expect(dialogue.archivedAt).toBe("2024-06-01T00:00:00.000Z");
+      expect(dialogue.endedAt).toBe("2024-05-01T00:00:00.000Z");
+      expect(dialogue.totalMessages).toBe(42);
+      expect(dialogue.threadCount).toBe(3);
+      expect(dialogue.lastMessageCreated).toBe("2024-07-01T00:00:00.000Z");
+    });
+
+    it("exposes projectId, requestId, and status", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          projectId: "proj-123",
+          requestId: "req-456",
+          status: "ended",
+        })
+      );
+
+      expect(dialogue.projectId).toBe("proj-123");
+      expect(dialogue.requestId).toBe("req-456");
+      expect(dialogue.status).toBe("ended");
+    });
+
     it("throws when id is missing", () => {
       expect(() => {
         new Dialogue({ ...createMockDialogue(), id: undefined as any });
@@ -243,6 +281,61 @@ describe("Dialogue", () => {
   });
 
 
+  describe("label management", () => {
+    it("setting label marks dialogue as dirty", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      expect(dialogue.isDirty).toBe(false);
+      dialogue.label = "New Label";
+      expect(dialogue.isDirty).toBe(true);
+      expect(dialogue.label).toBe("New Label");
+    });
+
+    it("allows setting label to undefined", () => {
+      const dialogue = new Dialogue(createMockDialogue({ label: "Original" }));
+
+      dialogue.label = undefined;
+
+      expect(dialogue.label).toBeUndefined();
+      expect(dialogue.isDirty).toBe(true);
+    });
+
+    it("saves label when save() is called", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        label: "Saved Label",
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      dialogue.label = "Saved Label";
+      await dialogue.save();
+
+      const callPayload = (dialogueApi.update as jest.Mock).mock.calls[0][0];
+      expect(callPayload).toHaveProperty("label", "Saved Label");
+    });
+
+    it("syncs label from server response after save", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        label: "Server Label",
+        state: {},
+        tags: [],
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      dialogue.label = "Client Label";
+      await dialogue.save();
+
+      expect(dialogue.label).toBe("Server Label");
+    });
+  });
+
   describe("tags management", () => {
     it("setting tags marks dialogue as dirty", () => {
       const dialogue = new Dialogue(createMockDialogue());
@@ -250,6 +343,22 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(false);
       dialogue.tags = ["new-tag"];
       expect(dialogue.isDirty).toBe(true);
+    });
+
+    it("throws when tags is not an array", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      expect(() => {
+        dialogue.tags = "not-an-array" as any;
+      }).toThrow("Invalid tags: must be an array");
+    });
+
+    it("throws when tags contains non-strings", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      expect(() => {
+        dialogue.tags = ["valid", 123 as any];
+      }).toThrow("Invalid tags: must be array of strings");
     });
 
     it("saveTags sets tags and calls save", async () => {
@@ -920,6 +1029,44 @@ describe("Dialogue", () => {
 
       expect(json.messages.length).toBe(1);
       expect((json.messages[0] as any).id).toBe(messageId);
+    });
+
+    it("includes all optional fields in toJSON when present", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          threadOf: "parent-123",
+          label: "Test",
+          previousId: "prev-456",
+          archivedAt: "2024-06-01T00:00:00.000Z",
+          endedAt: "2024-05-01T00:00:00.000Z",
+          totalMessages: 10,
+          threadCount: 2,
+          lastMessageCreated: "2024-07-01T00:00:00.000Z",
+        })
+      );
+
+      const json = dialogue.toJSON();
+
+      expect(json.threadOf).toBe("parent-123");
+      expect(json.label).toBe("Test");
+      expect(json.previousId).toBe("prev-456");
+      expect(json.archivedAt).toBe("2024-06-01T00:00:00.000Z");
+      expect(json.endedAt).toBe("2024-05-01T00:00:00.000Z");
+      expect(json.totalMessages).toBe(10);
+      expect(json.threadCount).toBe(2);
+      expect(json.lastMessageCreated).toBe("2024-07-01T00:00:00.000Z");
+    });
+
+    it("inspect.custom returns same as toJSON", () => {
+      const { inspect } = require("util");
+      const dialogue = new Dialogue(
+        createMockDialogue({ state: { test: true } })
+      );
+
+      const json = dialogue.toJSON();
+
+      // The custom inspect symbol returns the same object as toJSON
+      expect((dialogue as any)[inspect.custom]()).toEqual(json);
     });
   });
 

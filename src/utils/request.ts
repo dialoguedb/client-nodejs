@@ -42,10 +42,10 @@ export class DialogueDBError extends Error {
 
   /**
    * Whether this error is likely transient and the request could be retried.
-   * True for rate limits (429) and server errors (5xx).
+   * True for network errors (0), rate limits (429), and server errors (5xx).
    */
   get retryable(): boolean {
-    return this.statusCode === 429 || this.statusCode >= 500;
+    return this.statusCode === 0 || this.statusCode === 429 || this.statusCode >= 500;
   }
 }
 

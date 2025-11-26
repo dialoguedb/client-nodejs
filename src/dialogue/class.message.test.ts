@@ -27,12 +27,25 @@ describe("Message", () => {
 
   describe("constructor validation", () => {
     it("creates message with valid data", () => {
-      const id = Math.random().toString(36).slice(2);;
+      const id = Math.random().toString(36).slice(2);
       const message = new Message(dialogueId, createMockMessage({ id }));
 
       expect(message.id).toBe(id);
       expect(message.role).toBe("user");
       expect(message.isDirty).toBe(false);
+    });
+
+    it("accepts optional name field", () => {
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ name: "User Name" })
+      );
+      expect(message.name).toBe("User Name");
+    });
+
+    it("name is undefined when not provided", () => {
+      const message = new Message(dialogueId, createMockMessage());
+      expect(message.name).toBeUndefined();
     });
 
     it("throws when dialogueId is missing", () => {
@@ -155,6 +168,22 @@ describe("Message", () => {
       expect(message.isDirty).toBe(false);
       message.tags = ["new-tag"];
       expect(message.isDirty).toBe(true);
+    });
+
+    it("throws when tags is not an array", () => {
+      const message = new Message(dialogueId, createMockMessage());
+
+      expect(() => {
+        message.tags = "not-an-array" as any;
+      }).toThrow("Invalid tags: must be an array");
+    });
+
+    it("throws when tags contains non-strings", () => {
+      const message = new Message(dialogueId, createMockMessage());
+
+      expect(() => {
+        message.tags = ["valid", 123 as any];
+      }).toThrow("Invalid tags: must be array of strings");
     });
 
     it("saveTags sets tags and calls save", async () => {
@@ -302,6 +331,34 @@ describe("Message", () => {
 
       expect(parsed.id).toBe(id);
       expect(parsed.content).toBe("test");
+    });
+
+    it("includes name in toJSON when present", () => {
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ name: "Test User" })
+      );
+
+      const json = message.toJSON();
+      expect(json.name).toBe("Test User");
+    });
+
+    it("excludes name from toJSON when not present", () => {
+      const message = new Message(dialogueId, createMockMessage());
+
+      const json = message.toJSON();
+      expect(json).not.toHaveProperty("name");
+    });
+
+    it("inspect.custom returns same as toJSON", () => {
+      const { inspect } = require("util");
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ content: "test" })
+      );
+
+      const json = message.toJSON();
+      expect((message as any)[inspect.custom]()).toEqual(json);
     });
   });
 

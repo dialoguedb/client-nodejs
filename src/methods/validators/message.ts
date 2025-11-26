@@ -5,7 +5,40 @@ import {
   DeleteMessageInput,
   ListMessageFilters,
 } from "@/types";
-import { isProbablyISOString } from "../validation.utils";
+import {
+  validateStringField,
+  validateTagsField,
+  validateMetadataField,
+  validateCreatedField,
+} from "../validation.utils";
+import { isPlainObject } from "@/utils/lodash";
+
+function validateContentField(content: unknown): void {
+  if (content === undefined || content === null || content === "") {
+    throw errors.missingParameter("content");
+  }
+  // Content can be: string, plain object, or array of plain objects
+  if (typeof content === "string") {
+    return;
+  }
+  if (Array.isArray(content)) {
+    if (!content.every((item) => isPlainObject(item))) {
+      throw errors.invalidParameter(
+        "content",
+        "array must contain only objects",
+        content
+      );
+    }
+    return;
+  }
+  if (!isPlainObject(content)) {
+    throw errors.invalidParameter(
+      "content",
+      "must be a string, object, or array of objects",
+      content
+    );
+  }
+}
 
 /**
  * Validates CreateMessageInput, throwing DialogueDBError if invalid.
@@ -15,107 +48,34 @@ export function validateCreateMessageInput(input: CreateMessageInput): void {
   if (!input.dialogueId) {
     throw errors.missingParameter("dialogueId");
   }
+  validateStringField(input.dialogueId, "dialogueId", 5);
+
   if (!input.role) {
     throw errors.missingParameter("role");
   }
-  if (!input.content) {
-    throw errors.missingParameter("content");
-  }
+  validateStringField(input.role, "role", 1);
 
-  // Validate dialogueId
-  if (typeof input.dialogueId !== "string") {
-    throw errors.invalidParameter(
-      "dialogueId",
-      "must be a string",
-      input.dialogueId
-    );
-  }
-  if (input.dialogueId.length <= 4) {
-    throw errors.invalidParameter(
-      "dialogueId",
-      "must have length greater than 4",
-      input.dialogueId
-    );
-  }
+  validateContentField(input.content);
 
-  // Validate role
-  if (typeof input.role !== "string") {
-    throw errors.invalidParameter("role", "must be a string", input.role);
-  }
-  if (input.role.length < 3) {
-    throw errors.invalidParameter(
-      "role",
-      "must have length greater than 3",
-      input.role
-    );
-  }
-
-  // Optional id
+  // Optional fields
   if (input.id !== undefined) {
-    if (typeof input.id !== "string") {
-      throw errors.invalidParameter("id", "must be a string", input.id);
-    }
-    if (input.id.length <= 4) {
-      throw errors.invalidParameter(
-        "id",
-        "must have length greater than 4",
-        input.id
-      );
-    }
+    validateStringField(input.id, "id", 5);
   }
 
-  // Optional name
   if (input.name !== undefined) {
-    if (typeof input.name !== "string") {
-      throw errors.invalidParameter("name", "must be a string", input.name);
-    }
+    validateStringField(input.name, "name");
   }
 
-  // Optional tags
   if (input.tags !== undefined) {
-    if (!Array.isArray(input.tags)) {
-      throw errors.invalidParameter("tags", "must be an array", input.tags);
-    }
-    if (input.tags.length > 10) {
-      throw errors.invalidParameter(
-        "tags",
-        "must have length less than or equal to 10",
-        input.tags
-      );
-    }
+    validateTagsField(input.tags);
   }
 
-  // Optional metadata
   if (input.metadata !== undefined) {
-    if (
-      typeof input.metadata !== "object" ||
-      input.metadata === null ||
-      Array.isArray(input.metadata)
-    ) {
-      throw errors.invalidParameter(
-        "metadata",
-        "must be an object",
-        input.metadata
-      );
-    }
+    validateMetadataField(input.metadata);
   }
 
-  // Optional created
   if (input.created !== undefined) {
-    if (typeof input.created !== "string") {
-      throw errors.invalidParameter(
-        "created",
-        "must be a string",
-        input.created
-      );
-    }
-    if (!isProbablyISOString(input.created)) {
-      throw errors.invalidParameter(
-        "created",
-        "should be an ISO 8601 string",
-        input.created
-      );
-    }
+    validateCreatedField(input.created);
   }
 }
 
@@ -128,9 +88,12 @@ export function validateGetMessageInput(
   if (!input.dialogueId) {
     throw errors.missingParameter("dialogueId");
   }
+  validateStringField(input.dialogueId, "dialogueId");
+
   if (!input.id) {
     throw errors.missingParameter("id");
   }
+  validateStringField(input.id, "id");
 }
 
 /**
@@ -139,5 +102,30 @@ export function validateGetMessageInput(
 export function validateListMessageFilters(input: ListMessageFilters): void {
   if (!input.dialogueId) {
     throw errors.missingParameter("dialogueId");
+  }
+  validateStringField(input.dialogueId, "dialogueId");
+
+  if (input.limit !== undefined) {
+    if (
+      typeof input.limit !== "number" ||
+      !Number.isInteger(input.limit) ||
+      input.limit < 1
+    ) {
+      throw errors.invalidParameter(
+        "limit",
+        "must be a positive integer",
+        input.limit
+      );
+    }
+  }
+
+  if (input.order !== undefined) {
+    if (input.order !== "asc" && input.order !== "desc") {
+      throw errors.invalidParameter("order", "must be 'asc' or 'desc'", input.order);
+    }
+  }
+
+  if (input.next !== undefined) {
+    validateStringField(input.next, "next");
   }
 }
