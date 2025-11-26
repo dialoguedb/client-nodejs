@@ -21,7 +21,8 @@ export async function create(
       method: "post",
       headers,
       body: JSON.stringify(input.messages),
-    }
+    },
+    settings.getRetryConfig()
   );
 
   return req;

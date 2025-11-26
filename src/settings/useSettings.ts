@@ -5,11 +5,11 @@ import { createConfig } from "./createConfig";
 import { isPlainObject } from "@/utils/lodash";
 import { isObjectEmpty } from "@/utils/isObjectEmpty";
 
-export function useSettings(settings?: SettingsContainer | Settings) {
+export function useSettings(settings?: SettingsContainer | Partial<Settings>) {
   if (settings && settings instanceof SettingsContainer) {
     return settings;
   } else if (isPlainObject(settings) && !isObjectEmpty(settings || {})) {
-    return createConfig(settings);
+    return createConfig(settings as Partial<Settings>);
   } else {
     return getConfig();
   }

@@ -15,6 +15,7 @@ import {
 import { Message } from "./class.message";
 import { isPlainObject } from "@/utils/lodash";
 import { inspect } from "util";
+import { errors } from "@/errors";
 
 export class Dialogue {
   #id: string;
@@ -47,7 +48,7 @@ export class Dialogue {
   #labelChanged: boolean = false;
   #nextToken?: string;
 
-  constructor(dialogue: IDialogue, settings?: SettingsContainer | Settings) {
+  constructor(dialogue: IDialogue, settings?: SettingsContainer | Partial<Settings>) {
     this.#settings = useSettings(settings);
     this.#setProperties(dialogue);
   }
@@ -55,7 +56,7 @@ export class Dialogue {
   #setProperties(dialogue: IDialogue): void {
     // Required fields
     if (!dialogue?.id || typeof dialogue.id !== "string") {
-      throw new Error("Dialogue id is required and must be a string");
+      throw errors.invalidParameter("id", "is required and must be a string");
     }
     this.#id = dialogue.id;
     this.#projectId = dialogue.projectId;
@@ -112,7 +113,7 @@ export class Dialogue {
       if (dialogue.tags.every((a) => typeof a === "string")) {
         this.#tags = [...dialogue.tags];
       } else {
-        throw new Error("tags must be array of strings");
+        throw errors.invalidParameter("tags", "must be array of strings");
       }
     }
 
@@ -224,10 +225,10 @@ export class Dialogue {
 
   set tags(value: string[]) {
     if (!Array.isArray(value)) {
-      throw new Error("tags must be an array");
+      throw errors.invalidParameter("tags", "must be an array");
     }
     if (!value.every((t) => typeof t === "string")) {
-      throw new Error("tags must be array of strings");
+      throw errors.invalidParameter("tags", "must be array of strings");
     }
     this.#tags = [...value];
     this.#isDirty = true;
@@ -381,9 +382,7 @@ export class Dialogue {
    */
   async end(): Promise<void> {
     // TODO: Implement when backend action endpoint is ready
-    throw new Error(
-      "end() action not yet implemented - backend endpoint needed"
-    );
+    throw errors.notImplemented("end");
   }
 
   /**
@@ -391,9 +390,7 @@ export class Dialogue {
    */
   async compact(): Promise<any> {
     // TODO: Implement when backend action endpoint is ready
-    throw new Error(
-      "compact() action not yet implemented - backend endpoint needed"
-    );
+    throw errors.notImplemented("compact");
   }
 
   /**

@@ -19,11 +19,15 @@ export async function update(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  const req = await apiRequest<IMemory>(`${endpoint}/memory/${key}`, {
-    method: "put",
-    headers,
-    body: JSON.stringify(updates),
-  });
+  const req = await apiRequest<IMemory>(
+    `${endpoint}/memory/${key}`,
+    {
+      method: "put",
+      headers,
+      body: JSON.stringify(updates),
+    },
+    settings.getRetryConfig()
+  );
 
   return req;
 }

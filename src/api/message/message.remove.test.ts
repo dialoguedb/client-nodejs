@@ -1,9 +1,10 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { remove } from "./message.remove";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 describe("message.remove", () => {
@@ -38,7 +39,8 @@ describe("message.remove", () => {
       {
         method: "delete",
         headers: expect.any(Headers),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -47,9 +49,8 @@ describe("message.remove", () => {
       id: "message-123",
     } as any;
 
-    await expect(remove(input)).rejects.toThrow(
-      "Missing required 'dialogueId'"
-    );
+    await expect(remove(input)).rejects.toThrow("dialogueId is required");
+    await expect(remove(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
@@ -59,7 +60,8 @@ describe("message.remove", () => {
       dialogueId: "dialogue-123",
     } as any;
 
-    await expect(remove(input)).rejects.toThrow("Missing required 'id'");
+    await expect(remove(input)).rejects.toThrow("id is required");
+    await expect(remove(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });

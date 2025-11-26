@@ -15,8 +15,12 @@ export async function remove(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  await apiRequest(`${endpoint}/memory/${input.key}`, {
-    method: "DELETE",
-    headers,
-  });
+  await apiRequest(
+    `${endpoint}/memory/${input.key}`,
+    {
+      method: "DELETE",
+      headers,
+    },
+    settings.getRetryConfig()
+  );
 }

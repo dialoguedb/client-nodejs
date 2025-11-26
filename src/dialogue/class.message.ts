@@ -7,6 +7,7 @@ import {
 import { useSettings } from "@/settings/useSettings";
 import { isPlainObject } from "@/utils/lodash";
 import { inspect } from "util";
+import { errors } from "@/errors";
 
 export interface MessageOptions {
   onRemoved?: () => void;
@@ -31,14 +32,17 @@ export class Message {
   constructor(
     dialogueId: string,
     message: IMessage,
-    settings?: SettingsContainer | Settings,
+    settings?: SettingsContainer | Partial<Settings>,
     options?: MessageOptions
   ) {
     this.#settings = useSettings(settings);
     this.#onRemoved = options?.onRemoved;
 
     if (!dialogueId || typeof dialogueId !== "string") {
-      throw new Error("Message dialogueId is required and must be a string");
+      throw errors.invalidParameter(
+        "dialogueId",
+        "is required and must be a string"
+      );
     }
     this.#dialogueId = dialogueId;
 
@@ -48,12 +52,12 @@ export class Message {
   #setProperties(message: IMessage): void {
     // Required fields
     if (!message?.id || typeof message.id !== "string") {
-      throw new Error("Message id is required and must be a string");
+      throw errors.invalidParameter("id", "is required and must be a string");
     }
     this.#id = message.id;
 
     if (!message?.role || typeof message.role !== "string") {
-      throw new Error("Message role is required and must be a string");
+      throw errors.invalidParameter("role", "is required and must be a string");
     }
     this.#role = message.role;
 
@@ -78,7 +82,7 @@ export class Message {
       if (message.tags.every((a) => typeof a === "string")) {
         this.#tags = [...message.tags];
       } else {
-        throw new Error("tags must be array of strings");
+        throw errors.invalidParameter("tags", "must be array of strings");
       }
     }
   }
@@ -113,10 +117,10 @@ export class Message {
 
   set tags(value: string[]) {
     if (!Array.isArray(value)) {
-      throw new Error("tags must be an array");
+      throw errors.invalidParameter("tags", "must be an array");
     }
     if (!value.every((t) => typeof t === "string")) {
-      throw new Error("tags must be array of strings");
+      throw errors.invalidParameter("tags", "must be array of strings");
     }
     this.#tags = [...value];
     this.#isDirty = true;

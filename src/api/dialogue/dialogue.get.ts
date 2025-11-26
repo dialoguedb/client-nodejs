@@ -2,16 +2,13 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { IDialogue, GetDialogueInput } from "@/types/index";
 import { getConfig } from "@/settings";
-import { isGetDialogueInput } from "@/methods/validation.dialogue";
+import { validateGetDialogueInput } from "@/methods/validators";
 
 export async function get(
   input: GetDialogueInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const valid = isGetDialogueInput(input);
-  if (!valid[0]) {
-    throw new Error(valid[1]);
-  }
+  validateGetDialogueInput(input);
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
@@ -20,8 +17,12 @@ export async function get(
 
   let url = `${endpoint}/dialogue/${input.id}`;
 
-  return apiRequest<IDialogue | null>(url, {
-    method: "get",
-    headers,
-  });
+  return apiRequest<IDialogue | null>(
+    url,
+    {
+      method: "get",
+      headers,
+    },
+    settings.getRetryConfig()
+  );
 }

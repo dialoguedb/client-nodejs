@@ -46,7 +46,8 @@ describe("messages.create", () => {
         method: "post",
         headers: expect.any(Headers),
         body: JSON.stringify(input.messages),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result).toEqual(mockResponse);

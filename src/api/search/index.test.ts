@@ -49,11 +49,15 @@ describe("search", () => {
     expectedParams.set("object", "message");
     expectedParams.set("query", "test search");
 
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "POST",
-      headers: expect.any(Headers),
-      body: JSON.stringify(filters),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/search`,
+      {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify(filters),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
 
     expect(result).toEqual(mockResponse);
   });
@@ -75,11 +79,15 @@ describe("search", () => {
 
     await search(filters, settings);
 
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "POST",
-      headers: expect.any(Headers),
-      body: JSON.stringify(filters),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/search`,
+      {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify(filters),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
   });
 
   it("should search with filter.created parameter", async () => {
@@ -101,11 +109,15 @@ describe("search", () => {
 
     await search(filters, settings);
 
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/search`, {
-      method: "POST",
-      headers: expect.any(Headers),
-      body: JSON.stringify(filters),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/search`,
+      {
+        method: "POST",
+        headers: expect.any(Headers),
+        body: JSON.stringify(filters),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
   });
 
   it("should set Authorization header correctly", async () => {

@@ -56,9 +56,13 @@ export async function list(
 
   const path = `${endpoint}/dialogue`;
 
-  return apiRequest<ListResponse<IDialogue>>(path, {
-    method: "get",
-    headers,
-    params,
-  });
+  return apiRequest<ListResponse<IDialogue>>(
+    path,
+    {
+      method: "get",
+      headers,
+      params,
+    },
+    settings.getRetryConfig()
+  );
 }

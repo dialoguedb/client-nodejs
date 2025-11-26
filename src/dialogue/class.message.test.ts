@@ -38,43 +38,43 @@ describe("Message", () => {
     it("throws when dialogueId is missing", () => {
       expect(() => {
         new Message("", createMockMessage());
-      }).toThrow("Message dialogueId is required and must be a string");
+      }).toThrow("Invalid dialogueId: is required and must be a string");
     });
 
     it("throws when dialogueId is not a string", () => {
       expect(() => {
         new Message(123 as any, createMockMessage());
-      }).toThrow("Message dialogueId is required and must be a string");
+      }).toThrow("Invalid dialogueId: is required and must be a string");
     });
 
     it("throws when message id is missing", () => {
       expect(() => {
         new Message(dialogueId, { ...createMockMessage(), id: undefined as any });
-      }).toThrow("Message id is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when message id is empty string", () => {
       expect(() => {
         new Message(dialogueId, { ...createMockMessage(), id: "" });
-      }).toThrow("Message id is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when role is missing", () => {
       expect(() => {
         new Message(dialogueId, { ...createMockMessage(), role: undefined as any });
-      }).toThrow("Message role is required and must be a string");
+      }).toThrow("Invalid role: is required and must be a string");
     });
 
     it("throws when role is not a string", () => {
       expect(() => {
         new Message(dialogueId, { ...createMockMessage(), role: 123 as any });
-      }).toThrow("Message role is required and must be a string");
+      }).toThrow("Invalid role: is required and must be a string");
     });
 
     it("throws when tags contains non-strings", () => {
       expect(() => {
         new Message(dialogueId, createMockMessage({ tags: ["valid", 123 as any] }));
-      }).toThrow("tags must be array of strings");
+      }).toThrow("Invalid tags: must be array of strings");
     });
 
     it("defaults content to empty string when missing", () => {

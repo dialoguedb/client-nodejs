@@ -38,9 +38,13 @@ export async function search<T>(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  return apiRequest<SearchResult<T>>(`${endpoint}/search`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(input),
-  });
+  return apiRequest<SearchResult<T>>(
+    `${endpoint}/search`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(input),
+    },
+    settings.getRetryConfig()
+  );
 }

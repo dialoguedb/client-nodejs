@@ -55,7 +55,8 @@ describe("messages.list", () => {
         method: "get",
         headers: expect.any(Headers),
         params: new URLSearchParams(),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result).toEqual(mockResponse);
@@ -93,7 +94,8 @@ describe("messages.list", () => {
         method: "get",
         headers: expect.any(Headers),
         params: expectedParams,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -129,7 +131,8 @@ describe("messages.list", () => {
         method: "get",
         headers: expect.any(Headers),
         params: expectedParams,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -167,7 +170,8 @@ describe("messages.list", () => {
         method: "get",
         headers: expect.any(Headers),
         params: expectedParams,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 

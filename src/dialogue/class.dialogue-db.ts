@@ -21,7 +21,7 @@ import {
 export class DialogueDB {
   #settings: SettingsContainer;
 
-  constructor(settings?: SettingsContainer | Settings) {
+  constructor(settings?: SettingsContainer | Partial<Settings>) {
     this.#settings = useSettings(settings);
   }
 

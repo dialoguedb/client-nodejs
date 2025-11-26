@@ -50,7 +50,8 @@ describe("message.update", () => {
         method: "put",
         headers: expect.any(Headers),
         body: JSON.stringify({ tags: ["important", "reviewed"] }),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -86,7 +87,8 @@ describe("message.update", () => {
         method: "put",
         headers: expect.any(Headers),
         body: JSON.stringify({ tags: [] }),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -120,7 +122,8 @@ describe("message.update", () => {
         method: "put",
         headers: expect.any(Headers),
         body: JSON.stringify({}),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 

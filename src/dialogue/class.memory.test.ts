@@ -38,31 +38,31 @@ describe("Memory", () => {
     it("throws when key is missing", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), key: undefined as any });
-      }).toThrow("Memory key is required and must be a string");
+      }).toThrow("Invalid key: is required and must be a string");
     });
 
     it("throws when key is empty string", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), key: "" });
-      }).toThrow("Memory key is required and must be a string");
+      }).toThrow("Invalid key: is required and must be a string");
     });
 
     it("throws when key is not a string", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), key: 123 as any });
-      }).toThrow("Memory key is required and must be a string");
+      }).toThrow("Invalid key: is required and must be a string");
     });
 
     it("throws when type is missing", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), type: undefined as any });
-      }).toThrow("Memory type is required and must be one of");
+      }).toThrow("Invalid type: is required and must be one of");
     });
 
     it("throws when type is invalid", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), type: "invalid" as any });
-      }).toThrow("Memory type is required and must be one of");
+      }).toThrow("Invalid type: is required and must be one of");
     });
 
     it("accepts all valid types", () => {
@@ -78,13 +78,13 @@ describe("Memory", () => {
     it("throws when value is missing", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), value: undefined as any });
-      }).toThrow("Memory value is required");
+      }).toThrow("value is required");
     });
 
     it("throws when tags contains non-strings", () => {
       expect(() => {
         new Memory(createMockMemory({ tags: ["valid", 123 as any] }));
-      }).toThrow("tags must be array of strings");
+      }).toThrow("Invalid tags: must be array of strings");
     });
 
     it("accepts optional namespace", () => {

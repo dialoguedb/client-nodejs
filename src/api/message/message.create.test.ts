@@ -1,9 +1,10 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { create } from "./message.create";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 describe("message.create", () => {
@@ -48,7 +49,8 @@ describe("message.create", () => {
           role: "user",
           content: "Hello world",
         }),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result).toEqual(mockResponse);
@@ -60,9 +62,8 @@ describe("message.create", () => {
       content: "Hello",
     } as any;
 
-    await expect(create(input)).rejects.toThrow(
-      "Missing required 'dialogueId'"
-    );
+    await expect(create(input)).rejects.toThrow("dialogueId is required");
+    await expect(create(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
@@ -73,7 +74,8 @@ describe("message.create", () => {
       content: "Hello",
     } as any;
 
-    await expect(create(input)).rejects.toThrow("Missing required 'role'");
+    await expect(create(input)).rejects.toThrow("role is required");
+    await expect(create(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
@@ -84,7 +86,8 @@ describe("message.create", () => {
       role: "user",
     } as any;
 
-    await expect(create(input)).rejects.toThrow("Missing required 'content'");
+    await expect(create(input)).rejects.toThrow("content is required");
+    await expect(create(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });

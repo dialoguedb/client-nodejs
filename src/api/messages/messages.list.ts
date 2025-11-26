@@ -24,11 +24,15 @@ export async function list(
 
   const url = `${endpoint}/dialogue/${dialogueId}/messages`;
 
-  const req = await apiRequest<ListResponse<IMessage>>(url, {
-    method: "get",
-    headers,
-    params,
-  });
+  const req = await apiRequest<ListResponse<IMessage>>(
+    url,
+    {
+      method: "get",
+      headers,
+      params,
+    },
+    settings.getRetryConfig()
+  );
 
   return req;
 }

@@ -11,6 +11,7 @@ export async function getMemory(
   input: GetMemoryInput,
   config?: SettingsOrContainer
 ): Promise<Memory | null> {
-  const data = await get(input, useSettings(config));
-  return data ? new Memory(data, config) : null;
+  const settings = useSettings(config);
+  const data = await get(input, settings);
+  return data ? new Memory(data, settings) : null;
 }

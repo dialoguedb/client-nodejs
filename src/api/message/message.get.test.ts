@@ -1,9 +1,10 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { get } from "./message.get";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 describe("message.get", () => {
@@ -46,7 +47,8 @@ describe("message.get", () => {
       {
         method: "get",
         headers: expect.any(Headers),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -55,7 +57,8 @@ describe("message.get", () => {
       id: "message-123",
     } as any;
 
-    await expect(get(input)).rejects.toThrow("Missing required 'dialogueId'");
+    await expect(get(input)).rejects.toThrow("dialogueId is required");
+    await expect(get(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
@@ -65,7 +68,8 @@ describe("message.get", () => {
       dialogueId: "dialogue-123",
     } as any;
 
-    await expect(get(input)).rejects.toThrow("Missing required 'id'");
+    await expect(get(input)).rejects.toThrow("id is required");
+    await expect(get(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });

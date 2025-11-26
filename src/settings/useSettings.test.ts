@@ -40,10 +40,9 @@ describe("useSettings", () => {
     expect(settings).toBeInstanceOf(SettingsContainer);
   });
 
-  it("will use createConfigSpy if Settings not provided", async () => {
+  it("will use getConfigSpy if empty Settings provided", async () => {
     const mockSettings = new SettingsContainer();
     getConfigSpy.mockReturnValueOnce(mockSettings);
-    // @ts-expect-error invalid options
     const settings = useSettings({});
     expect(createConfigSpy).toHaveBeenCalledTimes(0);
     expect(getConfigSpy).toHaveBeenCalledTimes(1);

@@ -42,11 +42,15 @@ describe("list", () => {
     expect(spyList).toHaveBeenCalledWith("apiKey");
     expect(spyList).toHaveBeenCalledWith("endpoint");
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
-      method: "get",
-      headers,
-      params: new URLSearchParams(),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue`,
+      {
+        method: "get",
+        headers,
+        params: new URLSearchParams(),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
 
     expect(results.items[0].id).toEqual(id);
 
@@ -85,7 +89,8 @@ describe("list", () => {
         method: "get",
         headers,
         params: expectedParams,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(results.items[0].id).toEqual(id);
@@ -125,7 +130,8 @@ describe("list", () => {
         method: "get",
         headers,
         params: expectedParams,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(results.items[0].id).toEqual(id);

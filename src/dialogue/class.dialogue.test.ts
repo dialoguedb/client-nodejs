@@ -69,25 +69,25 @@ describe("Dialogue", () => {
     it("throws when id is missing", () => {
       expect(() => {
         new Dialogue({ ...createMockDialogue(), id: undefined as any });
-      }).toThrow("Dialogue id is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when id is not a string", () => {
       expect(() => {
         new Dialogue({ ...createMockDialogue(), id: 123 as any });
-      }).toThrow("Dialogue id is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when id is empty string", () => {
       expect(() => {
         new Dialogue({ ...createMockDialogue(), id: "" });
-      }).toThrow("Dialogue id is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when tags contains non-strings", () => {
       expect(() => {
         new Dialogue(createMockDialogue({ tags: ["valid", 123 as any] }));
-      }).toThrow("tags must be array of strings");
+      }).toThrow("Invalid tags: must be array of strings");
     });
 
     it("accepts optional namespace", () => {
@@ -836,7 +836,7 @@ describe("Dialogue", () => {
       const dialogue = new Dialogue(createMockDialogue());
 
       await expect(dialogue.end()).rejects.toThrow(
-        "end() action not yet implemented"
+        "end() is not yet implemented"
       );
     });
 
@@ -844,7 +844,7 @@ describe("Dialogue", () => {
       const dialogue = new Dialogue(createMockDialogue());
 
       await expect(dialogue.compact()).rejects.toThrow(
-        "compact() action not yet implemented"
+        "compact() is not yet implemented"
       );
     });
   });

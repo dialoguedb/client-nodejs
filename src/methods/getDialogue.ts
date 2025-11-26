@@ -11,6 +11,7 @@ export async function getDialogue(
   input: GetDialogueInput,
   config?: SettingsOrContainer
 ): Promise<Dialogue | null> {
-  const data = await get(input, useSettings(config));
-  return data ? new Dialogue(data, config) : null;
+  const settings = useSettings(config);
+  const data = await get(input, settings);
+  return data ? new Dialogue(data, settings) : null;
 }

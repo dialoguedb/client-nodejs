@@ -36,7 +36,8 @@ describe("memory.remove", () => {
       {
         method: "DELETE",
         headers: expect.any(Headers),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -62,7 +63,8 @@ describe("memory.remove", () => {
       {
         method: "DELETE",
         headers: expect.any(Headers),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 
@@ -109,7 +111,8 @@ describe("memory.remove", () => {
       {
         method: "DELETE",
         headers: expect.any(Headers),
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
   });
 

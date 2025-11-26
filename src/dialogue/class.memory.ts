@@ -7,6 +7,7 @@ import { IMemory } from "@/types";
 import * as memoryApi from "@/api/memory";
 import { isPlainObject } from "@/utils/lodash";
 import { inspect } from "util";
+import { errors } from "@/errors";
 
 export interface MemoryOptions {
   onRemoved?: () => void;
@@ -30,7 +31,7 @@ export class Memory {
 
   constructor(
     memory: IMemory,
-    settings?: SettingsContainer | Settings,
+    settings?: SettingsContainer | Partial<Settings>,
     options?: MemoryOptions
   ) {
     this.#settings = useSettings(settings);
@@ -41,22 +42,23 @@ export class Memory {
   #setProperties(memory: IMemory): void {
     // Required
     if (!memory?.key || typeof memory.key !== "string") {
-      throw new Error("Memory key is required and must be a string");
+      throw errors.invalidParameter("key", "is required and must be a string");
     }
     this.#key = memory.key;
 
     // Type - required, validate allowed values
     const validTypes = ["string", "object", "array", "boolean", "number"];
     if (!memory?.type || !validTypes.includes(memory.type)) {
-      throw new Error(
-        `Memory type is required and must be one of: ${validTypes.join(", ")}`
+      throw errors.invalidParameter(
+        "type",
+        `is required and must be one of: ${validTypes.join(", ")}`
       );
     }
     this.#type = memory.type;
 
     // Value - required, deep clone if object/array
     if (memory.value === undefined) {
-      throw new Error("Memory value is required");
+      throw errors.missingParameter("value");
     }
 
 
@@ -93,7 +95,7 @@ export class Memory {
       if (memory.tags.every((a) => typeof a === "string")) {
         this.#tags = [...memory.tags];
       } else {
-        throw new Error("tags must be array of strings");
+        throw errors.invalidParameter("tags", "must be array of strings");
       }
     }
   }
@@ -145,10 +147,10 @@ export class Memory {
 
   set tags(value: string[]) {
     if (!Array.isArray(value)) {
-      throw new Error("tags must be an array");
+      throw errors.invalidParameter("tags", "must be an array");
     }
     if (!value.every((t) => typeof t === "string")) {
-      throw new Error("tags must be array of strings");
+      throw errors.invalidParameter("tags", "must be array of strings");
     }
     this.#tags = [...value];
     this.#isDirty = true;

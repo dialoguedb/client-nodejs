@@ -36,11 +36,15 @@ describe("memory.create", () => {
     const result = await create(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/memory`, {
-      method: "post",
-      headers: expect.any(Headers),
-      body: JSON.stringify(input),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/memory`,
+      {
+        method: "post",
+        headers: expect.any(Headers),
+        body: JSON.stringify(input),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
 
     expect(result).toEqual(mockResponse);
   });

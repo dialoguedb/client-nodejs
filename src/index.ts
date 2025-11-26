@@ -3,8 +3,8 @@ import { settings } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
 // errors
-export { DialogueDBError, withRetry } from "./utils/request";
-export type { ErrorType, RetryOptions } from "./utils/request";
+export { DialogueDBError } from "./errors";
+export type { ErrorType } from "./utils/request";
 
 // dialogue class/utils
 import { DialogueDB } from "./dialogue/class.dialogue-db";
@@ -48,8 +48,8 @@ export const api = {
   memory: {
     create: memoryApi.create,
     get: memoryApi.get,
-    // remove: memoryApi.remove,
-    // update: memoryApi.update,
+    remove: memoryApi.remove,
+    update: memoryApi.update,
     // list: memoryApi.list,
   },
 };

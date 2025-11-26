@@ -11,6 +11,7 @@ export async function createMemory(
   input: CreateMemoryInput,
   config?: SettingsOrContainer
 ): Promise<Memory> {
-  const data = await create(input, useSettings(config));
-  return new Memory(data, config);
+  const settings = useSettings(config);
+  const data = await create(input, settings);
+  return new Memory(data, settings);
 }

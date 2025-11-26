@@ -2,16 +2,13 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { IMessage, CreateMessageInput } from "@/types";
-import { isCreateMessageInput } from "@/methods/validation.message";
+import { validateCreateMessageInput } from "@/methods/validators";
 
 export async function create(
   input: CreateMessageInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const valid = isCreateMessageInput(input);
-  if (!valid[0]) {
-    throw new Error(valid[1]);
-  }
+  validateCreateMessageInput(input);
 
   const { dialogueId, ...message } = input;
 
@@ -26,6 +23,7 @@ export async function create(
       method: "post",
       headers,
       body: JSON.stringify(message),
-    }
+    },
+    settings.getRetryConfig()
   );
 }

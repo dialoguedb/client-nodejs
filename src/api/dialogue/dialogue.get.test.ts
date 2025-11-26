@@ -46,7 +46,8 @@ describe("get", () => {
       {
         method: "get",
         headers,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result?.id).toEqual(id);
@@ -83,7 +84,8 @@ describe("get", () => {
       {
         method: "get",
         headers,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result?.id).toEqual(id);
@@ -121,7 +123,8 @@ describe("get", () => {
       {
         method: "get",
         headers,
-      }
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
 
     expect(result?.id).toEqual(id);

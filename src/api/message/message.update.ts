@@ -26,6 +26,7 @@ export async function update(
       method: "put",
       headers,
       body: JSON.stringify(updates),
-    }
+    },
+    settings.getRetryConfig()
   );
 }
