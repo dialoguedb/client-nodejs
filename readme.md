@@ -3,11 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/dialogue-db.svg)](https://www.npmjs.com/package/dialogue-db)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A TypeScript/JavaScript SDK for DialogueDB - a managed database service for AI conversation management.
-
-## Documentation
-
-See the [DialogueDB API docs](https://docs.dialoguedb.com) for complete documentation.
+A TypeScript SDK for DialogueDB - a managed database service for AI conversation management.
 
 ## Requirements
 
@@ -19,237 +15,441 @@ Node.js 18 or higher.
 npm install dialogue-db
 ```
 
-## Usage
+## Quick Start
 
 ```typescript
-import { createConfig, createDialogue } from "dialogue-db";
+import { DialogueDB } from "dialogue-db";
 
-// Configure with your API key
-createConfig({
-  apiKey: process.env.DIALOGUE_DB_API_KEY
+const db = new DialogueDB({ apiKey: process.env.DIALOGUE_DB_API_KEY });
+
+// Create a dialogue with an initial message
+const dialogue = await db.createDialogue({
+  messages: [{ role: "user", content: "Hello!" }],
 });
 
-// Create a dialogue
-const dialogue = await createDialogue({
-  id: "conversation-123",
-  namespace: "my-app",
-  messages: [
-    { role: "user", content: "Hello!" }
-  ]
-});
-
-// Add a message
-await dialogue.addMessage({
+// Add a response
+await dialogue.saveMessage({
   role: "assistant",
-  content: "Hi there!"
+  content: "Hi there!",
 });
 
-// Update state
-dialogue.setState({ topic: "greeting" });
-await dialogue.save();
+// Update conversation state
+await dialogue.saveState({
+  topic: "greeting",
+});
 ```
 
 ## Configuration
 
-The SDK can be configured with `createConfig()`:
+### Using the DialogueDB Class
 
 ```typescript
-createConfig({
-  apiKey: "your-api-key"  // Required: Your DialogueDB API key
+import { DialogueDB } from "dialogue-db";
+
+const db = new DialogueDB({ apiKey: "your-api-key" });
+```
+
+### Using the Direct API
+
+For simple CRUD operations or when you want full control:
+
+```typescript
+import { api, createConfig } from "dialogue-db";
+
+createConfig({ apiKey: "your-api-key" });
+
+// Direct API calls map closely to REST endpoints
+const dialogue = await api.dialogue.create({ /* ... */ });
+const messages = await api.messages.list({ dialogueId: "id" });
+```
+
+### Environment Variables
+
+Set `DIALOGUE_DB_API_KEY` to configure automatically.
+
+## Core Concepts
+
+### Two Usage Patterns
+
+The SDK offers two ways to interact with DialogueDB:
+
+1. **DialogueDB Class** - Object-oriented interface with convenience methods, state management, and pagination handling
+2. **Direct API** - Simple function calls that map 1:1 with REST endpoints, returning plain data objects
+
+Use the class when you need stateful conversation management. Use the API when you want straightforward CRUD operations.
+
+### Entities
+
+- **Dialogue** - A conversation container with messages, state, and metadata
+- **Message** - An individual message within a dialogue (role, content, metadata)
+- **Memory** - Persistent storage for facts, preferences, or context that persists across conversations
+
+## Working with Dialogues
+
+### Creating a Dialogue
+
+```typescript
+const dialogue = await db.createDialogue({
+  id: "optional-custom-id", // Auto-generated if omitted
+  namespace: "my-app", // Optional grouping
+  messages: [
+    { role: "user", content: "Hello" },
+  ],
+  state: { context: "onboarding" },
+  metadata: { userId: "123" },
+  tags: ["new"],
 });
 ```
 
-Alternatively, set the `DIALOGUE_DB_API_KEY` environment variable.
-
-## API Reference
-
-### Core Methods
-
-#### `createDialogue(options)`
-
-Creates a new dialogue.
+### Getting a Dialogue
 
 ```typescript
-const dialogue = await createDialogue({
-  id?: string,              // Unique identifier (auto-generated if omitted)
-  namespace?: string,       // Namespace for multi-tenancy
-  messages?: Message[],     // Initial messages
-  state?: object,           // Conversation state
-  metadata?: object,        // Additional metadata
-  tags?: string[],          // Tags for filtering
-  expiresTimestamp?: number // Unix timestamp for expiration
-});
-```
+const dialogue = await db.getDialogue("dialogue-id");
 
-#### `getDialogue(id, namespace?)`
-
-Retrieves an existing dialogue.
-
-```typescript
-const dialogue = await getDialogue("conversation-123", "my-app");
-```
-
-#### `listDialogues(options)`
-
-Lists dialogues with optional filters.
-
-```typescript
-const dialogues = await listDialogues({
-  limit: 20,
-  order: "desc",
-  date: "2024-01-01"
-});
-```
-
-#### `useDialogue(id, namespace?)`
-
-Returns a Dialogue instance for manipulation.
-
-```typescript
-const dialogue = await useDialogue("conversation-123");
-```
-
-### Dialogue Methods
-
-#### `addMessage(message)`
-
-Adds a single message (posts immediately).
-
-```typescript
-await dialogue.addMessage({
-  role: "user",
-  content: "Hello!"
-});
-```
-
-#### `addMessages(messages)`
-
-Adds multiple messages (parallel API calls).
-
-```typescript
-await dialogue.addMessages([
-  { role: "user", content: "Hello!" },
-  { role: "assistant", content: "Hi!" }
-]);
-```
-
-#### `loadMessages(options)`
-
-Loads messages with pagination support.
-
-```typescript
-await dialogue.loadMessages({ limit: 50 });
-
-// Pagination
-if (dialogue.hasMoreMessages) {
-  await dialogue.loadMessages({ next: dialogue.nextToken });
+if (dialogue) {
+  console.log(dialogue.messages);
 }
 ```
 
-#### `deleteMessage(messageId)`
+### Saving Messages
 
-Deletes a message.
+Messages are persisted immediately:
+
+```typescript
+// Single message
+const message = await dialogue.saveMessage({
+  role: "assistant",
+  content: "How can I help?",
+});
+
+// Multiple messages at once
+const messages = await dialogue.saveMessages([
+  { role: "user", content: "Question 1" },
+  { role: "user", content: "Question 2" },
+]);
+```
+
+### Loading Messages
+
+Messages support pagination:
+
+```typescript
+// Initial load
+await dialogue.loadMessages({ limit: 50 });
+
+// Load more
+if (dialogue.hasMoreMessages) {
+  await dialogue.loadMessages({ limit: 50, next: true });
+}
+```
+
+### Deleting Messages
 
 ```typescript
 await dialogue.deleteMessage("message-id");
 ```
 
-#### `setState(state)`
-
-Updates conversation state (batched until save).
+### Managing State
 
 ```typescript
-dialogue.setState({ context: "booking", step: 2 });
-```
-
-#### `getState()`
-
-Returns current state.
-
-```typescript
-const state = dialogue.getState();
-```
-
-#### `save()`
-
-Persists state and metadata changes.
-
-```typescript
+// Set and save later
+dialogue.state = { step: 2, context: "payment" };
 await dialogue.save();
 
-// Check for unsaved changes
-if (dialogue.isDirty) {
-  await dialogue.save();
-}
+// Or save immediately
+await dialogue.saveState({ step: 2, context: "payment" });
 ```
 
-#### `createThread(options)`
-
-Creates a child thread.
+### Managing Tags
 
 ```typescript
+// Set and save later
+dialogue.tags = ["vip", "priority"];
+await dialogue.save();
+
+// Or save immediately
+await dialogue.saveTags(["vip", "priority"]);
+```
+
+### Threading
+
+Threads link related dialogues together. Use cases include:
+
+- **Conversation branches** - Let users explore alternative responses
+- **Agent reasoning** - Keep internal chain-of-thought separate from user-facing messages
+- **Sub-tasks** - Track related but distinct conversation flows
+- **Versioning** - Maintain history while starting fresh
+
+```typescript
+// Create a linked thread
 const thread = await dialogue.createThread({
-  metadata: { topic: "specific-question" },
-  tags: ["thread"]
+  metadata: { purpose: "internal-reasoning" },
 });
+
+// Get all threads for a dialogue
+const threads = await dialogue.getThreads();
 ```
 
-#### `getThreads()`
+### Dialogue Properties
 
-Retrieves all child threads.
+| Property    | Type        | Description                    |
+| ----------- | ----------- | ------------------------------ |
+| `id`        | `string`    | Unique identifier              |
+| `namespace` | `string?`   | Multi-tenancy namespace        |
+| `messages`  | `Message[]` | Array of messages              |
+| `state`     | `object`    | Conversation state             |
+| `tags`      | `string[]`  | Tags for filtering             |
+| `metadata`  | `object`    | Additional metadata            |
+| `created`   | `string`    | ISO timestamp                  |
+| `modified`  | `string`    | ISO timestamp                  |
+
+## Working with Messages
+
+Messages are accessed through their parent dialogue:
 
 ```typescript
-const threads = await dialogue.getThreads();
+const messages = dialogue.messages;
+
+for (const message of messages) {
+  console.log(`${message.role}: ${message.content}`);
+}
 ```
 
 ### Message Properties
 
-Access current messages via:
+| Property     | Type                           | Description              |
+| ------------ | ------------------------------ | ------------------------ |
+| `id`         | `string`                       | Unique identifier        |
+| `dialogueId` | `string`                       | Parent dialogue ID       |
+| `role`       | `string`                       | Message role             |
+| `content`    | `string \| object \| object[]` | Message content          |
+| `created`    | `string`                       | ISO timestamp            |
+| `name`       | `string?`                      | Optional display name    |
+| `metadata`   | `object?`                      | Additional metadata      |
+| `tags`       | `string[]?`                    | Tags for filtering       |
+
+### Updating Message Tags
 
 ```typescript
-const messages = dialogue.messages;
+const message = dialogue.messages[0];
+
+// Set and save later
+message.tags = ["reviewed"];
+await message.save();
+
+// Or save immediately
+await message.saveTags(["reviewed"]);
 ```
 
-Pagination properties:
+### Removing a Message
 
 ```typescript
-dialogue.hasMoreMessages  // boolean
-dialogue.nextToken        // string | undefined
+await message.remove(); // Deletes from API and removes from parent dialogue
 ```
 
-### Low-Level API
+## Working with Memories
 
-For advanced use cases, access the raw API:
+Memories are searchable, persistent storage for information that should be recalled across conversations. Unlike dialogue state (which is scoped to a single conversation), memories persist independently and can be searched semantically.
+
+Common use cases:
+- **User preferences** - Theme, language, notification settings
+- **Learned facts** - "User's name is Alice", "Prefers morning meetings"
+- **Domain knowledge** - Product details, policies, FAQs your agent should remember
+
+### Creating a Memory
+
+```typescript
+const memory = await db.createMemory({
+  key: "user-preferences",
+  value: { theme: "dark", language: "en" },
+  label: "User Preferences",
+  description: "Stores user UI preferences",
+  tags: ["settings"],
+});
+```
+
+### Getting a Memory
+
+```typescript
+const memory = await db.getMemory("user-preferences");
+
+if (memory) {
+  console.log(memory.value); // { theme: "dark", language: "en" }
+}
+```
+
+### Memory Properties
+
+| Property      | Type       | Description                      |
+| ------------- | ---------- | -------------------------------- |
+| `key`         | `string`   | Unique identifier                |
+| `namespace`   | `string?`  | Multi-tenancy namespace          |
+| `label`       | `string?`  | Human-readable label             |
+| `description` | `string?`  | Description of the memory        |
+| `value`       | `any`      | The stored value                 |
+| `type`        | `string`   | Value type (string, object, etc) |
+| `metadata`    | `object`   | Additional metadata              |
+| `tags`        | `string[]` | Tags for filtering               |
+| `created`     | `string`   | ISO timestamp                    |
+| `modified`    | `string`   | ISO timestamp                    |
+
+### Updating Memory Tags
+
+```typescript
+memory.tags = ["archived"];
+await memory.save();
+
+// Or immediately
+await memory.saveTags(["archived"]);
+```
+
+### Removing a Memory
+
+```typescript
+await memory.remove();
+```
+
+## Search
+
+Search uses semantic vector search to find relevant content by meaning, not just keywords.
+
+```typescript
+// Search dialogues
+const dialogues = await db.searchDialogues("billing issue", {
+  limit: 10,
+  filter: { tags: ["support"] },
+});
+
+// Search messages
+const messages = await db.searchMessages("password reset", {
+  limit: 20,
+});
+
+// Search memories
+const memories = await db.searchMemories("user preferences", {
+  limit: 5,
+});
+```
+
+### Search Options
+
+```typescript
+{
+  limit?: number;              // Maximum results
+  filter?: {
+    tags?: string[];           // Filter by tags
+    created?: string;          // Filter by creation date (ISO)
+    createdYear?: number;      // Filter by year (e.g., 2025)
+    createdMonth?: number;     // Filter by month (1-12)
+    createdDay?: number;       // Filter by day (1-31)
+    modified?: string;         // Filter by modification date (ISO)
+    modifiedYear?: number;
+    modifiedMonth?: number;
+    modifiedDay?: number;
+  };
+  metadata?: Record<string, any>;  // Filter by custom metadata values
+}
+```
+
+### Filtering by Metadata
+
+Custom metadata you set on entities can be used as search filters:
+
+```typescript
+// Find messages from a specific user in January
+const messages = await db.searchMessages("order status", {
+  filter: {
+    createdMonth: 1,
+    createdYear: 2025,
+  },
+  metadata: { userId: "user_123" },
+});
+```
+
+## Direct API
+
+The direct API provides simple function calls that map closely to REST endpoints. Returns plain data objects (not class instances).
 
 ```typescript
 import { api } from "dialogue-db";
 
 // Dialogue operations
-await api.dialogue.create(payload);
-await api.dialogue.get(id);
-await api.dialogue.list(query);
-await api.dialogue.update(updates);
-await api.dialogue.remove(id);
+const dialogue = await api.dialogue.create({ /* ... */ });
+const fetched = await api.dialogue.get("id");
+const listed = await api.dialogue.list({ limit: 10 });
+const updated = await api.dialogue.update({ id: "id", state: {} });
+await api.dialogue.remove("id");
 
-// Message operations
-await api.message.create(dialogueId, message);
-await api.messages.list(dialogueId, options);
-await api.message.remove(dialogueId, messageId);
+// Single message operations
+const message = await api.message.create({
+  dialogueId: "id",
+  role: "user",
+  content: "...",
+});
+await api.message.remove({ dialogueId: "id", id: "msg-id" });
+
+// Bulk message operations
+const messages = await api.messages.create({
+  id: "dialogue-id",
+  messages: [{ role: "user", content: "..." }],
+});
+const messageList = await api.messages.list({ dialogueId: "id" });
+
+// Memory operations
+const memory = await api.memory.create({ key: "k", value: "v" });
+const mem = await api.memory.get("k");
+await api.memory.update({ key: "k", value: "new-value" });
+await api.memory.remove("k");
+
+// Search
+const results = await api.search({ query: "...", object: "dialogue" });
 ```
 
 ## TypeScript
 
-The SDK is written in TypeScript and includes type definitions.
+The SDK is written in TypeScript with full type definitions.
+
+### Core Interfaces
 
 ```typescript
-export interface IDialogue {
+interface IDialogue {
   id: string;
+  projectId: string;
+  requestId: string;
+  status: "active" | "ended" | "archived";
+  created: string;
+  modified: string;
+  tags: string[];
+
+  // Optional fields
   namespace?: string;
-  canceled?: boolean;
-  expired: boolean;
-  expiresTimestamp?: number;
-  state: Record<string, any>;
-  messages: IMessage[];
+  threadOf?: string;
+  label?: string;
+  state?: Record<string, any>;
+  messages?: IMessage[];
+  metadata?: Record<string, string | number | boolean>;
+  totalMessages?: number;
+  threadCount?: number;
+}
+
+interface IMessage {
+  id: string;
+  dialogueId: string;
+  role: string;
+  content: string | object | object[];
+  created: string;
+  name?: string;
+  metadata?: Record<string, string | number | boolean>;
+  tags?: string[];
+}
+
+interface IMemory {
+  key: string;
+  namespace?: string;
+  label?: string;
+  description?: string;
+  value: string | number | boolean | object | any[];
+  type: "string" | "object" | "array" | "boolean" | "number";
   metadata: Record<string, string | number | boolean>;
   tags: string[];
   created: string;
@@ -257,16 +457,106 @@ export interface IDialogue {
 }
 ```
 
+### Input Types
+
 ```typescript
-interface IMessage {
-  id: string;
+type CreateDialogueInput = {
+  id?: string;
+  namespace?: string;
+  threadOf?: string;
+  label?: string;
+  messages?: CreateMessageInput[];
+  state?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean>;
+  tags?: string[];
+};
+
+type CreateMessageInput = {
   role: string;
-  content: string;
-  namespace: string;
-  created: string;
-  modified: string;
-  tags: string[];
-  metadata: Record<string, string | number | boolean>;
+  content: string | object | object[];
+  id?: string;
+  tags?: string[];
+  metadata?: Record<string, string | number | boolean>;
+};
+
+type CreateMemoryInput = {
+  value: string | number | boolean | object | any[];
+  key?: string;
+  namespace?: string;
+  label?: string;
+  description?: string;
+  tags?: string[];
+  metadata?: Record<string, string | number | boolean>;
+};
+
+type SearchOptions = {
+  limit?: number;
+  filter?: {
+    tags?: string[];
+    created?: string;
+    createdYear?: number;
+    createdMonth?: number;
+    createdDay?: number;
+    modified?: string;
+    modifiedYear?: number;
+    modifiedMonth?: number;
+    modifiedDay?: number;
+  };
+  metadata?: Record<string, any>;
+};
+```
+
+## Advanced
+
+### Class vs Data Objects
+
+When using the `DialogueDB` class methods, you get class instances with additional functionality:
+
+```typescript
+const db = new DialogueDB({ apiKey: "..." });
+const dialogue = await db.getDialogue("id");
+
+// Class instance has methods and state tracking
+dialogue.state = { updated: true };
+console.log(dialogue.isDirty); // true - tracks unsaved changes
+await dialogue.save();
+console.log(dialogue.isDirty); // false
+```
+
+When using the direct API, you get plain data objects:
+
+```typescript
+const data = await api.dialogue.get("id");
+// data.isDirty - undefined (not a class instance)
+```
+
+### Save Behavior
+
+The `Dialogue` class batches state and tag changes locally until you call `save()`:
+
+```typescript
+// Changes are batched
+dialogue.state = { step: 1 };
+dialogue.tags = ["important"];
+await dialogue.save(); // Single API call saves both
+
+// Or use immediate methods
+await dialogue.saveState({ step: 1 }); // Saves immediately
+await dialogue.saveTags(["important"]); // Saves immediately
+```
+
+Messages are always saved immediately via `saveMessage()` / `saveMessages()`.
+
+### Pagination
+
+The `Dialogue` class handles message pagination:
+
+```typescript
+const dialogue = await db.getDialogue("id");
+
+// Check if more messages exist
+if (dialogue.hasMoreMessages) {
+  await dialogue.loadMessages({ limit: 50, next: true });
 }
 ```
 

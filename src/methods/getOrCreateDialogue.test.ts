@@ -1,13 +1,8 @@
 import { assertDialogue } from "@/utils/assertIsDialogue";
 // import { useSettings } from "@/settings/useSettings";
 import { get } from "@/api/dialogue";
-import { useDialogue } from "./useDialogue";
+import { getOrCreateDialogue } from "./getOrCreateDialogue";
 import { createDialogue } from "./createDialogue";
-import { ulid } from "ulid";
-
-jest.mock("ulid", () => ({
-  ulid: jest.fn(),
-}));
 
 jest.mock("@/api/dialogue", () => ({
   get: jest.fn(),
@@ -18,7 +13,6 @@ jest.mock("./createDialogue", () => ({
 }));
 
 describe("useDialogue", () => {
-  const ulidMock = ulid as jest.Mock;
   const apiGetMock = get as jest.Mock;
   const createDialogueMock = createDialogue as jest.Mock;
 
@@ -33,7 +27,7 @@ describe("useDialogue", () => {
       id,
     });
 
-    const dialogue = await useDialogue();
+    const dialogue = await getOrCreateDialogue();
     expect(apiGetMock).toHaveBeenCalledTimes(0);
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
     expect(createDialogueMock).toHaveBeenCalledWith(
@@ -47,20 +41,19 @@ describe("useDialogue", () => {
 
   it("will create if given id that does not exist", async () => {
     const id = "non-existing-item-id";
-    ulidMock.mockResolvedValueOnce("some-ulid");
     apiGetMock.mockResolvedValueOnce(null);
 
     createDialogueMock.mockResolvedValueOnce({
-      id: "some-ulid",
+      id: "some-id",
     });
 
-    const dialogue = await useDialogue({ id });
+    const dialogue = await getOrCreateDialogue({ id });
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
     expect(createDialogueMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(typeof dialogue.id).toBe("string");
-    expect(dialogue.id).toBe("some-ulid");
+    expect(dialogue.id).toBe("some-id");
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
 
@@ -71,7 +64,7 @@ describe("useDialogue", () => {
       id,
     });
 
-    const dialogue = await useDialogue({ id });
+    const dialogue = await getOrCreateDialogue({ id });
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(createDialogueMock).toHaveBeenCalledTimes(0);

@@ -1,0 +1,59 @@
+import { search, SearchOptions } from "@/api/search";
+import { useSettings } from "@/settings/useSettings";
+import { SettingsOrContainer } from "@/settings/class.SettingsContainer";
+import { IDialogue, IMessage, IMemory } from "@/types";
+import { Dialogue } from "@/dialogue/class.dialogue";
+import { Message } from "@/dialogue/class.message";
+import { Memory } from "@/dialogue/class.memory";
+
+export { SearchOptions };
+
+// TODO: fail faster on bad syntax
+
+/**
+ * Search dialogues
+ */
+export async function searchDialogues(
+  query: string,
+  options: SearchOptions = {},
+  config?: SettingsOrContainer
+): Promise<Dialogue[]> {
+  const settings = useSettings(config);
+  const result = await search<IDialogue>(
+    { query, object: "dialogue", ...options },
+    settings
+  );
+  return result.items.map((d) => new Dialogue(d, settings));
+}
+
+/**
+ * Search messages
+ */
+export async function searchMessages(
+  query: string,
+  options: SearchOptions = {},
+  config?: SettingsOrContainer
+): Promise<Message[]> {
+  const settings = useSettings(config);
+  const result = await search<IMessage>(
+    { query, object: "message", ...options },
+    settings
+  );
+  return result.items.map((m) => new Message(m.dialogueId, m, settings));
+}
+
+/**
+ * Search memories
+ */
+export async function searchMemories(
+  query: string,
+  options: SearchOptions = {},
+  config?: SettingsOrContainer
+): Promise<Memory[]> {
+  const settings = useSettings(config);
+  const result = await search<IMemory>(
+    { query, object: "memory", ...options },
+    settings
+  );
+  return result.items.map((m) => new Memory(m, settings));
+}

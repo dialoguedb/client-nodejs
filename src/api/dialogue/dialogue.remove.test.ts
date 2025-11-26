@@ -1,9 +1,10 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { remove } from "./dialogue.remove";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 describe("dialogue.remove", () => {
@@ -31,17 +32,22 @@ describe("dialogue.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
-      method: "delete",
-      headers: expect.any(Headers),
-      body: JSON.stringify(input),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue`,
+      {
+        method: "delete",
+        headers: expect.any(Headers),
+        body: JSON.stringify(input),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
   });
 
   it("should throw error for invalid input - missing id", async () => {
     const input = {} as any;
 
-    await expect(remove(input)).rejects.toThrow("Missing required 'id'");
+    await expect(remove(input)).rejects.toThrow("id is required");
+    await expect(remove(input)).rejects.toBeInstanceOf(DialogueDBError);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });

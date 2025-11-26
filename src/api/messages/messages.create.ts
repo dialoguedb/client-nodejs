@@ -4,7 +4,10 @@ import { getConfig } from "@/settings";
 import { CreateMessageInput, IMessage } from "@/types";
 
 export async function create(
-  input: CreateMessageInput,
+  input: {
+    id: string;
+    messages: Omit<CreateMessageInput, "dialogueId">[];
+  },
   settings: SettingsContainer = getConfig()
 ) {
   const headers = new Headers();
@@ -12,13 +15,14 @@ export async function create(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  const req = await apiRequest<IMessage>(
-    `${endpoint}/dialogue/${input.dialogueId}/messages`,
+  const req = await apiRequest<IMessage[]>(
+    `${endpoint}/dialogue/${input.id}/messages`,
     {
       method: "post",
       headers,
-      body: JSON.stringify(input),
-    }
+      body: JSON.stringify(input.messages),
+    },
+    settings.getRetryConfig()
   );
 
   return req;

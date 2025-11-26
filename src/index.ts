@@ -2,13 +2,16 @@
 import { settings } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
+// errors
+export { DialogueDBError } from "./errors";
+export type { ErrorType } from "./utils/request";
+
 // dialogue class/utils
-import { Dialogue } from "./dialogue/class.dialogue";
+import { DialogueDB } from "./dialogue/class.dialogue-db";
 import { createDialogue } from "./methods/createDialogue";
 import { getDialogue } from "./methods/getDialogue";
-import { initializeDialogue } from "./methods/initializeDialogue";
 import { listDialogues } from "./methods/listDialogues";
-import { useDialogue } from "./methods/useDialogue";
+import { getOrCreateDialogue } from "./methods/getOrCreateDialogue";
 
 // api things
 import * as dialogueApi from "./api/dialogue";
@@ -29,9 +32,8 @@ export const api = {
     get: dialogueApi.get,
   },
   messages: {
-    create: messageApi.create,
+    create: messagesApi.create,
     list: messagesApi.list,
-    remove: messageApi.remove,
   },
   message: {
     get: messageApi.get,
@@ -45,8 +47,8 @@ export const api = {
   memory: {
     create: memoryApi.create,
     get: memoryApi.get,
-    // remove: memoryApi.remove,
-    // update: memoryApi.update,
+    remove: memoryApi.remove,
+    update: memoryApi.update,
     // list: memoryApi.list,
   },
 };
@@ -57,11 +59,10 @@ export {
   createConfig,
 
   // expose the class
-  Dialogue,
-  initializeDialogue,
+  DialogueDB,
 
   // convenience functions
-  useDialogue,
+  getOrCreateDialogue,
   createDialogue,
   listDialogues,
   getDialogue,

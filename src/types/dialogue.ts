@@ -2,16 +2,26 @@ import { IMessage, CreateMessageInput } from "./message";
 
 export interface IDialogue {
   id: string;
+  projectId: string;
+  requestId: string;
+  status: "active" | "ended" | "archived";
+
+  // Optional fields - only present if set
   namespace?: string;
+  threadOf?: string;
+  label?: string;
+  previousId?: string;
+  archivedAt?: string;
+  endedAt?: string;
+  totalMessages?: number;
+  threadCount?: number;
+  lastMessageCreated?: string;
 
-  canceled?: boolean;
+  // Populated fields - may or may not be present depending on request
+  state?: Record<string, any>;
+  messages?: IMessage[];
 
-  expired: boolean;
-  expiresTimestamp?: number;
-
-  state: Record<string, any>;
-  messages: IMessage[];
-  metadata: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean>;
   tags: string[];
 
   created: string;
@@ -22,18 +32,19 @@ export type CreateDialogueInput = {
   id?: string;
   namespace?: string;
   threadOf?: string;
+  previousId?: string;
+  label?: string;
   messages?: Omit<CreateMessageInput, "dialogueId">[];
   message?: Omit<CreateMessageInput, "dialogueId">;
   created?: string;
   state?: Record<string, any>;
   metadata?: Record<string, string | number | boolean>;
   tags?: string[];
-  expiresTimestamp?: number; // ?
 };
 
 export type UpdateDialogueInput = {
   id: string;
-  namespace?: string;
+  label?: string;
   messages?: Omit<CreateMessageInput, "dialogueId">[];
   message?: Omit<CreateMessageInput, "dialogueId">;
   state?: Record<string, any>;

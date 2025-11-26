@@ -42,11 +42,15 @@ describe("update", () => {
     expect(spyGet).toHaveBeenCalledWith("apiKey");
     expect(spyGet).toHaveBeenCalledWith("endpoint");
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
-      method: "put",
-      headers,
-      body: JSON.stringify(body),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${id}`,
+      {
+        method: "put",
+        headers,
+        body: JSON.stringify(body),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
 
     expect(result.id).toEqual(id);
 
@@ -79,11 +83,15 @@ describe("update", () => {
     expect(spyGet).toHaveBeenCalledWith("apiKey");
     expect(spyGet).toHaveBeenCalledWith("endpoint");
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    expect(apiRequestMock).toHaveBeenCalledWith(`${endpoint}/dialogue`, {
-      method: "put",
-      headers,
-      body: JSON.stringify(body),
-    });
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${id}`,
+      {
+        method: "put",
+        headers,
+        body: JSON.stringify(body),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
 
     expect(result.id).toEqual(id);
 

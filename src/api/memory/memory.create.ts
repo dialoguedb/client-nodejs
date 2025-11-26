@@ -12,11 +12,15 @@ export async function create(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  const req = await apiRequest<IMemory>(`${endpoint}/memory`, {
-    method: "post",
-    headers,
-    body: JSON.stringify(input),
-  });
+  const req = await apiRequest<IMemory>(
+    `${endpoint}/memory`,
+    {
+      method: "post",
+      headers,
+      body: JSON.stringify(input),
+    },
+    settings.getRetryConfig()
+  );
 
   return req;
 }

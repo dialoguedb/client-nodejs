@@ -12,8 +12,12 @@ export async function get(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  await apiRequest<IMemory>(`${endpoint}/memory/${input.key}`, {
-    method: "get",
-    headers,
-  });
+  return apiRequest<IMemory>(
+    `${endpoint}/memory/${input.key}`,
+    {
+      method: "get",
+      headers,
+    },
+    settings.getRetryConfig()
+  );
 }

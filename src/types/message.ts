@@ -1,22 +1,28 @@
+export type MessageContent =
+  | string
+  | Record<string, any>
+  | Record<string, any>[];
+
 export interface IMessage {
   id: string;
+  dialogueId: string;
   role: string;
-  content: string;
-  namespace: string;
+  content: MessageContent;
   created: string;
-  modified: string;
-  tags: string[];
-  metadata: Record<string, string | number | boolean>;
+
+  name?: string;
+  metadata?: Record<string, string | number | boolean>;
+  tags?: string[];
 }
 
 export interface CreateMessageInput {
   dialogueId: string;
   role: string;
-  content: string | Record<string, any> | Record<string, any>[];
+  content: MessageContent;
   id?: string;
+  name?: string;
   tags?: string[];
   metadata?: Record<string, string | number | boolean>;
-  namespace?: string;
   created?: string;
 }
 
