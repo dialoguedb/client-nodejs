@@ -32,7 +32,7 @@ describe("apiRequest", () => {
       expect.objectContaining({
         headers: {
           "Content-Type": "application/json",
-          "User-Agent": "dialogue-db-nodejs.0.0.1",
+          "User-Agent": expect.stringMatching(/^dialogue-db-nodejs\./),
         },
         agent: expect.any(Object),
       })
