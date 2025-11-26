@@ -53,7 +53,6 @@ describe("Dialogue", () => {
     jest.clearAllMocks();
   });
 
-
   describe("constructor validation", () => {
     it("creates dialogue with valid data", () => {
       const id = Math.random().toString(36).slice(2);
@@ -174,7 +173,6 @@ describe("Dialogue", () => {
     });
   });
 
-
   describe("mutation isolation", () => {
     it("deep clones metadata to prevent external mutation", () => {
       const originalMetadata = { key: "original" };
@@ -245,9 +243,7 @@ describe("Dialogue", () => {
     });
 
     it("tags getter returns clone - external mutation does not affect internal tags", () => {
-      const dialogue = new Dialogue(
-        createMockDialogue({ tags: ["original"] })
-      );
+      const dialogue = new Dialogue(createMockDialogue({ tags: ["original"] }));
 
       const retrieved = dialogue.tags;
       retrieved.push("sneaky");
@@ -258,7 +254,6 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(false);
     });
   });
-
 
   describe("state management", () => {
     it("setting state marks dialogue as dirty", () => {
@@ -291,7 +286,6 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(false);
     });
   });
-
 
   describe("label management", () => {
     it("setting label marks dialogue as dirty", () => {
@@ -395,7 +389,6 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(false);
     });
   });
-
 
   describe("save", () => {
     it("does not call API when not dirty", async () => {
@@ -609,7 +602,6 @@ describe("Dialogue", () => {
     });
   });
 
-
   describe("isDirty cascade", () => {
     it("isDirty reflects message dirty state", () => {
       const dialogue = new Dialogue(
@@ -649,7 +641,6 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(true);
     });
   });
-
 
   describe("saveMessage", () => {
     it("creates message via API and adds to local array", async () => {
@@ -929,7 +920,6 @@ describe("Dialogue", () => {
     });
   });
 
-
   describe("createThread", () => {
     it("creates thread with parent reference", async () => {
       const parentId = Math.random().toString(36).slice(2);
@@ -1002,7 +992,6 @@ describe("Dialogue", () => {
     });
   });
 
-
   describe("unimplemented methods", () => {
     it("end() throws not implemented error", async () => {
       const dialogue = new Dialogue(createMockDialogue());
@@ -1020,7 +1009,6 @@ describe("Dialogue", () => {
       );
     });
   });
-
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
@@ -1132,7 +1120,6 @@ describe("Dialogue", () => {
       expect((dialogue as any)[inspect.custom]()).toEqual(json);
     });
   });
-
 
   describe("messages initialization", () => {
     it("creates Message instances from constructor data", () => {

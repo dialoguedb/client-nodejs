@@ -78,10 +78,25 @@ describe("Memory", () => {
     });
 
     it("accepts all valid types", () => {
-      const validTypes: IMemory["type"][] = ["string", "object", "array", "boolean", "number"];
+      const validTypes: IMemory["type"][] = [
+        "string",
+        "object",
+        "array",
+        "boolean",
+        "number",
+      ];
 
       for (const type of validTypes) {
-        const value = type === "object" ? {} : type === "array" ? [] : type === "boolean" ? true : type === "number" ? 42 : "str";
+        const value =
+          type === "object"
+            ? {}
+            : type === "array"
+            ? []
+            : type === "boolean"
+            ? true
+            : type === "number"
+            ? 42
+            : "str";
         const memory = new Memory(createMockMemory({ type, value }));
         expect(memory.type).toBe(type);
       }
@@ -110,7 +125,9 @@ describe("Memory", () => {
     });
 
     it("accepts optional description", () => {
-      const memory = new Memory(createMockMemory({ description: "My description" }));
+      const memory = new Memory(
+        createMockMemory({ description: "My description" })
+      );
       expect(memory.description).toBe("My description");
     });
 
@@ -198,7 +215,10 @@ describe("Memory", () => {
     // BUG TEST: value getter returns shallow copy for nested objects
     it("value getter returns deep clone - nested mutation does not affect internal value", () => {
       const memory = new Memory(
-        createMockMemory({ value: { nested: { deep: "original" } }, type: "object" })
+        createMockMemory({
+          value: { nested: { deep: "original" } },
+          type: "object",
+        })
       );
 
       const retrieved = memory.value as any;
@@ -220,13 +240,19 @@ describe("Memory", () => {
     });
 
     it("primitive values are safe from mutation", () => {
-      const memory = new Memory(createMockMemory({ value: "test", type: "string" }));
+      const memory = new Memory(
+        createMockMemory({ value: "test", type: "string" })
+      );
       expect(memory.value).toBe("test");
 
-      const numMemory = new Memory(createMockMemory({ value: 42, type: "number" }));
+      const numMemory = new Memory(
+        createMockMemory({ value: 42, type: "number" })
+      );
       expect(numMemory.value).toBe(42);
 
-      const boolMemory = new Memory(createMockMemory({ value: true, type: "boolean" }));
+      const boolMemory = new Memory(
+        createMockMemory({ value: true, type: "boolean" })
+      );
       expect(boolMemory.value).toBe(true);
     });
   });
@@ -332,7 +358,9 @@ describe("Memory", () => {
         modified: updatedModified,
       });
 
-      const memory = new Memory(createMockMemory({ key, modified: originalModified }));
+      const memory = new Memory(
+        createMockMemory({ key, modified: originalModified })
+      );
       memory.tags = ["tag"];
       await memory.save();
 

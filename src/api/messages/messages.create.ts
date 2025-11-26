@@ -5,8 +5,8 @@ import { CreateMessageInput, IMessage } from "@/types";
 
 export async function create(
   input: {
-    id: string,
-    messages: Omit<CreateMessageInput, "dialogueId">[]
+    id: string;
+    messages: Omit<CreateMessageInput, "dialogueId">[];
   },
   settings: SettingsContainer = getConfig()
 ) {

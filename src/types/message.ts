@@ -1,4 +1,7 @@
-export type MessageContent = string | Record<string, any> | Record<string, any>[];
+export type MessageContent =
+  | string
+  | Record<string, any>
+  | Record<string, any>[];
 
 export interface IMessage {
   id: string;

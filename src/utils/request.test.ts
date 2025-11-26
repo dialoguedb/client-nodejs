@@ -242,7 +242,11 @@ describe("apiRequest", () => {
         status: 429,
         statusText: "Too Many Requests",
         json: jest.fn().mockResolvedValue({
-          error: { code: "RATE_LIMIT", type: "RATE_LIMIT", message: "Rate limited" },
+          error: {
+            code: "RATE_LIMIT",
+            type: "RATE_LIMIT",
+            message: "Rate limited",
+          },
         }),
       } as unknown as Response;
 
@@ -273,7 +277,11 @@ describe("apiRequest", () => {
         status: 500,
         statusText: "Internal Server Error",
         json: jest.fn().mockResolvedValue({
-          error: { code: "SERVER_ERROR", type: "SERVER", message: "Internal error" },
+          error: {
+            code: "SERVER_ERROR",
+            type: "SERVER",
+            message: "Internal error",
+          },
         }),
       } as unknown as Response;
 
@@ -297,7 +305,11 @@ describe("apiRequest", () => {
         status: 400,
         statusText: "Bad Request",
         json: jest.fn().mockResolvedValue({
-          error: { code: "VALIDATION_ERROR", type: "VALIDATION", message: "Invalid input" },
+          error: {
+            code: "VALIDATION_ERROR",
+            type: "VALIDATION",
+            message: "Invalid input",
+          },
         }),
       } as unknown as Response;
 
@@ -321,7 +333,11 @@ describe("apiRequest", () => {
         status: 404,
         statusText: "Not Found",
         json: jest.fn().mockResolvedValue({
-          error: { code: "NOT_FOUND", type: "NOT_FOUND", message: "Resource not found" },
+          error: {
+            code: "NOT_FOUND",
+            type: "NOT_FOUND",
+            message: "Resource not found",
+          },
         }),
       } as unknown as Response;
 

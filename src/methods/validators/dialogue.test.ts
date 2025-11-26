@@ -48,14 +48,20 @@ describe("validateCreateDialogueInput", () => {
     ["created", { created: 123 }, "must be a string"],
     ["created", { created: "not-a-date" }, "must be an ISO 8601 string"],
   ])("rejects invalid %s: %s", (_, input, expectedError) => {
-    expect(() => validateCreateDialogueInput(input as any)).toThrow(expectedError);
-    expect(() => validateCreateDialogueInput(input as any)).toThrow(DialogueDBError);
+    expect(() => validateCreateDialogueInput(input as any)).toThrow(
+      expectedError
+    );
+    expect(() => validateCreateDialogueInput(input as any)).toThrow(
+      DialogueDBError
+    );
   });
 });
 
 describe("validateUpdateDialogueInput", () => {
   it("requires id", () => {
-    expect(() => validateUpdateDialogueInput({} as any)).toThrow("id is required");
+    expect(() => validateUpdateDialogueInput({} as any)).toThrow(
+      "id is required"
+    );
   });
 
   it("accepts valid input", () => {
@@ -76,7 +82,9 @@ describe("validateUpdateDialogueInput", () => {
     ["tags", { id: "valid-id", tags: "not-array" }, "must be an array"],
     ["state", { id: "valid-id", state: null }, "must be an object"],
   ])("rejects invalid %s", (_, input, expectedError) => {
-    expect(() => validateUpdateDialogueInput(input as any)).toThrow(expectedError);
+    expect(() => validateUpdateDialogueInput(input as any)).toThrow(
+      expectedError
+    );
   });
 });
 
@@ -86,11 +94,15 @@ describe("validateGetDialogueInput", () => {
   });
 
   it("validates id is string", () => {
-    expect(() => validateGetDialogueInput({ id: 123 as any })).toThrow("must be a string");
+    expect(() => validateGetDialogueInput({ id: 123 as any })).toThrow(
+      "must be a string"
+    );
   });
 
   it("accepts valid input", () => {
-    expect(() => validateGetDialogueInput({ id: "dialogue-123" })).not.toThrow();
+    expect(() =>
+      validateGetDialogueInput({ id: "dialogue-123" })
+    ).not.toThrow();
   });
 });
 
@@ -121,7 +133,9 @@ describe("validateListDialogueFilters", () => {
     ["namespace type", { namespace: 123 }, "must be a string"],
     ["threadOf type", { threadOf: 123 }, "must be a string"],
   ])("rejects invalid %s", (_, input, expectedError) => {
-    expect(() => validateListDialogueFilters(input as any)).toThrow(expectedError);
+    expect(() => validateListDialogueFilters(input as any)).toThrow(
+      expectedError
+    );
   });
 
   it.each(["asc", "desc"] as const)("accepts order '%s'", (order) => {

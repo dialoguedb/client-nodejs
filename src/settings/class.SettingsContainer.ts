@@ -47,7 +47,9 @@ export class SettingsContainer {
       const key = keys[i];
       const val = options[key];
       if (val !== undefined) {
-        (this.#settings as Record<keyof Settings, Settings[keyof Settings]>)[key] = val;
+        (this.#settings as Record<keyof Settings, Settings[keyof Settings]>)[
+          key
+        ] = val;
       }
     }
     return this;

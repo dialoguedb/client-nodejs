@@ -61,12 +61,10 @@ export class Memory {
       throw errors.missingParameter("value");
     }
 
-
     this.#value =
       typeof memory.value === "object" && memory.value !== null
         ? structuredClone(memory.value)
         : memory.value;
-
 
     if (typeof memory.namespace === "string") {
       this.#namespace = memory.namespace;
@@ -99,7 +97,6 @@ export class Memory {
       }
     }
   }
-
 
   get key(): string {
     return this.#key;
@@ -139,7 +136,6 @@ export class Memory {
   get modified(): string {
     return this.#modified;
   }
-
 
   get tags(): string[] {
     return [...this.#tags];
@@ -194,7 +190,9 @@ export class Memory {
       key: this.#key,
       ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       ...(this.#label !== undefined && { label: this.#label }),
-      ...(this.#description !== undefined && { description: this.#description }),
+      ...(this.#description !== undefined && {
+        description: this.#description,
+      }),
       value: this.#value,
       type: this.#type,
       metadata: this.#metadata,

@@ -94,8 +94,16 @@ export function validateGetDialogueInput(
  */
 export function validateListDialogueFilters(input: ListDialogueFilters): void {
   if (input.limit !== undefined) {
-    if (typeof input.limit !== "number" || !Number.isInteger(input.limit) || input.limit < 1) {
-      throw errors.invalidParameter("limit", "must be a positive integer", input.limit);
+    if (
+      typeof input.limit !== "number" ||
+      !Number.isInteger(input.limit) ||
+      input.limit < 1
+    ) {
+      throw errors.invalidParameter(
+        "limit",
+        "must be a positive integer",
+        input.limit
+      );
     }
   }
 

@@ -62,7 +62,10 @@ describe("Message", () => {
 
     it("throws when message id is missing", () => {
       expect(() => {
-        new Message(dialogueId, { ...createMockMessage(), id: undefined as any });
+        new Message(dialogueId, {
+          ...createMockMessage(),
+          id: undefined as any,
+        });
       }).toThrow("Invalid id: is required and must be a string");
     });
 
@@ -74,7 +77,10 @@ describe("Message", () => {
 
     it("throws when role is missing", () => {
       expect(() => {
-        new Message(dialogueId, { ...createMockMessage(), role: undefined as any });
+        new Message(dialogueId, {
+          ...createMockMessage(),
+          role: undefined as any,
+        });
       }).toThrow("Invalid role: is required and must be a string");
     });
 
@@ -98,7 +104,10 @@ describe("Message", () => {
 
     it("throws when tags contains non-strings", () => {
       expect(() => {
-        new Message(dialogueId, createMockMessage({ tags: ["valid", 123 as any] }));
+        new Message(
+          dialogueId,
+          createMockMessage({ tags: ["valid", 123 as any] })
+        );
       }).toThrow("Invalid tags: must be array of strings");
     });
 
@@ -309,9 +318,14 @@ describe("Message", () => {
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
-      const message = new Message(dialogueId, createMockMessage({ id }), undefined, {
-        onRemoved,
-      });
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ id }),
+        undefined,
+        {
+          onRemoved,
+        }
+      );
       await message.remove();
 
       expect(onRemoved).toHaveBeenCalled();

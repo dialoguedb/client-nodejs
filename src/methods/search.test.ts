@@ -118,9 +118,24 @@ describe("search methods", () => {
 
     it("handles multiple results", async () => {
       const mockDialogues = [
-        { id: "dialogue-1", namespace: "ns", created: "2024-01-01T00:00:00.000Z", modified: "2024-01-01T00:00:00.000Z" },
-        { id: "dialogue-2", namespace: "ns", created: "2024-01-02T00:00:00.000Z", modified: "2024-01-02T00:00:00.000Z" },
-        { id: "dialogue-3", namespace: "ns", created: "2024-01-03T00:00:00.000Z", modified: "2024-01-03T00:00:00.000Z" },
+        {
+          id: "dialogue-1",
+          namespace: "ns",
+          created: "2024-01-01T00:00:00.000Z",
+          modified: "2024-01-01T00:00:00.000Z",
+        },
+        {
+          id: "dialogue-2",
+          namespace: "ns",
+          created: "2024-01-02T00:00:00.000Z",
+          modified: "2024-01-02T00:00:00.000Z",
+        },
+        {
+          id: "dialogue-3",
+          namespace: "ns",
+          created: "2024-01-03T00:00:00.000Z",
+          modified: "2024-01-03T00:00:00.000Z",
+        },
       ];
 
       searchMock.mockResolvedValueOnce({ items: mockDialogues });
@@ -128,7 +143,11 @@ describe("search methods", () => {
       const results = await searchDialogues("test");
 
       expect(results).toHaveLength(3);
-      expect(results.map((d) => d.id)).toEqual(["dialogue-1", "dialogue-2", "dialogue-3"]);
+      expect(results.map((d) => d.id)).toEqual([
+        "dialogue-1",
+        "dialogue-2",
+        "dialogue-3",
+      ]);
     });
   });
 

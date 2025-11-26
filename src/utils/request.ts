@@ -45,7 +45,9 @@ export class DialogueDBError extends Error {
    * True for network errors (0), rate limits (429), and server errors (5xx).
    */
   get retryable(): boolean {
-    return this.statusCode === 0 || this.statusCode === 429 || this.statusCode >= 500;
+    return (
+      this.statusCode === 0 || this.statusCode === 429 || this.statusCode >= 500
+    );
   }
 }
 

@@ -66,8 +66,7 @@ export class Message {
 
     // Timestamp
     const now = new Date().toISOString();
-    this.#created =
-      typeof message.created === "string" ? message.created : now;
+    this.#created = typeof message.created === "string" ? message.created : now;
 
     // Optional fields
     if (typeof message.name === "string") {
@@ -103,7 +102,9 @@ export class Message {
     return this.#name;
   }
 
-  get metadata(): Readonly<Record<string, string | number | boolean>> | undefined {
+  get metadata():
+    | Readonly<Record<string, string | number | boolean>>
+    | undefined {
     return this.#metadata ? structuredClone(this.#metadata) : undefined;
   }
 

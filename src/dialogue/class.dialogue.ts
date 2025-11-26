@@ -48,7 +48,10 @@ export class Dialogue {
   #labelChanged: boolean = false;
   #nextToken?: string;
 
-  constructor(dialogue: IDialogue, settings?: SettingsContainer | Partial<Settings>) {
+  constructor(
+    dialogue: IDialogue,
+    settings?: SettingsContainer | Partial<Settings>
+  ) {
     this.#settings = useSettings(settings);
     this.#setProperties(dialogue);
   }
@@ -461,9 +464,15 @@ export class Dialogue {
       ...(this.#previousId !== undefined && { previousId: this.#previousId }),
       ...(this.#archivedAt !== undefined && { archivedAt: this.#archivedAt }),
       ...(this.#endedAt !== undefined && { endedAt: this.#endedAt }),
-      ...(this.#totalMessages !== undefined && { totalMessages: this.#totalMessages }),
-      ...(this.#threadCount !== undefined && { threadCount: this.#threadCount }),
-      ...(this.#lastMessageCreated !== undefined && { lastMessageCreated: this.#lastMessageCreated }),
+      ...(this.#totalMessages !== undefined && {
+        totalMessages: this.#totalMessages,
+      }),
+      ...(this.#threadCount !== undefined && {
+        threadCount: this.#threadCount,
+      }),
+      ...(this.#lastMessageCreated !== undefined && {
+        lastMessageCreated: this.#lastMessageCreated,
+      }),
       metadata: this.#metadata,
       state: this.#state,
       tags: this.#tags,

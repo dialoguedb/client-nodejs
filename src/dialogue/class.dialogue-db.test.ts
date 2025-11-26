@@ -373,9 +373,15 @@ describe("DialogueDB", () => {
       await db.searchMemories("q");
 
       // All calls should use the same settings instance
-      expect(createDialogueMock).toHaveBeenCalledWith(expect.anything(), settings);
+      expect(createDialogueMock).toHaveBeenCalledWith(
+        expect.anything(),
+        settings
+      );
       expect(getDialogueMock).toHaveBeenCalledWith(expect.anything(), settings);
-      expect(createMemoryMock).toHaveBeenCalledWith(expect.anything(), settings);
+      expect(createMemoryMock).toHaveBeenCalledWith(
+        expect.anything(),
+        settings
+      );
       expect(getMemoryMock).toHaveBeenCalledWith(expect.anything(), settings);
       expect(searchDialoguesMock).toHaveBeenCalledWith(
         expect.anything(),

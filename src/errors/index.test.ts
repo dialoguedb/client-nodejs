@@ -18,7 +18,11 @@ describe("errors factory", () => {
 
   describe("invalidParameter", () => {
     it("creates DialogueDBError with correct properties", () => {
-      const error = errors.invalidParameter("limit", "must be a positive integer", -5);
+      const error = errors.invalidParameter(
+        "limit",
+        "must be a positive integer",
+        -5
+      );
 
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("Invalid limit: must be a positive integer");
@@ -26,7 +30,12 @@ describe("errors factory", () => {
       expect(error.type).toBe("VALIDATION");
       expect(error.statusCode).toBe(400);
       expect(error.details).toEqual([
-        { field: "limit", code: "INVALID", message: "must be a positive integer", value: -5 },
+        {
+          field: "limit",
+          code: "INVALID",
+          message: "must be a positive integer",
+          value: -5,
+        },
       ]);
     });
 
@@ -34,14 +43,21 @@ describe("errors factory", () => {
       const error = errors.invalidParameter("tags", "must be an array");
 
       expect(error.details).toEqual([
-        { field: "tags", code: "INVALID", message: "must be an array", value: undefined },
+        {
+          field: "tags",
+          code: "INVALID",
+          message: "must be an array",
+          value: undefined,
+        },
       ]);
     });
   });
 
   describe("validationError", () => {
     it("creates DialogueDBError with message only", () => {
-      const error = errors.validationError("Multiple validation errors occurred");
+      const error = errors.validationError(
+        "Multiple validation errors occurred"
+      );
 
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("Multiple validation errors occurred");
@@ -53,8 +69,17 @@ describe("errors factory", () => {
 
     it("creates DialogueDBError with details", () => {
       const details = [
-        { field: "email", code: "INVALID_FORMAT", message: "Invalid email format" },
-        { field: "age", code: "OUT_OF_RANGE", message: "Must be between 0 and 150", value: 200 },
+        {
+          field: "email",
+          code: "INVALID_FORMAT",
+          message: "Invalid email format",
+        },
+        {
+          field: "age",
+          code: "OUT_OF_RANGE",
+          message: "Must be between 0 and 150",
+          value: 200,
+        },
       ];
 
       const error = errors.validationError("Validation failed", details);

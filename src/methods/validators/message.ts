@@ -121,7 +121,11 @@ export function validateListMessageFilters(input: ListMessageFilters): void {
 
   if (input.order !== undefined) {
     if (input.order !== "asc" && input.order !== "desc") {
-      throw errors.invalidParameter("order", "must be 'asc' or 'desc'", input.order);
+      throw errors.invalidParameter(
+        "order",
+        "must be 'asc' or 'desc'",
+        input.order
+      );
     }
   }
 
