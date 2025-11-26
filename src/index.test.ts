@@ -12,7 +12,6 @@ describe("dialogue", () => {
     expect(typeof modules.api.messages).toBe("object");
     expect(typeof modules.api.messages.create).toBe("function");
     expect(typeof modules.api.messages.list).toBe("function");
-    expect(typeof modules.api.messages.remove).toBe("function");
 
     expect(typeof modules.createConfig).toBe("function");
     expect(typeof modules.settings).toBe("object");

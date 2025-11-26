@@ -32,9 +32,8 @@ export const api = {
     get: dialogueApi.get,
   },
   messages: {
-    create: messageApi.create,
+    create: messagesApi.create,
     list: messagesApi.list,
-    remove: messageApi.remove,
   },
   message: {
     get: messageApi.get,
