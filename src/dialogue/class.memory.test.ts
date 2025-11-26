@@ -53,6 +53,18 @@ describe("Memory", () => {
       }).toThrow("Invalid key: is required and must be a string");
     });
 
+    it("throws when memory object is null", () => {
+      expect(() => {
+        new Memory(null as any);
+      }).toThrow("Invalid key: is required and must be a string");
+    });
+
+    it("throws when memory object is undefined", () => {
+      expect(() => {
+        new Memory(undefined as any);
+      }).toThrow("Invalid key: is required and must be a string");
+    });
+
     it("throws when type is missing", () => {
       expect(() => {
         new Memory({ ...createMockMemory(), type: undefined as any });
@@ -325,6 +337,22 @@ describe("Memory", () => {
       await memory.save();
 
       expect(memory.modified).toBe(updatedModified);
+    });
+
+    it("handles server response with undefined tags", async () => {
+      const key = "test-key";
+
+      (memoryApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockMemory({ key }),
+        tags: undefined,
+        modified: new Date().toISOString(),
+      });
+
+      const memory = new Memory(createMockMemory({ key }));
+      memory.tags = ["tag1"];
+      await memory.save();
+
+      expect(memory.tags).toEqual([]);
     });
   });
 

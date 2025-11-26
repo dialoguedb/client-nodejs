@@ -1,13 +1,36 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
+import { getConfig } from "@/settings";
 import { get } from "./memory.get";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
 }));
 
+jest.mock("@/settings", () => {
+  const mockSettings = {
+    get: jest.fn((key: string) => {
+      if (key === "apiKey") return "global-api-key";
+      if (key === "endpoint") return "https://global.example.com";
+      if (key === "retries") return 3;
+      if (key === "retryMinTimeout") return 1000;
+      if (key === "retryMaxTimeout") return 10000;
+      return undefined;
+    }),
+    getRetryConfig: jest.fn(() => ({
+      retries: 3,
+      retryMinTimeout: 1000,
+      retryMaxTimeout: 10000,
+    })),
+  };
+  return {
+    getConfig: jest.fn(() => mockSettings),
+  };
+});
+
 describe("memory.get", () => {
   const apiRequestMock = apiRequest as jest.Mock;
+  const getConfigMock = getConfig as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -130,5 +153,22 @@ describe("memory.get", () => {
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
+  });
+
+  it("should use global config when no settings provided", async () => {
+    const memoryKey = "test-key";
+    const mockResponse = { key: memoryKey, value: "test" };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    const result = await get({ key: memoryKey });
+
+    expect(getConfigMock).toHaveBeenCalled();
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      "https://global.example.com/memory/test-key",
+      expect.objectContaining({ method: "get" }),
+      expect.any(Object)
+    );
+    expect(result).toEqual(mockResponse);
   });
 });

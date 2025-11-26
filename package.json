@@ -30,7 +30,7 @@
     "build": "tsc && tsc-alias",
     "build:package": "tsup src/index.ts --format cjs,esm --dts --clean",
     "build:watch": "(concurrently \"tsc -w\" \"tsc-alias -w\")",
-    "test": "jest --config jest.config.ts --maxWorkers 3 --coverage",
+    "test": "jest --config jest.config.ts --maxWorkers 5 --coverage",
     "format:check": "prettier --check \"src\"",
     "format:write": "prettier --write \"src\"",
     "prepublish": "npm run build:package",

@@ -1,13 +1,36 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
+import { getConfig } from "@/settings";
 import { update } from "./message.update";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
 }));
 
+jest.mock("@/settings", () => {
+  const mockSettings = {
+    get: jest.fn((key: string) => {
+      if (key === "apiKey") return "global-api-key";
+      if (key === "endpoint") return "https://global.example.com";
+      if (key === "retries") return 3;
+      if (key === "retryMinTimeout") return 1000;
+      if (key === "retryMaxTimeout") return 10000;
+      return undefined;
+    }),
+    getRetryConfig: jest.fn(() => ({
+      retries: 3,
+      retryMinTimeout: 1000,
+      retryMaxTimeout: 10000,
+    })),
+  };
+  return {
+    getConfig: jest.fn(() => mockSettings),
+  };
+});
+
 describe("message.update", () => {
   const apiRequestMock = apiRequest as jest.Mock;
+  const getConfigMock = getConfig as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -171,5 +194,23 @@ describe("message.update", () => {
     expect(callArgs[0]).toBe(
       `${endpoint}/dialogue/${dialogueId}/message/${messageId}`
     );
+  });
+
+  it("should use global config when no settings provided", async () => {
+    const dialogueId = "dialogue-123";
+    const messageId = "message-456";
+    const mockResponse = { id: messageId, tags: ["test"] };
+
+    apiRequestMock.mockResolvedValueOnce(mockResponse);
+
+    const result = await update({ dialogueId, id: messageId, tags: ["test"] });
+
+    expect(getConfigMock).toHaveBeenCalled();
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `https://global.example.com/dialogue/${dialogueId}/message/${messageId}`,
+      expect.objectContaining({ method: "put" }),
+      expect.any(Object)
+    );
+    expect(result).toEqual(mockResponse);
   });
 });

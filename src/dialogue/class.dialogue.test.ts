@@ -122,6 +122,18 @@ describe("Dialogue", () => {
       }).toThrow("Invalid id: is required and must be a string");
     });
 
+    it("throws when dialogue object is null", () => {
+      expect(() => {
+        new Dialogue(null as any);
+      }).toThrow("Invalid id: is required and must be a string");
+    });
+
+    it("throws when dialogue object is undefined", () => {
+      expect(() => {
+        new Dialogue(undefined as any);
+      }).toThrow("Invalid id: is required and must be a string");
+    });
+
     it("throws when tags contains non-strings", () => {
       expect(() => {
         new Dialogue(createMockDialogue({ tags: ["valid", 123 as any] }));
@@ -447,6 +459,40 @@ describe("Dialogue", () => {
       await dialogue.save();
 
       expect(dialogue.tags).toEqual(serverTags);
+    });
+
+    it("handles server response with undefined state", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        state: undefined,
+        tags: [],
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      dialogue.state = { key: "value" };
+      await dialogue.save();
+
+      expect(dialogue.state).toEqual({});
+    });
+
+    it("handles server response with undefined tags", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        state: {},
+        tags: undefined,
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      dialogue.tags = ["tag1"];
+      await dialogue.save();
+
+      expect(dialogue.tags).toEqual([]);
     });
 
     it("updates modified timestamp from server response", async () => {
@@ -782,6 +828,23 @@ describe("Dialogue", () => {
 
       expect(loaded.length).toBe(1);
       expect(loaded[0].id).toBe(msgId);
+    });
+
+    it("handles undefined options parameter", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+
+      (messagesApi.list as jest.Mock).mockResolvedValueOnce({
+        items: [],
+        next: undefined,
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id: dialogueId }));
+      await dialogue.loadMessages(undefined);
+
+      expect(messagesApi.list).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId }),
+        expect.anything()
+      );
     });
   });
 

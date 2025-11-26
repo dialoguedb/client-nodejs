@@ -362,4 +362,165 @@ describe("apiRequest", () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe("edge cases", () => {
+    it("should handle undefined options gracefully", async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      const result = await apiRequest("https://api.example.com");
+
+      expect(result).toEqual({ success: true });
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.example.com",
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "User-Agent": expect.stringMatching(/^dialogue-db-nodejs\./),
+          }),
+        })
+      );
+    });
+
+    it("should append params to URL as query string", async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: [] }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      const params = new URLSearchParams();
+      params.set("limit", "10");
+      params.set("cursor", "abc123");
+
+      await apiRequest("https://api.example.com/list", {
+        headers: {},
+        params,
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.example.com/list?limit=10&cursor=abc123",
+        expect.any(Object)
+      );
+    });
+
+    it("should NOT append ? when params is undefined", async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: [] }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await apiRequest("https://api.example.com/list", {
+        headers: {},
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.example.com/list",
+        expect.any(Object)
+      );
+    });
+
+    it("should NOT append ? when params is empty", async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue({ items: [] }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      const params = new URLSearchParams();
+
+      await apiRequest("https://api.example.com/list", {
+        headers: {},
+        params,
+      });
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.example.com/list",
+        expect.any(Object)
+      );
+    });
+
+    it("should handle error response with no error object", async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        apiRequest("https://api.example.com", { headers: {} })
+      ).rejects.toMatchObject({
+        message: "Internal Server Error",
+        code: "UNKNOWN_ERROR",
+        type: "SERVER",
+        statusCode: 500,
+      });
+    });
+
+    it("should handle error response with partial error object", async () => {
+      const mockResponse = {
+        ok: false,
+        status: 400,
+        statusText: "Bad Request",
+        json: jest.fn().mockResolvedValue({
+          error: {
+            message: "Validation failed",
+          },
+        }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        apiRequest("https://api.example.com", { headers: {} })
+      ).rejects.toMatchObject({
+        message: "Validation failed",
+        code: "UNKNOWN_ERROR",
+        type: "SERVER",
+        statusCode: 400,
+        requestId: undefined,
+        details: undefined,
+      });
+    });
+
+    it("should handle error response with null error", async () => {
+      const mockResponse = {
+        ok: false,
+        status: 403,
+        statusText: "Forbidden",
+        json: jest.fn().mockResolvedValue({ error: null }),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        apiRequest("https://api.example.com", { headers: {} })
+      ).rejects.toMatchObject({
+        message: "Forbidden",
+        code: "UNKNOWN_ERROR",
+        type: "SERVER",
+      });
+    });
+
+    it("should fall back to 'Request failed' when statusText is empty", async () => {
+      const mockResponse = {
+        ok: false,
+        status: 418,
+        statusText: "",
+        json: jest.fn().mockResolvedValue({}),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        apiRequest("https://api.example.com", { headers: {} })
+      ).rejects.toMatchObject({
+        message: "Request failed",
+        code: "UNKNOWN_ERROR",
+        type: "SERVER",
+      });
+    });
+  });
 });

@@ -84,6 +84,18 @@ describe("Message", () => {
       }).toThrow("Invalid role: is required and must be a string");
     });
 
+    it("throws when message object is null", () => {
+      expect(() => {
+        new Message(dialogueId, null as any);
+      }).toThrow("Invalid id: is required and must be a string");
+    });
+
+    it("throws when message object is undefined", () => {
+      expect(() => {
+        new Message(dialogueId, undefined as any);
+      }).toThrow("Invalid id: is required and must be a string");
+    });
+
     it("throws when tags contains non-strings", () => {
       expect(() => {
         new Message(dialogueId, createMockMessage({ tags: ["valid", 123 as any] }));
@@ -130,6 +142,14 @@ describe("Message", () => {
       (retrieved as any).key = "mutated";
 
       expect(message.metadata!.key).toBe("value");
+    });
+
+    it("metadata getter returns undefined when not set", () => {
+      const msg = createMockMessage();
+      delete (msg as any).metadata;
+      const message = new Message(dialogueId, msg);
+
+      expect(message.metadata).toBeUndefined();
     });
 
     it("copies tags array from constructor", () => {
@@ -251,6 +271,21 @@ describe("Message", () => {
       expect(message.tags).toEqual(serverTags);
     });
 
+    it("handles server response with undefined tags", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (messageApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockMessage({ id }),
+        tags: undefined,
+        modified: new Date().toISOString(),
+      });
+
+      const message = new Message(dialogueId, createMockMessage({ id }));
+      message.tags = ["tag1"];
+      await message.save();
+
+      expect(message.tags).toEqual([]);
+    });
   });
 
   describe("remove", () => {

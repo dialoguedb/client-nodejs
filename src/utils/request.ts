@@ -117,7 +117,7 @@ export async function apiRequest<T extends Record<string, any> | null>(
       const err = body?.error ?? {};
 
       throw new DialogueDBError(
-        err.message ?? response.statusText ?? "Request failed",
+        err.message || response.statusText || "Request failed",
         err.code ?? "UNKNOWN_ERROR",
         err.type ?? "SERVER",
         response.status,
