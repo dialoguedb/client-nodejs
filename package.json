@@ -33,8 +33,7 @@
     "test": "jest --config jest.config.ts --maxWorkers 5 --coverage",
     "format:check": "prettier --check \"src\"",
     "format:write": "prettier --write \"src\"",
-    "prepublish": "npm run build:package",
-    "publish": "npm publish"
+    "prepublishOnly": "npm run build:package"
   },
   "author": "DialogueDB",
   "dependencies": {
