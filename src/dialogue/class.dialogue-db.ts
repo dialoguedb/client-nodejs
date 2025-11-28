@@ -47,10 +47,10 @@ export class DialogueDB {
   }
 
   /**
-   * Get an existing memory by key
+   * Get an existing memory by id
    */
-  getMemory(key: string): Promise<Memory | null> {
-    return getMemory({ key }, this.#settings);
+  getMemory(id: string): Promise<Memory | null> {
+    return getMemory({ id }, this.#settings);
   }
 
   /**

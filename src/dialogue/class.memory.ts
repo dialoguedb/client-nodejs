@@ -14,7 +14,7 @@ export interface MemoryOptions {
 }
 
 export class Memory {
-  #key: string;
+  #id: string;
   #namespace?: string;
   #label?: string;
   #description?: string;
@@ -41,10 +41,10 @@ export class Memory {
 
   #setProperties(memory: IMemory): void {
     // Required
-    if (!memory?.key || typeof memory.key !== "string") {
-      throw errors.invalidParameter("key", "is required and must be a string");
+    if (!memory?.id || typeof memory.id !== "string") {
+      throw errors.invalidParameter("id", "is required and must be a string");
     }
-    this.#key = memory.key;
+    this.#id = memory.id;
 
     // Type - required, validate allowed values
     const validTypes = ["string", "object", "array", "boolean", "number"];
@@ -98,8 +98,8 @@ export class Memory {
     }
   }
 
-  get key(): string {
-    return this.#key;
+  get id(): string {
+    return this.#id;
   }
 
   get namespace(): string | undefined {
@@ -171,7 +171,7 @@ export class Memory {
     if (!this.#isDirty) return;
 
     const updated = await memoryApi.update(
-      { key: this.#key, tags: this.#tags },
+      { id: this.#id, tags: this.#tags },
       this.#settings
     );
 
@@ -181,13 +181,13 @@ export class Memory {
   }
 
   async remove(): Promise<void> {
-    await memoryApi.remove({ key: this.#key }, this.#settings);
+    await memoryApi.remove({ id: this.#id }, this.#settings);
     this.#onRemoved?.();
   }
 
   toJSON() {
     return {
-      key: this.#key,
+      id: this.#id,
       ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       ...(this.#label !== undefined && { label: this.#label }),
       ...(this.#description !== undefined && {

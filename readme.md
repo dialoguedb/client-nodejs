@@ -260,7 +260,7 @@ Common use cases:
 
 ```typescript
 const memory = await db.createMemory({
-  key: "user-preferences",
+  id: "user-preferences",
   value: { theme: "dark", language: "en" },
   label: "User Preferences",
   description: "Stores user UI preferences",
@@ -282,7 +282,7 @@ if (memory) {
 
 | Property      | Type       | Description                      |
 | ------------- | ---------- | -------------------------------- |
-| `key`         | `string`   | Unique identifier                |
+| `id`         | `string`   | Unique identifier                |
 | `namespace`   | `string?`  | Multi-tenancy namespace          |
 | `label`       | `string?`  | Human-readable label             |
 | `description` | `string?`  | Description of the memory        |
@@ -396,9 +396,9 @@ const messages = await api.messages.create({
 const messageList = await api.messages.list({ dialogueId: "id" });
 
 // Memory operations
-const memory = await api.memory.create({ key: "k", value: "v" });
+const memory = await api.memory.create({ id: "k", value: "v" });
 const mem = await api.memory.get("k");
-await api.memory.update({ key: "k", value: "new-value" });
+await api.memory.update({ id: "k", value: "new-value" });
 await api.memory.remove("k");
 
 // Search
@@ -444,7 +444,7 @@ interface IMessage {
 }
 
 interface IMemory {
-  key: string;
+  id: string;
   namespace?: string;
   label?: string;
   description?: string;
@@ -481,7 +481,7 @@ type CreateMessageInput = {
 
 type CreateMemoryInput = {
   value: string | number | boolean | object | any[];
-  key?: string;
+  id?: string;
   namespace?: string;
   label?: string;
   description?: string;

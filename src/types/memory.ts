@@ -1,5 +1,5 @@
 export interface IMemory {
-  key: string;
+  id: string;
   namespace?: string;
   label?: string;
   description?: string;
@@ -23,7 +23,7 @@ export interface CreateMemoryInput {
     | boolean
     | Record<string, any>
     | Record<string, any>[];
-  key?: string;
+  id?: string;
   namespace?: string;
   label?: string;
   description?: string;
@@ -32,7 +32,7 @@ export interface CreateMemoryInput {
 }
 
 export type GetMemoryInput = {
-  key: string;
+  id: string;
 };
 
 export type DeleteMemoryInput = GetMemoryInput;

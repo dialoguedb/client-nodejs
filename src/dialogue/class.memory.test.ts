@@ -9,7 +9,7 @@ jest.mock("@/api/memory", () => ({
 
 function createMockMemory(overrides: Partial<IMemory> = {}): IMemory {
   return {
-    key: Math.random().toString(36).slice(2),
+    id: Math.random().toString(36).slice(2),
     value: "test value",
     type: "string",
     metadata: {},
@@ -27,42 +27,42 @@ describe("Memory", () => {
 
   describe("constructor validation", () => {
     it("creates memory with valid data", () => {
-      const key = "test-key";
-      const memory = new Memory(createMockMemory({ key }));
+      const id = "test-key";
+      const memory = new Memory(createMockMemory({ id }));
 
-      expect(memory.key).toBe(key);
+      expect(memory.id).toBe(id);
       expect(memory.type).toBe("string");
       expect(memory.isDirty).toBe(false);
     });
 
-    it("throws when key is missing", () => {
+    it("throws when id is missing", () => {
       expect(() => {
-        new Memory({ ...createMockMemory(), key: undefined as any });
-      }).toThrow("Invalid key: is required and must be a string");
+        new Memory({ ...createMockMemory(), id: undefined as any });
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
-    it("throws when key is empty string", () => {
+    it("throws when id is empty string", () => {
       expect(() => {
-        new Memory({ ...createMockMemory(), key: "" });
-      }).toThrow("Invalid key: is required and must be a string");
+        new Memory({ ...createMockMemory(), id: "" });
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
-    it("throws when key is not a string", () => {
+    it("throws when id is not a string", () => {
       expect(() => {
-        new Memory({ ...createMockMemory(), key: 123 as any });
-      }).toThrow("Invalid key: is required and must be a string");
+        new Memory({ ...createMockMemory(), id: 123 as any });
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when memory object is null", () => {
       expect(() => {
         new Memory(null as any);
-      }).toThrow("Invalid key: is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when memory object is undefined", () => {
       expect(() => {
         new Memory(undefined as any);
-      }).toThrow("Invalid key: is required and must be a string");
+      }).toThrow("Invalid id: is required and must be a string");
     });
 
     it("throws when type is missing", () => {
@@ -283,20 +283,20 @@ describe("Memory", () => {
     });
 
     it("saveTags sets tags and calls save", async () => {
-      const key = "test-key";
+      const id = "test-id";
       const newTags = ["important"];
 
       (memoryApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMemory({ key }),
+        ...createMockMemory({ id }),
         tags: newTags,
         modified: new Date().toISOString(),
       });
 
-      const memory = new Memory(createMockMemory({ key }));
+      const memory = new Memory(createMockMemory({ id }));
       await memory.saveTags(newTags);
 
       expect(memoryApi.update).toHaveBeenCalledWith(
-        expect.objectContaining({ key, tags: newTags }),
+        expect.objectContaining({ id, tags: newTags }),
         expect.anything()
       );
       expect(memory.tags).toEqual(newTags);
@@ -314,15 +314,15 @@ describe("Memory", () => {
     });
 
     it("calls API and clears dirty flag when dirty", async () => {
-      const key = "test-key";
+      const id = "test-key";
 
       (memoryApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMemory({ key }),
+        ...createMockMemory({ id }),
         tags: ["updated"],
         modified: new Date().toISOString(),
       });
 
-      const memory = new Memory(createMockMemory({ key }));
+      const memory = new Memory(createMockMemory({ id }));
       memory.tags = ["updated"];
 
       expect(memory.isDirty).toBe(true);
@@ -331,16 +331,16 @@ describe("Memory", () => {
     });
 
     it("syncs tags from server response after save", async () => {
-      const key = "test-key";
+      const id = "test-key";
       const serverTags = ["tag1", "server-added"];
 
       (memoryApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMemory({ key }),
+        ...createMockMemory({ id }),
         tags: serverTags,
         modified: new Date().toISOString(),
       });
 
-      const memory = new Memory(createMockMemory({ key }));
+      const memory = new Memory(createMockMemory({ id }));
       memory.tags = ["tag1"];
       await memory.save();
 
@@ -348,18 +348,18 @@ describe("Memory", () => {
     });
 
     it("updates modified timestamp from server response", async () => {
-      const key = "test-key";
+      const id = "test-key";
       const originalModified = "2024-01-01T00:00:00.000Z";
       const updatedModified = "2024-06-15T12:00:00.000Z";
 
       (memoryApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMemory({ key }),
+        ...createMockMemory({ id }),
         tags: ["tag"],
         modified: updatedModified,
       });
 
       const memory = new Memory(
-        createMockMemory({ key, modified: originalModified })
+        createMockMemory({ id, modified: originalModified })
       );
       memory.tags = ["tag"];
       await memory.save();
@@ -368,15 +368,15 @@ describe("Memory", () => {
     });
 
     it("handles server response with undefined tags", async () => {
-      const key = "test-key";
+      const id = "test-key";
 
       (memoryApi.update as jest.Mock).mockResolvedValueOnce({
-        ...createMockMemory({ key }),
+        ...createMockMemory({ id }),
         tags: undefined,
         modified: new Date().toISOString(),
       });
 
-      const memory = new Memory(createMockMemory({ key }));
+      const memory = new Memory(createMockMemory({ id }));
       memory.tags = ["tag1"];
       await memory.save();
 
@@ -386,23 +386,23 @@ describe("Memory", () => {
 
   describe("remove", () => {
     it("calls API remove with key", async () => {
-      const key = "test-key";
+      const id = "test-key";
 
       (memoryApi.remove as jest.Mock).mockResolvedValueOnce({});
 
-      const memory = new Memory(createMockMemory({ key }));
+      const memory = new Memory(createMockMemory({ id }));
       await memory.remove();
 
-      expect(memoryApi.remove).toHaveBeenCalledWith({ key }, expect.anything());
+      expect(memoryApi.remove).toHaveBeenCalledWith({ id }, expect.anything());
     });
 
     it("calls onRemoved callback after API remove", async () => {
-      const key = "test-key";
+      const id = "test-key";
       const onRemoved = jest.fn();
 
       (memoryApi.remove as jest.Mock).mockResolvedValueOnce({});
 
-      const memory = new Memory(createMockMemory({ key }), undefined, {
+      const memory = new Memory(createMockMemory({ id }), undefined, {
         onRemoved,
       });
       await memory.remove();
@@ -413,7 +413,7 @@ describe("Memory", () => {
 
   describe("toJSON", () => {
     it("returns plain object representation", () => {
-      const key = "test-key";
+      const id = "test-key";
       const namespace = "my-ns";
       const label = "My Label";
       const description = "My description";
@@ -426,7 +426,7 @@ describe("Memory", () => {
 
       const memory = new Memory(
         createMockMemory({
-          key,
+          id,
           namespace,
           label,
           description,
@@ -442,7 +442,7 @@ describe("Memory", () => {
       const json = memory.toJSON();
 
       expect(json).toEqual({
-        key,
+        id,
         namespace,
         label,
         description,
@@ -456,13 +456,13 @@ describe("Memory", () => {
     });
 
     it("works with JSON.stringify", () => {
-      const key = "test-key";
-      const memory = new Memory(createMockMemory({ key, value: "test" }));
+      const id = "test-key";
+      const memory = new Memory(createMockMemory({ id, value: "test" }));
 
       const jsonString = JSON.stringify(memory);
       const parsed = JSON.parse(jsonString);
 
-      expect(parsed.key).toBe(key);
+      expect(parsed.id).toBe(id);
       expect(parsed.value).toBe("test");
     });
 

@@ -39,10 +39,10 @@ describe("memory.remove", () => {
   it("should remove memory successfully", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user-preferences";
+    const memoryId = "user-preferences";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -55,7 +55,7 @@ describe("memory.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "DELETE",
         headers: expect.any(Headers),
@@ -67,10 +67,10 @@ describe("memory.remove", () => {
   it("should remove memory with different key", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "session-data-123";
+    const memoryId = "session-data-123";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -82,7 +82,7 @@ describe("memory.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "DELETE",
         headers: expect.any(Headers),
@@ -95,7 +95,7 @@ describe("memory.remove", () => {
     const apiKey = "test-api-key-123";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "test-memory-key",
+      id: "test-memory-key",
     };
 
     const settings = new SettingsContainer();
@@ -115,10 +115,10 @@ describe("memory.remove", () => {
   it("should handle keys with special characters", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user:preferences:theme";
+    const memoryId = "user:preferences:theme";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -130,7 +130,7 @@ describe("memory.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "DELETE",
         headers: expect.any(Headers),
@@ -146,7 +146,7 @@ describe("memory.remove", () => {
 
     apiRequestMock.mockResolvedValueOnce(undefined);
 
-    const result = await remove({ key: "test" }, settings);
+    const result = await remove({ id: "test" }, settings);
 
     expect(result).toBeUndefined();
   });
@@ -154,7 +154,7 @@ describe("memory.remove", () => {
   it("should use global config when no settings provided", async () => {
     apiRequestMock.mockResolvedValueOnce(undefined);
 
-    await remove({ key: "test-key" });
+    await remove({ id: "test-key" });
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(

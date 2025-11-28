@@ -243,8 +243,8 @@ describe("search methods", () => {
   });
 
   describe("searchMemories", () => {
-    const makeMemory = (key: string) => ({
-      key,
+    const makeMemory = (id: string) => ({
+      id,
       namespace: "test-ns",
       value: "memory content",
       type: "string" as const,
@@ -270,7 +270,7 @@ describe("search methods", () => {
 
       expect(results).toHaveLength(1);
       expect(results[0]).toBeInstanceOf(Memory);
-      expect(results[0].key).toBe("memory-123");
+      expect(results[0].id).toBe("memory-123");
     });
 
     it("passes options to search", async () => {
@@ -313,7 +313,7 @@ describe("search methods", () => {
       const results = await searchMemories("test");
 
       expect(results).toHaveLength(2);
-      expect(results.map((m) => m.key)).toEqual(["memory-1", "memory-2"]);
+      expect(results.map((m) => m.id)).toEqual(["memory-1", "memory-2"]);
     });
   });
 });

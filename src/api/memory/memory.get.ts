@@ -13,7 +13,7 @@ export async function get(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   return apiRequest<IMemory>(
-    `${endpoint}/memory/${input.key}`,
+    `${endpoint}/memory/${input.id}`,
     {
       method: "get",
       headers,
