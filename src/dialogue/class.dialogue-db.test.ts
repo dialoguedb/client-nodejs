@@ -143,18 +143,18 @@ describe("DialogueDB", () => {
 
   describe("createMemory", () => {
     it("should create memory with input", async () => {
-      const mockMemory = { key: "my-key" } as unknown as Memory;
+      const mockMemory = { id: "my-key" } as unknown as Memory;
       createMemoryMock.mockResolvedValueOnce(mockMemory);
 
       const db = new DialogueDB();
       const result = await db.createMemory({
-        key: "my-key",
+        id: "my-key",
         value: "test value",
       });
 
       expect(createMemoryMock).toHaveBeenCalledTimes(1);
       expect(createMemoryMock).toHaveBeenCalledWith(
-        { key: "my-key", value: "test value" },
+        { id: "my-key", value: "test value" },
         expect.any(SettingsContainer)
       );
       expect(result).toBe(mockMemory);
@@ -163,22 +163,22 @@ describe("DialogueDB", () => {
     it("should pass settings to createMemory", async () => {
       const settings = new SettingsContainer();
       settings.set("apiKey", "my-key");
-      const mockMemory = { key: "test" } as unknown as Memory;
+      const mockMemory = { id: "test" } as unknown as Memory;
       createMemoryMock.mockResolvedValueOnce(mockMemory);
 
       const db = new DialogueDB(settings);
-      await db.createMemory({ key: "test", value: 42 });
+      await db.createMemory({ id: "test", value: 42 });
 
       expect(createMemoryMock).toHaveBeenCalledWith(
-        { key: "test", value: 42 },
+        { id: "test", value: 42 },
         settings
       );
     });
   });
 
   describe("getMemory", () => {
-    it("should get memory by key", async () => {
-      const mockMemory = { key: "found-key" } as unknown as Memory;
+    it("should get memory by id", async () => {
+      const mockMemory = { id: "found-key" } as unknown as Memory;
       getMemoryMock.mockResolvedValueOnce(mockMemory);
 
       const db = new DialogueDB();
@@ -186,7 +186,7 @@ describe("DialogueDB", () => {
 
       expect(getMemoryMock).toHaveBeenCalledTimes(1);
       expect(getMemoryMock).toHaveBeenCalledWith(
-        { key: "found-key" },
+        { id: "found-key" },
         expect.any(SettingsContainer)
       );
       expect(result).toBe(mockMemory);
@@ -207,9 +207,9 @@ describe("DialogueDB", () => {
       getMemoryMock.mockResolvedValueOnce(null);
 
       const db = new DialogueDB(settings);
-      await db.getMemory("test-key");
+      await db.getMemory("test-id");
 
-      expect(getMemoryMock).toHaveBeenCalledWith({ key: "test-key" }, settings);
+      expect(getMemoryMock).toHaveBeenCalledWith({ id: "test-id" }, settings);
     });
   });
 
@@ -307,7 +307,7 @@ describe("DialogueDB", () => {
 
   describe("searchMemories", () => {
     it("should search memories with query", async () => {
-      const mockMemories = [{ key: "k1" }, { key: "k2" }] as Memory[];
+      const mockMemories = [{ id: "k1" }, { id: "k2" }] as Memory[];
       searchMemoriesMock.mockResolvedValueOnce(mockMemories);
 
       const db = new DialogueDB();
@@ -356,7 +356,7 @@ describe("DialogueDB", () => {
 
       createDialogueMock.mockResolvedValue({ id: "d" });
       getDialogueMock.mockResolvedValue(null);
-      createMemoryMock.mockResolvedValue({ key: "k" });
+      createMemoryMock.mockResolvedValue({ id: "k" });
       getMemoryMock.mockResolvedValue(null);
       searchDialoguesMock.mockResolvedValue([]);
       searchMessagesMock.mockResolvedValue([]);
@@ -367,7 +367,7 @@ describe("DialogueDB", () => {
       await db.createDialogue();
       await db.getDialogue("id");
       await db.createMemory({ value: "v" });
-      await db.getMemory("key");
+      await db.getMemory("id");
       await db.searchDialogues("q");
       await db.searchMessages("q");
       await db.searchMemories("q");

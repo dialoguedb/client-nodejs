@@ -40,7 +40,7 @@ describe("memory.create", () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "user-preferences",
+      id: "user-preferences",
       value: { theme: "dark", language: "en" },
     };
 
@@ -49,7 +49,7 @@ describe("memory.create", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: "user-preferences",
+      id: "user-preferences",
       value: { theme: "dark", language: "en" },
       created: "2024-01-01T00:00:00.000Z",
     };
@@ -76,7 +76,7 @@ describe("memory.create", () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "last-seen",
+      id: "last-seen",
       value: "2024-01-01",
     };
 
@@ -101,7 +101,7 @@ describe("memory.create", () => {
     const key = "test-api-key-123";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "test-key",
+      id: "test-key",
       value: "test-value",
     };
 
@@ -123,7 +123,7 @@ describe("memory.create", () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "complex-data",
+      id: "complex-data",
       value: {
         nested: {
           array: [1, 2, 3],
@@ -149,14 +149,14 @@ describe("memory.create", () => {
     const callArgs = apiRequestMock.mock.calls[0];
     const bodyArg = JSON.parse(callArgs[1].body);
 
-    expect(bodyArg.key).toBe("complex-data");
+    expect(bodyArg.id).toBe("complex-data");
     expect(bodyArg.value).toEqual(input.value);
     expect(result).toEqual(mockResponse);
   });
 
   it("should use global config when no settings provided", async () => {
     const input = {
-      key: "test-key",
+      id: "test-key",
       value: "test-value",
     };
 

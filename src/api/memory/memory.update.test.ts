@@ -39,10 +39,10 @@ describe("memory.update", () => {
   it("should update memory tags successfully", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user-preferences";
+    const memoryId = "user-preferences";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
       tags: ["important", "user-data"],
     };
 
@@ -51,7 +51,7 @@ describe("memory.update", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: memoryKey,
+      id: memoryId,
       value: { theme: "dark" },
       tags: ["important", "user-data"],
       modified: "2024-01-02T00:00:00.000Z",
@@ -64,7 +64,7 @@ describe("memory.update", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -77,10 +77,10 @@ describe("memory.update", () => {
   it("should update memory with empty tags array", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "session-data";
+    const memoryId = "session-data";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
       tags: [],
     };
 
@@ -89,7 +89,7 @@ describe("memory.update", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: memoryKey,
+      id: memoryId,
       tags: [],
     };
 
@@ -99,7 +99,7 @@ describe("memory.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -112,10 +112,10 @@ describe("memory.update", () => {
   it("should update memory without tags (empty body)", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "test-memory";
+    const memoryId = "test-memory";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -123,7 +123,7 @@ describe("memory.update", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     apiRequestMock.mockResolvedValueOnce(mockResponse);
@@ -132,7 +132,7 @@ describe("memory.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -146,7 +146,7 @@ describe("memory.update", () => {
     const apiKey = "test-api-key-123";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "test-memory-key",
+      id: "test-memory-key",
       tags: ["test"],
     };
 
@@ -166,9 +166,9 @@ describe("memory.update", () => {
 
   it("should use correct endpoint path", async () => {
     const endpoint = "https://api.example.com";
-    const memoryKey = "config:app:settings";
+    const memoryId = "config:app:settings";
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -180,16 +180,16 @@ describe("memory.update", () => {
     await update(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryKey}`);
+    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryId}`);
   });
 
   it("should handle keys with special characters", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user:preferences:theme";
+    const memoryId = "user:preferences:theme";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
       tags: ["special"],
     };
 
@@ -202,7 +202,7 @@ describe("memory.update", () => {
     await update(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -213,12 +213,12 @@ describe("memory.update", () => {
   });
 
   it("should use global config when no settings provided", async () => {
-    const memoryKey = "test-key";
-    const mockResponse = { key: memoryKey, tags: ["updated"] };
+    const memoryId = "test-key";
+    const mockResponse = { id: memoryId, tags: ["updated"] };
 
     apiRequestMock.mockResolvedValueOnce(mockResponse);
 
-    const result = await update({ key: memoryKey, tags: ["updated"] });
+    const result = await update({ id: memoryId, tags: ["updated"] });
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(

@@ -14,10 +14,10 @@ describe("getMemory", () => {
     jest.clearAllMocks();
   });
 
-  it("should get memory by key", async () => {
-    const key = "my-memory-key";
+  it("should get memory by id", async () => {
+    const id = "my-memory-id";
     const mockResponse = {
-      key,
+      id,
       value: "test value",
       type: "string",
       tags: [],
@@ -28,12 +28,12 @@ describe("getMemory", () => {
 
     apiGetMock.mockResolvedValueOnce(mockResponse);
 
-    const memory = await getMemory({ key });
+    const memory = await getMemory({ id });
 
     expect(apiGetMock).toHaveBeenCalledTimes(1);
-    expect(apiGetMock).toHaveBeenCalledWith({ key }, expect.anything());
+    expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
     expect(memory).toBeInstanceOf(Memory);
-    expect(memory?.key).toBe(key);
+    expect(memory?.id).toBe(id);
     expect(memory?.value).toBe("test value");
     expect(memory?.type).toBe("string");
   });
@@ -41,16 +41,16 @@ describe("getMemory", () => {
   it("should return null when memory not found", async () => {
     apiGetMock.mockResolvedValueOnce(null);
 
-    const memory = await getMemory({ key: "nonexistent" });
+    const memory = await getMemory({ id: "nonexistent" });
 
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(memory).toBeNull();
   });
 
   it("should get memory with all fields populated", async () => {
-    const key = "full-memory";
+    const id = "full-memory";
     const mockResponse = {
-      key,
+      id,
       namespace: "my-namespace",
       label: "My Label",
       description: "A description",
@@ -64,10 +64,10 @@ describe("getMemory", () => {
 
     apiGetMock.mockResolvedValueOnce(mockResponse);
 
-    const memory = await getMemory({ key });
+    const memory = await getMemory({ id });
 
     expect(memory).toBeInstanceOf(Memory);
-    expect(memory?.key).toBe(key);
+    expect(memory?.id).toBe(id);
     expect(memory?.namespace).toBe("my-namespace");
     expect(memory?.label).toBe("My Label");
     expect(memory?.description).toBe("A description");
@@ -79,13 +79,13 @@ describe("getMemory", () => {
   });
 
   it("should use provided settings", async () => {
-    const key = "test-key";
+    const id = "test-key";
     const settings = new SettingsContainer();
     settings.set("apiKey", "custom-key");
     settings.set("endpoint", "https://custom.api.com");
 
     const mockResponse = {
-      key,
+      id,
       value: 42,
       type: "number",
       tags: [],
@@ -96,16 +96,16 @@ describe("getMemory", () => {
 
     apiGetMock.mockResolvedValueOnce(mockResponse);
 
-    const memory = await getMemory({ key }, settings);
+    const memory = await getMemory({ id }, settings);
 
-    expect(apiGetMock).toHaveBeenCalledWith({ key }, settings);
+    expect(apiGetMock).toHaveBeenCalledWith({ id }, settings);
     expect(memory?.value).toBe(42);
   });
 
   it("should handle array value type", async () => {
-    const key = "array-memory";
+    const id = "array-memory";
     const mockResponse = {
-      key,
+      id,
       value: [{ item: 1 }, { item: 2 }],
       type: "array",
       tags: [],
@@ -116,16 +116,16 @@ describe("getMemory", () => {
 
     apiGetMock.mockResolvedValueOnce(mockResponse);
 
-    const memory = await getMemory({ key });
+    const memory = await getMemory({ id });
 
     expect(memory?.type).toBe("array");
     expect(memory?.value).toEqual([{ item: 1 }, { item: 2 }]);
   });
 
   it("should handle boolean value type", async () => {
-    const key = "bool-memory";
+    const id = "bool-memory";
     const mockResponse = {
-      key,
+      id,
       value: true,
       type: "boolean",
       tags: [],
@@ -136,7 +136,7 @@ describe("getMemory", () => {
 
     apiGetMock.mockResolvedValueOnce(mockResponse);
 
-    const memory = await getMemory({ key });
+    const memory = await getMemory({ id });
 
     expect(memory?.type).toBe("boolean");
     expect(memory?.value).toBe(true);

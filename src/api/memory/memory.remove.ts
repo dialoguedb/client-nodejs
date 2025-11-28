@@ -3,7 +3,7 @@ import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 
 export interface RemoveMemoryInput {
-  key: string;
+  id: string;
 }
 
 export async function remove(
@@ -16,7 +16,7 @@ export async function remove(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   await apiRequest(
-    `${endpoint}/memory/${input.key}`,
+    `${endpoint}/memory/${input.id}`,
     {
       method: "DELETE",
       headers,

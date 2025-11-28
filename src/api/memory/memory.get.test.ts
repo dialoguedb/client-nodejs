@@ -39,10 +39,10 @@ describe("memory.get", () => {
   it("should get memory successfully", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user-preferences";
+    const memoryId = "user-preferences";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -50,7 +50,7 @@ describe("memory.get", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: memoryKey,
+      id: memoryId,
       value: { theme: "dark", language: "en" },
       created: "2024-01-01T00:00:00.000Z",
     };
@@ -62,7 +62,7 @@ describe("memory.get", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -71,13 +71,13 @@ describe("memory.get", () => {
     );
   });
 
-  it("should get memory with different key", async () => {
+  it("should get memory with different id", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "last-seen-timestamp";
+    const memoryId = "last-seen-timestamp";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -85,7 +85,7 @@ describe("memory.get", () => {
     settings.set("endpoint", endpoint);
 
     const mockResponse = {
-      key: memoryKey,
+      id: memoryId,
       value: "2024-01-01T00:00:00.000Z",
       created: "2024-01-01T00:00:00.000Z",
     };
@@ -97,7 +97,7 @@ describe("memory.get", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -110,7 +110,7 @@ describe("memory.get", () => {
     const key = "test-api-key-123";
     const endpoint = "https://api.example.com";
     const input = {
-      key: "test-memory-key",
+      id: "test-memory-key",
     };
 
     const settings = new SettingsContainer();
@@ -127,13 +127,13 @@ describe("memory.get", () => {
     expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
   });
 
-  it("should handle keys with special characters", async () => {
+  it("should handle id with special characters", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
-    const memoryKey = "user:preferences:theme";
+    const memoryId = "user:preferences:theme";
 
     const input = {
-      key: memoryKey,
+      id: memoryId,
     };
 
     const settings = new SettingsContainer();
@@ -146,7 +146,7 @@ describe("memory.get", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryKey}`,
+      `${endpoint}/memory/${memoryId}`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -156,12 +156,12 @@ describe("memory.get", () => {
   });
 
   it("should use global config when no settings provided", async () => {
-    const memoryKey = "test-key";
-    const mockResponse = { key: memoryKey, value: "test" };
+    const memoryId = "test-key";
+    const mockResponse = { id: memoryId, value: "test" };
 
     apiRequestMock.mockResolvedValueOnce(mockResponse);
 
-    const result = await get({ key: memoryKey });
+    const result = await get({ id: memoryId });
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(

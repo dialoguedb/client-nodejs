@@ -4,7 +4,7 @@ import { getConfig } from "@/settings";
 import { IMemory } from "@/types";
 
 export interface UpdateMemoryInput {
-  key: string;
+  id: string;
   tags?: string[];
 }
 
@@ -12,7 +12,7 @@ export async function update(
   input: UpdateMemoryInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const { key, ...updates } = input;
+  const { id, ...updates } = input;
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
@@ -20,7 +20,7 @@ export async function update(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   const req = await apiRequest<IMemory>(
-    `${endpoint}/memory/${key}`,
+    `${endpoint}/memory/${id}`,
     {
       method: "put",
       headers,
