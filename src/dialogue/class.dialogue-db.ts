@@ -17,6 +17,7 @@ import {
   searchMemories,
   SearchOptions,
 } from "@/methods/search";
+import { listDialogues } from "@/methods/listDialogues";
 
 export class DialogueDB {
   #settings: SettingsContainer;
@@ -37,6 +38,13 @@ export class DialogueDB {
    */
   getDialogue(id: string): Promise<Dialogue | null> {
     return getDialogue({ id }, this.#settings);
+  }
+
+  /**
+   * List dialogues
+   */
+  listDialogues(input: Parameters<typeof listDialogues>[0]) {
+    return listDialogues(input, this.#settings);
   }
 
   /**
