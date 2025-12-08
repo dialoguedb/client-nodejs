@@ -10,7 +10,6 @@ export interface IDialogue {
   namespace?: string;
   threadOf?: string;
   label?: string;
-  previousId?: string;
   archivedAt?: string;
   endedAt?: string;
   totalMessages?: number;
@@ -32,7 +31,6 @@ export type CreateDialogueInput = {
   id?: string;
   namespace?: string;
   threadOf?: string;
-  previousId?: string;
   label?: string;
   messages?: Omit<CreateMessageInput, "dialogueId">[];
   message?: Omit<CreateMessageInput, "dialogueId">;

@@ -30,10 +30,6 @@ export function validateCreateDialogueInput(input: CreateDialogueInput): void {
     validateStringField(input.threadOf, "threadOf", 5);
   }
 
-  if (input.previousId !== undefined) {
-    validateStringField(input.previousId, "previousId", 5);
-  }
-
   if (input.label !== undefined) {
     validateStringField(input.label, "label");
   }
