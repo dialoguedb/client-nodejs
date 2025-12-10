@@ -29,10 +29,7 @@ describe("createDialogue", () => {
 
     const dialogue = await createDialogue({});
     expect(apiCreateMock).toHaveBeenCalledTimes(1);
-    expect(apiCreateMock).toHaveBeenCalledWith(
-      {},
-      expect.anything()
-    );
+    expect(apiCreateMock).toHaveBeenCalledWith({}, expect.anything());
     expect(typeof dialogue.id).toBe("string");
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });

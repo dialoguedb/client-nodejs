@@ -30,10 +30,7 @@ describe("useDialogue", () => {
     const dialogue = await getOrCreateDialogue();
     expect(apiGetMock).toHaveBeenCalledTimes(0);
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
-    expect(createDialogueMock).toHaveBeenCalledWith(
-      {},
-      expect.anything()
-    );
+    expect(createDialogueMock).toHaveBeenCalledWith({}, expect.anything());
     expect(typeof dialogue.id).toBe("string");
     expect(dialogue.id).toBe(id);
     expect(() => assertDialogue(dialogue)).not.toThrow();

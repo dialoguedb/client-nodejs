@@ -157,7 +157,10 @@ describe("Message", () => {
     });
 
     it("metadata getter returns empty object when initialized empty", () => {
-      const message = new Message(dialogueId, createMockMessage({ metadata: {} }));
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ metadata: {} })
+      );
 
       expect(message.metadata).toEqual({});
     });
