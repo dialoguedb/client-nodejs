@@ -14,6 +14,9 @@ function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
     role: "user",
     content: "test content",
     created: new Date().toISOString(),
+    modified: new Date().toISOString(),
+    metadata: {},
+    tags: [],
     ...overrides,
   };
 }
@@ -153,12 +156,10 @@ describe("Message", () => {
       expect(message.metadata!.key).toBe("value");
     });
 
-    it("metadata getter returns undefined when not set", () => {
-      const msg = createMockMessage();
-      delete (msg as any).metadata;
-      const message = new Message(dialogueId, msg);
+    it("metadata getter returns empty object when initialized empty", () => {
+      const message = new Message(dialogueId, createMockMessage({ metadata: {} }));
 
-      expect(message.metadata).toBeUndefined();
+      expect(message.metadata).toEqual({});
     });
 
     it("copies tags array from constructor", () => {

@@ -22,7 +22,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "my-key",
       value: "my string value",
-      type: "string",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -38,7 +37,6 @@ describe("createMemory", () => {
     expect(memory).toBeInstanceOf(Memory);
     expect(memory.id).toBe("my-key");
     expect(memory.value).toBe("my string value");
-    expect(memory.type).toBe("string");
   });
 
   it("should create memory with number value", async () => {
@@ -49,7 +47,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "num-key",
       value: 42,
-      type: "number",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -61,7 +58,6 @@ describe("createMemory", () => {
     const memory = await createMemory(input);
 
     expect(memory.value).toBe(42);
-    expect(memory.type).toBe("number");
   });
 
   it("should create memory with boolean value", async () => {
@@ -72,7 +68,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "bool-key",
       value: false,
-      type: "boolean",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -84,7 +79,6 @@ describe("createMemory", () => {
     const memory = await createMemory(input);
 
     expect(memory.value).toBe(false);
-    expect(memory.type).toBe("boolean");
   });
 
   it("should create memory with object value", async () => {
@@ -95,7 +89,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "obj-key",
       value: { nested: { data: [1, 2, 3] } },
-      type: "object",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -107,7 +100,6 @@ describe("createMemory", () => {
     const memory = await createMemory(input);
 
     expect(memory.value).toEqual({ nested: { data: [1, 2, 3] } });
-    expect(memory.type).toBe("object");
   });
 
   it("should create memory with array value", async () => {
@@ -118,7 +110,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "arr-key",
       value: [{ id: 1 }, { id: 2 }],
-      type: "array",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -130,7 +121,6 @@ describe("createMemory", () => {
     const memory = await createMemory(input);
 
     expect(memory.value).toEqual([{ id: 1 }, { id: 2 }]);
-    expect(memory.type).toBe("array");
   });
 
   it("should create memory with all optional fields", async () => {
@@ -146,7 +136,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "full-key",
       value: "test",
-      type: "string",
       namespace: "my-namespace",
       label: "My Label",
       description: "A helpful description",
@@ -178,7 +167,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "test",
       value: "data",
-      type: "string",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -199,7 +187,6 @@ describe("createMemory", () => {
     const mockResponse = {
       id: "server-generated-key-123",
       value: "auto-keyed value",
-      type: "string",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),

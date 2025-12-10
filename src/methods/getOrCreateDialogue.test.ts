@@ -31,7 +31,7 @@ describe("useDialogue", () => {
     expect(apiGetMock).toHaveBeenCalledTimes(0);
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
     expect(createDialogueMock).toHaveBeenCalledWith(
-      { id: undefined },
+      {},
       expect.anything()
     );
     expect(typeof dialogue.id).toBe("string");
@@ -39,22 +39,16 @@ describe("useDialogue", () => {
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
 
-  it("will create if given id that does not exist", async () => {
+  it("will throw if given id that does not exist", async () => {
     const id = "non-existing-item-id";
     apiGetMock.mockResolvedValueOnce(null);
 
-    createDialogueMock.mockResolvedValueOnce({
-      id: "some-id",
-    });
-
-    const dialogue = await getOrCreateDialogue({ id });
+    await expect(getOrCreateDialogue({ id })).rejects.toThrow(
+      `Dialogue with id "${id}" not found`
+    );
     expect(apiGetMock).toHaveBeenCalledTimes(1);
     expect(apiGetMock).toHaveBeenCalledWith({ id }, expect.anything());
-    expect(createDialogueMock).toHaveBeenCalledTimes(1);
-    expect(createDialogueMock).toHaveBeenCalledWith({ id }, expect.anything());
-    expect(typeof dialogue.id).toBe("string");
-    expect(dialogue.id).toBe("some-id");
-    expect(() => assertDialogue(dialogue)).not.toThrow();
+    expect(createDialogueMock).toHaveBeenCalledTimes(0);
   });
 
   it("will use existing item if found by id", async () => {

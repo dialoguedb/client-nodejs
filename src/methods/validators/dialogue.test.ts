@@ -14,7 +14,6 @@ describe("validateCreateDialogueInput", () => {
   it("accepts valid complete input", () => {
     expect(() =>
       validateCreateDialogueInput({
-        id: "dialogue-123",
         namespace: "my-namespace",
         threadOf: "parent-123",
         label: "Test",
@@ -27,8 +26,6 @@ describe("validateCreateDialogueInput", () => {
   });
 
   it.each([
-    ["id", { id: 123 }, "must be a string"],
-    ["id", { id: "abcd" }, "must have length of at least 5"],
     ["namespace", { namespace: 123 }, "must be a string"],
     ["namespace", { namespace: "abcd" }, "must have length of at least 5"],
     ["threadOf", { threadOf: 123 }, "must be a string"],

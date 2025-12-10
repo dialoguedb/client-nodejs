@@ -9,7 +9,6 @@ export interface IMemory {
     | boolean
     | Record<string, any>
     | Record<string, any>[];
-  type: "string" | "object" | "array" | "boolean" | "number";
   tags: string[];
   created: string;
   modified: string;

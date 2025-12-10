@@ -11,7 +11,6 @@ function createMockMemory(overrides: Partial<IMemory> = {}): IMemory {
   return {
     id: Math.random().toString(36).slice(2),
     value: "test value",
-    type: "string",
     metadata: {},
     tags: [],
     created: new Date().toISOString(),
@@ -31,7 +30,6 @@ describe("Memory", () => {
       const memory = new Memory(createMockMemory({ id }));
 
       expect(memory.id).toBe(id);
-      expect(memory.type).toBe("string");
       expect(memory.isDirty).toBe(false);
     });
 
@@ -63,43 +61,6 @@ describe("Memory", () => {
       expect(() => {
         new Memory(undefined as any);
       }).toThrow("Invalid id: is required and must be a string");
-    });
-
-    it("throws when type is missing", () => {
-      expect(() => {
-        new Memory({ ...createMockMemory(), type: undefined as any });
-      }).toThrow("Invalid type: is required and must be one of");
-    });
-
-    it("throws when type is invalid", () => {
-      expect(() => {
-        new Memory({ ...createMockMemory(), type: "invalid" as any });
-      }).toThrow("Invalid type: is required and must be one of");
-    });
-
-    it("accepts all valid types", () => {
-      const validTypes: IMemory["type"][] = [
-        "string",
-        "object",
-        "array",
-        "boolean",
-        "number",
-      ];
-
-      for (const type of validTypes) {
-        const value =
-          type === "object"
-            ? {}
-            : type === "array"
-            ? []
-            : type === "boolean"
-            ? true
-            : type === "number"
-            ? 42
-            : "str";
-        const memory = new Memory(createMockMemory({ type, value }));
-        expect(memory.type).toBe(type);
-      }
     });
 
     it("throws when value is missing", () => {
@@ -146,9 +107,7 @@ describe("Memory", () => {
   describe("mutation isolation", () => {
     it("deep clones object value from constructor input", () => {
       const originalValue = { nested: { data: "original" } };
-      const memory = new Memory(
-        createMockMemory({ value: originalValue, type: "object" })
-      );
+      const memory = new Memory(createMockMemory({ value: originalValue }));
 
       originalValue.nested.data = "mutated";
 
@@ -157,9 +116,7 @@ describe("Memory", () => {
 
     it("deep clones array value from constructor input", () => {
       const originalValue = [{ item: "original" }];
-      const memory = new Memory(
-        createMockMemory({ value: originalValue, type: "array" })
-      );
+      const memory = new Memory(createMockMemory({ value: originalValue }));
 
       originalValue[0].item = "mutated";
       originalValue.push({ item: "new" });
@@ -217,7 +174,6 @@ describe("Memory", () => {
       const memory = new Memory(
         createMockMemory({
           value: { nested: { deep: "original" } },
-          type: "object",
         })
       );
 
@@ -229,9 +185,7 @@ describe("Memory", () => {
     });
 
     it("value getter returns copy of array - mutation does not affect internal value", () => {
-      const memory = new Memory(
-        createMockMemory({ value: ["a", "b"], type: "array" })
-      );
+      const memory = new Memory(createMockMemory({ value: ["a", "b"] }));
 
       const retrieved = memory.value as any[];
       retrieved.push("c");
@@ -240,19 +194,13 @@ describe("Memory", () => {
     });
 
     it("primitive values are safe from mutation", () => {
-      const memory = new Memory(
-        createMockMemory({ value: "test", type: "string" })
-      );
+      const memory = new Memory(createMockMemory({ value: "test" }));
       expect(memory.value).toBe("test");
 
-      const numMemory = new Memory(
-        createMockMemory({ value: 42, type: "number" })
-      );
+      const numMemory = new Memory(createMockMemory({ value: 42 }));
       expect(numMemory.value).toBe(42);
 
-      const boolMemory = new Memory(
-        createMockMemory({ value: true, type: "boolean" })
-      );
+      const boolMemory = new Memory(createMockMemory({ value: true }));
       expect(boolMemory.value).toBe(true);
     });
   });
@@ -418,7 +366,6 @@ describe("Memory", () => {
       const label = "My Label";
       const description = "My description";
       const value = { data: "test" };
-      const type = "object" as const;
       const metadata = { source: "test" };
       const tags = ["tag1"];
       const created = "2024-01-01T00:00:00.000Z";
@@ -431,7 +378,6 @@ describe("Memory", () => {
           label,
           description,
           value,
-          type,
           metadata,
           tags,
           created,
@@ -447,7 +393,6 @@ describe("Memory", () => {
         label,
         description,
         value,
-        type,
         metadata,
         tags,
         created,

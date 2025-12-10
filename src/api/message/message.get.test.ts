@@ -43,7 +43,7 @@ describe("message.get", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages/${messageId}`,
+      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
       {
         method: "get",
         headers: expect.any(Headers),

@@ -44,6 +44,9 @@ function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
     role: "user",
     content: "test content",
     created: new Date().toISOString(),
+    modified: new Date().toISOString(),
+    metadata: {},
+    tags: [],
     ...overrides,
   };
 }

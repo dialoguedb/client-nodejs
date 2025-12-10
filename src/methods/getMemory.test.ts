@@ -19,7 +19,6 @@ describe("getMemory", () => {
     const mockResponse = {
       id,
       value: "test value",
-      type: "string",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -35,7 +34,6 @@ describe("getMemory", () => {
     expect(memory).toBeInstanceOf(Memory);
     expect(memory?.id).toBe(id);
     expect(memory?.value).toBe("test value");
-    expect(memory?.type).toBe("string");
   });
 
   it("should return null when memory not found", async () => {
@@ -55,7 +53,6 @@ describe("getMemory", () => {
       label: "My Label",
       description: "A description",
       value: { nested: { data: true } },
-      type: "object",
       tags: ["tag1", "tag2"],
       created: "2024-01-01T00:00:00.000Z",
       modified: "2024-01-02T00:00:00.000Z",
@@ -72,7 +69,6 @@ describe("getMemory", () => {
     expect(memory?.label).toBe("My Label");
     expect(memory?.description).toBe("A description");
     expect(memory?.value).toEqual({ nested: { data: true } });
-    expect(memory?.type).toBe("object");
     expect(memory?.tags).toEqual(["tag1", "tag2"]);
     expect(memory?.created).toBe("2024-01-01T00:00:00.000Z");
     expect(memory?.modified).toBe("2024-01-02T00:00:00.000Z");
@@ -87,7 +83,6 @@ describe("getMemory", () => {
     const mockResponse = {
       id,
       value: 42,
-      type: "number",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -107,7 +102,6 @@ describe("getMemory", () => {
     const mockResponse = {
       id,
       value: [{ item: 1 }, { item: 2 }],
-      type: "array",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -118,7 +112,6 @@ describe("getMemory", () => {
 
     const memory = await getMemory({ id });
 
-    expect(memory?.type).toBe("array");
     expect(memory?.value).toEqual([{ item: 1 }, { item: 2 }]);
   });
 
@@ -127,7 +120,6 @@ describe("getMemory", () => {
     const mockResponse = {
       id,
       value: true,
-      type: "boolean",
       tags: [],
       created: new Date().toISOString(),
       modified: new Date().toISOString(),
@@ -138,7 +130,6 @@ describe("getMemory", () => {
 
     const memory = await getMemory({ id });
 
-    expect(memory?.type).toBe("boolean");
     expect(memory?.value).toBe(true);
   });
 });

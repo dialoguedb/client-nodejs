@@ -19,7 +19,6 @@ export class Memory {
   #label?: string;
   #description?: string;
   #value: IMemory["value"];
-  #type: IMemory["type"];
   #metadata: IMemory["metadata"];
   #created: string;
   #modified: string;
@@ -45,16 +44,6 @@ export class Memory {
       throw errors.invalidParameter("id", "is required and must be a string");
     }
     this.#id = memory.id;
-
-    // Type - required, validate allowed values
-    const validTypes = ["string", "object", "array", "boolean", "number"];
-    if (!memory?.type || !validTypes.includes(memory.type)) {
-      throw errors.invalidParameter(
-        "type",
-        `is required and must be one of: ${validTypes.join(", ")}`
-      );
-    }
-    this.#type = memory.type;
 
     // Value - required, deep clone if object/array
     if (memory.value === undefined) {
@@ -119,10 +108,6 @@ export class Memory {
       return structuredClone(this.#value);
     }
     return this.#value;
-  }
-
-  get type(): IMemory["type"] {
-    return this.#type;
   }
 
   get metadata(): Readonly<Record<string, string | number | boolean>> {
@@ -194,7 +179,6 @@ export class Memory {
         description: this.#description,
       }),
       value: this.#value,
-      type: this.#type,
       metadata: this.#metadata,
       tags: this.#tags,
       created: this.#created,

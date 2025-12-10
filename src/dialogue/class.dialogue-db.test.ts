@@ -72,20 +72,19 @@ describe("DialogueDB", () => {
 
     it("should create dialogue with provided input", async () => {
       const mockDialogue = {
-        id: "custom-id",
+        id: "generated-id",
         namespace: "ns",
       } as unknown as Dialogue;
       createDialogueMock.mockResolvedValueOnce(mockDialogue);
 
       const db = new DialogueDB();
       const result = await db.createDialogue({
-        id: "custom-id",
         namespace: "ns",
         metadata: { key: "value" },
       });
 
       expect(createDialogueMock).toHaveBeenCalledWith(
-        { id: "custom-id", namespace: "ns", metadata: { key: "value" } },
+        { namespace: "ns", metadata: { key: "value" } },
         expect.any(SettingsContainer)
       );
       expect(result).toBe(mockDialogue);

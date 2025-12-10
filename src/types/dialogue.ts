@@ -28,7 +28,6 @@ export interface IDialogue {
 }
 
 export type CreateDialogueInput = {
-  id?: string;
   namespace?: string;
   threadOf?: string;
   label?: string;

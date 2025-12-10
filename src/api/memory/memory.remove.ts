@@ -18,7 +18,7 @@ export async function remove(
   await apiRequest(
     `${endpoint}/memory/${input.id}`,
     {
-      method: "DELETE",
+      method: "delete",
       headers,
     },
     settings.getRetryConfig()

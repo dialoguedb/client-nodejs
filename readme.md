@@ -90,7 +90,6 @@ Use the class when you need stateful conversation management. Use the API when y
 
 ```typescript
 const dialogue = await db.createDialogue({
-  id: "optional-custom-id", // Auto-generated if omitted
   namespace: "my-app", // Optional grouping
   messages: [
     { role: "user", content: "Hello" },
@@ -224,9 +223,10 @@ for (const message of messages) {
 | `role`       | `string`                       | Message role             |
 | `content`    | `string \| object \| object[]` | Message content          |
 | `created`    | `string`                       | ISO timestamp            |
+| `modified`   | `string`                       | ISO timestamp            |
+| `metadata`   | `object`                       | Additional metadata      |
+| `tags`       | `string[]`                     | Tags for filtering       |
 | `name`       | `string?`                      | Optional display name    |
-| `metadata`   | `object?`                      | Additional metadata      |
-| `tags`       | `string[]?`                    | Tags for filtering       |
 
 ### Updating Message Tags
 
@@ -287,7 +287,6 @@ if (memory) {
 | `label`       | `string?`  | Human-readable label             |
 | `description` | `string?`  | Description of the memory        |
 | `value`       | `any`      | The stored value                 |
-| `type`        | `string`   | Value type (string, object, etc) |
 | `metadata`    | `object`   | Additional metadata              |
 | `tags`        | `string[]` | Tags for filtering               |
 | `created`     | `string`   | ISO timestamp                    |
@@ -438,22 +437,22 @@ interface IMessage {
   role: string;
   content: string | object | object[];
   created: string;
+  modified: string;
+  metadata: Record<string, string | number | boolean>;
+  tags: string[];
   name?: string;
-  metadata?: Record<string, string | number | boolean>;
-  tags?: string[];
 }
 
 interface IMemory {
   id: string;
-  namespace?: string;
-  label?: string;
-  description?: string;
   value: string | number | boolean | object | any[];
-  type: "string" | "object" | "array" | "boolean" | "number";
   metadata: Record<string, string | number | boolean>;
   tags: string[];
   created: string;
   modified: string;
+  namespace?: string;
+  label?: string;
+  description?: string;
 }
 ```
 
@@ -461,7 +460,6 @@ interface IMemory {
 
 ```typescript
 type CreateDialogueInput = {
-  id?: string;
   namespace?: string;
   threadOf?: string;
   label?: string;
@@ -559,6 +557,29 @@ if (dialogue.hasMoreMessages) {
   await dialogue.loadMessages({ limit: 50, next: true });
 }
 ```
+
+## Validation & Limits
+
+### Input Validation
+
+The API validates all inputs and returns descriptive errors:
+
+- **Unknown query parameters** are rejected on list endpoints. The API will return an error if you pass query parameters that aren't supported.
+- **Metadata must be flat** - nested objects are not allowed. Use only string, number, or boolean values.
+- **Tags have a maximum length of 64 characters** per tag.
+- **Dialogue IDs are always auto-generated** - any `id` field provided when creating a dialogue is ignored.
+- **Message IDs can be provided** or will be auto-generated if omitted.
+
+### Plan Limits
+
+Your account plan determines resource limits for:
+
+- API requests per month
+- Number of dialogues and messages
+- Storage capacity
+- Features like semantic search and auto-summarization
+
+When limits are exceeded, the API returns a `429` status with details about which limit was reached. Check your plan settings in the DialogueDB dashboard.
 
 ## License
 
