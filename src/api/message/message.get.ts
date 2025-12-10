@@ -16,7 +16,7 @@ export async function get(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   return apiRequest<IMessage>(
-    `${endpoint}/dialogue/${input.dialogueId}/messages/${input.id}`,
+    `${endpoint}/dialogue/${input.dialogueId}/message/${input.id}`,
     {
       method: "get",
       headers,

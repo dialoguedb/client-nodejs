@@ -1,7 +1,7 @@
 import * as modules from ".";
 
 describe("dialogue", () => {
-  it("has default export", async () => {
+  it("has expected exports", async () => {
     expect(typeof modules.api).toBe("object");
     expect(typeof modules.api.dialogue).toBe("object");
     expect(typeof modules.api.dialogue.create).toBe("function");
@@ -15,9 +15,6 @@ describe("dialogue", () => {
 
     expect(typeof modules.createConfig).toBe("function");
     expect(typeof modules.settings).toBe("object");
-    expect(typeof modules.getOrCreateDialogue).toBe("function");
-    expect(typeof modules.createDialogue).toBe("function");
-    expect(typeof modules.listDialogues).toBe("function");
-    expect(typeof modules.getDialogue).toBe("function");
+    expect(typeof modules.DialogueDB).toBe("function");
   });
 });

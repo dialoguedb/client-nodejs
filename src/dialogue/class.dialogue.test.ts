@@ -44,6 +44,9 @@ function createMockMessage(overrides: Partial<IMessage> = {}): IMessage {
     role: "user",
     content: "test content",
     created: new Date().toISOString(),
+    modified: new Date().toISOString(),
+    metadata: {},
+    tags: [],
     ...overrides,
   };
 }
@@ -70,7 +73,6 @@ describe("Dialogue", () => {
         createMockDialogue({
           threadOf: "parent-123",
           label: "Test Label",
-          previousId: "prev-456",
           archivedAt: "2024-06-01T00:00:00.000Z",
           endedAt: "2024-05-01T00:00:00.000Z",
           totalMessages: 42,
@@ -81,7 +83,6 @@ describe("Dialogue", () => {
 
       expect(dialogue.threadOf).toBe("parent-123");
       expect(dialogue.label).toBe("Test Label");
-      expect(dialogue.previousId).toBe("prev-456");
       expect(dialogue.archivedAt).toBe("2024-06-01T00:00:00.000Z");
       expect(dialogue.endedAt).toBe("2024-05-01T00:00:00.000Z");
       expect(dialogue.totalMessages).toBe(42);
@@ -1087,7 +1088,6 @@ describe("Dialogue", () => {
         createMockDialogue({
           threadOf: "parent-123",
           label: "Test",
-          previousId: "prev-456",
           archivedAt: "2024-06-01T00:00:00.000Z",
           endedAt: "2024-05-01T00:00:00.000Z",
           totalMessages: 10,
@@ -1100,7 +1100,6 @@ describe("Dialogue", () => {
 
       expect(json.threadOf).toBe("parent-123");
       expect(json.label).toBe("Test");
-      expect(json.previousId).toBe("prev-456");
       expect(json.archivedAt).toBe("2024-06-01T00:00:00.000Z");
       expect(json.endedAt).toBe("2024-05-01T00:00:00.000Z");
       expect(json.totalMessages).toBe(10);

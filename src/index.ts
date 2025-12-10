@@ -8,10 +8,6 @@ export type { ErrorType } from "./utils/request";
 
 // dialogue class/utils
 import { DialogueDB } from "./dialogue/class.dialogue-db";
-import { createDialogue } from "./methods/createDialogue";
-import { getDialogue } from "./methods/getDialogue";
-import { listDialogues } from "./methods/listDialogues";
-import { getOrCreateDialogue } from "./methods/getOrCreateDialogue";
 
 // api things
 import * as dialogueApi from "./api/dialogue";
@@ -49,7 +45,7 @@ export const api = {
     get: memoryApi.get,
     remove: memoryApi.remove,
     update: memoryApi.update,
-    // list: memoryApi.list,
+    list: memoryApi.list,
   },
 };
 
@@ -60,10 +56,4 @@ export {
 
   // expose the class
   DialogueDB,
-
-  // convenience functions
-  getOrCreateDialogue,
-  createDialogue,
-  listDialogues,
-  getDialogue,
 };

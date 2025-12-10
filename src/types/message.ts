@@ -9,10 +9,11 @@ export interface IMessage {
   role: string;
   content: MessageContent;
   created: string;
+  modified: string;
+  metadata: Record<string, string | number | boolean>;
+  tags: string[];
 
   name?: string;
-  metadata?: Record<string, string | number | boolean>;
-  tags?: string[];
 }
 
 export interface CreateMessageInput {

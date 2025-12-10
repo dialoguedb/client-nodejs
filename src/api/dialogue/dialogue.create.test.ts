@@ -24,7 +24,8 @@ describe("create", () => {
     const key = "my-api-key";
     const endpoint = "my-api-endpoint";
 
-    const body = { id };
+    const body = { namespace: "test-ns" };
+    const response = { id, namespace: "test-ns" };
 
     const headers = new Headers();
     headers.set("Authorization", `Bearer ${key}`);
@@ -35,7 +36,7 @@ describe("create", () => {
 
     const spyGet = jest.spyOn(settings, "get");
 
-    apiRequestMock.mockResolvedValueOnce(body);
+    apiRequestMock.mockResolvedValueOnce(response);
 
     const result = await create(body, settings);
 
@@ -63,7 +64,8 @@ describe("create", () => {
     const key = "my-api-key";
     const endpoint = "my-api-endpoint";
 
-    const body = { id };
+    const body = { namespace: "test-ns" };
+    const response = { id, namespace: "test-ns" };
 
     const headers = new Headers();
     headers.set("Authorization", `Bearer ${key}`);
@@ -73,7 +75,7 @@ describe("create", () => {
     settings.set("endpoint", endpoint);
     const spyGet = jest.spyOn(settings, "get");
 
-    apiRequestMock.mockResolvedValueOnce(body);
+    apiRequestMock.mockResolvedValueOnce(response);
     getConfigMock.mockImplementationOnce(() => {
       return settings;
     });

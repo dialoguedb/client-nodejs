@@ -35,7 +35,7 @@ describe("message.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages/${messageId}`,
+      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
       {
         method: "delete",
         headers: expect.any(Headers),

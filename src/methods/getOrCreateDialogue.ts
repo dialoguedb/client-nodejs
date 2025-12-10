@@ -6,7 +6,9 @@ import { UseDialogueInput, GetDialogueInput } from "@/types";
 import { Dialogue } from "@/dialogue/class.dialogue";
 
 /**
- * Gets an existing dialogue by ID, or creates a new one if it doesn't exist.
+ * Gets an existing dialogue by ID, or creates a new one.
+ * If an ID is provided and the dialogue exists, returns it.
+ * If an ID is provided but the dialogue doesn't exist, throws an error.
  * If no ID is provided, creates a new dialogue with a generated ID.
  */
 export async function getOrCreateDialogue(
@@ -19,11 +21,11 @@ export async function getOrCreateDialogue(
     if (res && res?.id) {
       return new Dialogue(res, settings);
     } else {
-      // need to make new
-      return createDialogue(input, settings);
+      throw new Error(`Dialogue with id "${input.id}" not found`);
     }
   } else {
-    // no id, treat as new
-    return createDialogue({}, settings);
+    // no id, create new with generated ID
+    const { id, ...createInput } = input || ({} as UseDialogueInput);
+    return createDialogue(createInput, settings);
   }
 }

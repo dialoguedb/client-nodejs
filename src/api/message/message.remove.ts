@@ -16,7 +16,7 @@ export async function remove(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   await apiRequest(
-    `${endpoint}/dialogue/${input.dialogueId}/messages/${input.id}`,
+    `${endpoint}/dialogue/${input.dialogueId}/message/${input.id}`,
     {
       method: "delete",
       headers,

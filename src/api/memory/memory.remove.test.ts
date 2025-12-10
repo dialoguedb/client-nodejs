@@ -57,7 +57,7 @@ describe("memory.remove", () => {
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/memory/${memoryId}`,
       {
-        method: "DELETE",
+        method: "delete",
         headers: expect.any(Headers),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
@@ -84,7 +84,7 @@ describe("memory.remove", () => {
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/memory/${memoryId}`,
       {
-        method: "DELETE",
+        method: "delete",
         headers: expect.any(Headers),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
@@ -132,7 +132,7 @@ describe("memory.remove", () => {
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/memory/${memoryId}`,
       {
-        method: "DELETE",
+        method: "delete",
         headers: expect.any(Headers),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
@@ -159,7 +159,7 @@ describe("memory.remove", () => {
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
       "https://global.example.com/memory/test-key",
-      expect.objectContaining({ method: "DELETE" }),
+      expect.objectContaining({ method: "delete" }),
       expect.any(Object)
     );
   });

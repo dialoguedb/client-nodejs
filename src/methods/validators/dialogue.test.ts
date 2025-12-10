@@ -14,10 +14,8 @@ describe("validateCreateDialogueInput", () => {
   it("accepts valid complete input", () => {
     expect(() =>
       validateCreateDialogueInput({
-        id: "dialogue-123",
         namespace: "my-namespace",
         threadOf: "parent-123",
-        previousId: "prev-dialogue",
         label: "Test",
         tags: ["tag1", "tag2"],
         metadata: { key: "value" },
@@ -28,14 +26,10 @@ describe("validateCreateDialogueInput", () => {
   });
 
   it.each([
-    ["id", { id: 123 }, "must be a string"],
-    ["id", { id: "abcd" }, "must have length of at least 5"],
     ["namespace", { namespace: 123 }, "must be a string"],
     ["namespace", { namespace: "abcd" }, "must have length of at least 5"],
     ["threadOf", { threadOf: 123 }, "must be a string"],
     ["threadOf", { threadOf: "abcd" }, "must have length of at least 5"],
-    ["previousId", { previousId: 123 }, "must be a string"],
-    ["previousId", { previousId: "abcd" }, "must have length of at least 5"],
     ["label", { label: 123 }, "must be a string"],
     ["tags", { tags: "not-array" }, "must be an array"],
     ["tags", { tags: Array(11).fill("t") }, "must have 10 or fewer items"],

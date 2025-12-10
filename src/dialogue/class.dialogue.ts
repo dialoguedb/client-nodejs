@@ -29,7 +29,6 @@ export class Dialogue {
   #namespace?: string;
   #threadOf?: string;
   #label?: string;
-  #previousId?: string;
   #archivedAt?: string;
   #endedAt?: string;
   #totalMessages?: number;
@@ -82,9 +81,6 @@ export class Dialogue {
     }
     if (typeof dialogue.label === "string") {
       this.#label = dialogue.label;
-    }
-    if (typeof dialogue.previousId === "string") {
-      this.#previousId = dialogue.previousId;
     }
     if (typeof dialogue.archivedAt === "string") {
       this.#archivedAt = dialogue.archivedAt;
@@ -156,10 +152,6 @@ export class Dialogue {
 
   get threadOf(): string | undefined {
     return this.#threadOf;
-  }
-
-  get previousId(): string | undefined {
-    return this.#previousId;
   }
 
   get archivedAt(): string | undefined {
@@ -461,7 +453,6 @@ export class Dialogue {
       ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       ...(this.#threadOf !== undefined && { threadOf: this.#threadOf }),
       ...(this.#label !== undefined && { label: this.#label }),
-      ...(this.#previousId !== undefined && { previousId: this.#previousId }),
       ...(this.#archivedAt !== undefined && { archivedAt: this.#archivedAt }),
       ...(this.#endedAt !== undefined && { endedAt: this.#endedAt }),
       ...(this.#totalMessages !== undefined && {

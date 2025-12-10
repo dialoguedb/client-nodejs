@@ -13,8 +13,8 @@ describe("createDialogue", () => {
     jest.clearAllMocks();
   });
 
-  it("will create given id", async () => {
-    const id = "created-item-id";
+  it("will create with generated id", async () => {
+    const id = "generated-item-id";
 
     apiCreateMock.mockResolvedValueOnce({
       id,
@@ -27,20 +27,15 @@ describe("createDialogue", () => {
       modified: new Date().toISOString(),
     });
 
-    const dialogue = await createDialogue({ id });
+    const dialogue = await createDialogue({});
     expect(apiCreateMock).toHaveBeenCalledTimes(1);
-    expect(apiCreateMock).toHaveBeenCalledWith(
-      {
-        id,
-      },
-      expect.anything()
-    );
+    expect(apiCreateMock).toHaveBeenCalledWith({}, expect.anything());
     expect(typeof dialogue.id).toBe("string");
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
 
-  it("will create given id and namespace", async () => {
-    const id = "created-item-id";
+  it("will create with namespace", async () => {
+    const id = "generated-item-id";
     const namespace = "my-namespace";
 
     apiCreateMock.mockResolvedValueOnce({
@@ -55,17 +50,15 @@ describe("createDialogue", () => {
       modified: new Date().toISOString(),
     });
 
-    const dialogue = await createDialogue({ id, namespace });
+    const dialogue = await createDialogue({ namespace });
     expect(apiCreateMock).toHaveBeenCalledTimes(1);
     expect(apiCreateMock).toHaveBeenCalledWith(
       {
-        id,
         namespace,
       },
       expect.anything()
     );
     expect(typeof dialogue.id).toBe("string");
-    expect(dialogue.id).toBe(id);
     expect(typeof dialogue.namespace).toBe("string");
     expect(dialogue.namespace).toBe(namespace);
     expect(() => assertDialogue(dialogue)).not.toThrow();
