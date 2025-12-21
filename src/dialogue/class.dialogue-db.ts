@@ -36,8 +36,8 @@ export class DialogueDB {
   /**
    * Get an existing dialogue by ID
    */
-  getDialogue(id: string): Promise<Dialogue | null> {
-    return getDialogue({ id }, this.#settings);
+  getDialogue(id: string, namespace?: string): Promise<Dialogue | null> {
+    return getDialogue({ id, namespace }, this.#settings);
   }
 
   /**
@@ -57,8 +57,8 @@ export class DialogueDB {
   /**
    * Get an existing memory by id
    */
-  getMemory(id: string): Promise<Memory | null> {
-    return getMemory({ id }, this.#settings);
+  getMemory(id: string, namespace?: string): Promise<Memory | null> {
+    return getMemory({ id, namespace }, this.#settings);
   }
 
   /**
