@@ -43,7 +43,7 @@ export class DialogueDB {
   /**
    * List dialogues
    */
-  listDialogues(input: Parameters<typeof listDialogues>[0]) {
+  listDialogues(input: Parameters<typeof listDialogues>[0] = {}) {
     return listDialogues(input, this.#settings);
   }
 

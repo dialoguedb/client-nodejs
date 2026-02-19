@@ -177,7 +177,6 @@ describe("Message", () => {
       expect(message.tags).toEqual(["tag1", "tag2"]);
     });
 
-    // BUG TEST: tags getter returns direct reference
     it("tags getter returns clone - external mutation does not affect internal tags", () => {
       const message = new Message(
         dialogueId,
@@ -401,6 +400,25 @@ describe("Message", () => {
 
       const json = message.toJSON();
       expect(json).not.toHaveProperty("name");
+    });
+
+    it("toJSON returns copies - mutating result does not affect internal state", () => {
+      const message = new Message(
+        dialogueId,
+        createMockMessage({
+          metadata: { key: "original" },
+          tags: ["original"],
+        })
+      );
+
+      const json = message.toJSON();
+
+      (json.metadata as any).key = "mutated";
+      (json.tags as any).push("mutated");
+
+      expect(message.metadata!.key).toBe("original");
+      expect(message.tags).toEqual(["original"]);
+      expect(message.isDirty).toBe(false);
     });
 
     it("inspect.custom returns same as toJSON", () => {

@@ -198,6 +198,19 @@ describe("Dialogue", () => {
       expect(dialogue.metadata.key).toBe("value");
     });
 
+    it("metadata getter returns deep clone - nested mutation does not affect internal metadata", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          metadata: { nested: { deep: "original" } } as any,
+        })
+      );
+
+      const retrieved = dialogue.metadata as any;
+      retrieved.nested.deep = "mutated";
+
+      expect((dialogue.metadata as any).nested.deep).toBe("original");
+    });
+
     it("deep clones state from constructor input", () => {
       const originalState = { nested: { count: 5 } };
       const dialogue = new Dialogue(
@@ -1105,6 +1118,31 @@ describe("Dialogue", () => {
       expect(json.totalMessages).toBe(10);
       expect(json.threadCount).toBe(2);
       expect(json.lastMessageCreated).toBe("2024-07-01T00:00:00.000Z");
+    });
+
+    it("toJSON returns copies - mutating result does not affect internal state", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          state: { key: "original" },
+          metadata: { key: "original" },
+          tags: ["original"],
+          messages: [createMockMessage()],
+        })
+      );
+
+      const json = dialogue.toJSON();
+
+      // Mutate all the returned objects
+      (json.state as any).key = "mutated";
+      (json.metadata as any).key = "mutated";
+      json.tags.push("mutated");
+      json.messages.length = 0;
+
+      // Internal state should be unchanged
+      expect(dialogue.state).toEqual({ key: "original" });
+      expect(dialogue.metadata).toEqual({ key: "original" });
+      expect(dialogue.tags).toEqual(["original"]);
+      expect(dialogue.messages.length).toBe(1);
     });
 
     it("inspect.custom returns same as toJSON", () => {

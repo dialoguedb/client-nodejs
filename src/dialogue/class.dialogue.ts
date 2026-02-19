@@ -175,7 +175,7 @@ export class Dialogue {
   }
 
   get metadata(): Readonly<Record<string, any>> {
-    return { ...this.#metadata };
+    return structuredClone(this.#metadata);
   }
 
   get created(): string {
@@ -464,10 +464,10 @@ export class Dialogue {
       ...(this.#lastMessageCreated !== undefined && {
         lastMessageCreated: this.#lastMessageCreated,
       }),
-      metadata: this.#metadata,
-      state: this.#state,
-      tags: this.#tags,
-      messages: this.#messages,
+      metadata: structuredClone(this.#metadata),
+      state: structuredClone(this.#state),
+      tags: [...this.#tags],
+      messages: [...this.#messages],
       created: this.#created,
       modified: this.#modified,
     };
