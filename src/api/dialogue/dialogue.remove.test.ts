@@ -33,11 +33,10 @@ describe("dialogue.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue`,
+      `${endpoint}/dialogue/${dialogueId}`,
       {
         method: "delete",
         headers: expect.any(Headers),
-        body: JSON.stringify(input),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
@@ -52,7 +51,7 @@ describe("dialogue.remove", () => {
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
 
-  it("should remove dialogue with namespace", async () => {
+  it("should remove dialogue with namespace as query param", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";
     const input = {
@@ -70,10 +69,12 @@ describe("dialogue.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     const callArgs = apiRequestMock.mock.calls[0];
-    const bodyArg = JSON.parse(callArgs[1].body);
 
-    expect(bodyArg.id).toBe("dialogue-123");
-    expect(bodyArg.namespace).toBe("my-namespace");
+    expect(callArgs[0]).toBe(
+      `${endpoint}/dialogue/dialogue-123?namespace=my-namespace`
+    );
+    expect(callArgs[1].method).toBe("delete");
+    expect(callArgs[1].body).toBeUndefined();
   });
 
   it("should set Authorization header correctly", async () => {
@@ -97,7 +98,7 @@ describe("dialogue.remove", () => {
     expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
   });
 
-  it("should use correct endpoint path", async () => {
+  it("should use correct endpoint path with id", async () => {
     const endpoint = "https://api.example.com";
     const input = {
       id: "dialogue-abc",
@@ -112,7 +113,7 @@ describe("dialogue.remove", () => {
     await remove(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/dialogue`);
+    expect(callArgs[0]).toBe(`${endpoint}/dialogue/dialogue-abc`);
   });
 
   it("should handle API errors", async () => {
