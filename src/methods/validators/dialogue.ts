@@ -18,6 +18,10 @@ import {
  * Validates CreateDialogueInput, throwing DialogueDBError if invalid.
  */
 export function validateCreateDialogueInput(input: CreateDialogueInput): void {
+  if (input.id !== undefined) {
+    validateStringField(input.id, "id");
+  }
+
   if (input.namespace !== undefined) {
     validateStringField(input.namespace, "namespace", 5);
   }
