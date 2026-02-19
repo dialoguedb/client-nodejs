@@ -6,9 +6,15 @@ import {
 import { Dialogue } from "./class.dialogue";
 import { Memory } from "./class.memory";
 import { Message } from "./class.message";
-import { CreateDialogueInput, CreateMemoryInput } from "@/types";
+import {
+  CreateDialogueInput,
+  CreateMemoryInput,
+  DeleteDialogueInput,
+  ListMemoriesFilters,
+} from "@/types";
 import { createDialogue } from "@/methods/createDialogue";
 import { getDialogue } from "@/methods/getDialogue";
+import { getOrCreateDialogue } from "@/methods/getOrCreateDialogue";
 import { createMemory } from "@/methods/createMemory";
 import { getMemory } from "@/methods/getMemory";
 import {
@@ -18,6 +24,8 @@ import {
   SearchOptions,
 } from "@/methods/search";
 import { listDialogues } from "@/methods/listDialogues";
+import * as dialogueApi from "@/api/dialogue";
+import * as memoryApi from "@/api/memory";
 
 export class DialogueDB {
   #settings: SettingsContainer;
@@ -41,10 +49,28 @@ export class DialogueDB {
   }
 
   /**
+   * Get an existing dialogue by ID, or create a new one
+   */
+  getOrCreateDialogue(
+    input?: { id?: string; namespace?: string; threadOf?: string }
+  ): Promise<Dialogue> {
+    return getOrCreateDialogue(input, this.#settings);
+  }
+
+  /**
    * List dialogues
    */
   listDialogues(input: Parameters<typeof listDialogues>[0] = {}) {
     return listDialogues(input, this.#settings);
+  }
+
+  /**
+   * Delete a dialogue by ID
+   */
+  async deleteDialogue(id: string, namespace?: string): Promise<void> {
+    const input: DeleteDialogueInput = { id };
+    if (namespace) input.namespace = namespace;
+    return dialogueApi.remove(input, this.#settings);
   }
 
   /**
@@ -59,6 +85,20 @@ export class DialogueDB {
    */
   getMemory(id: string, namespace?: string): Promise<Memory | null> {
     return getMemory({ id, namespace }, this.#settings);
+  }
+
+  /**
+   * List memories
+   */
+  listMemories(input: ListMemoriesFilters = {}) {
+    return memoryApi.list(input, this.#settings);
+  }
+
+  /**
+   * Delete a memory by id
+   */
+  async deleteMemory(id: string): Promise<void> {
+    return memoryApi.remove({ id }, this.#settings);
   }
 
   /**

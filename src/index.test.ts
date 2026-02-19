@@ -17,4 +17,10 @@ describe("dialogue", () => {
     expect(typeof modules.settings).toBe("object");
     expect(typeof modules.DialogueDB).toBe("function");
   });
+
+  it("exports Dialogue, Message, and Memory classes", () => {
+    expect(typeof modules.Dialogue).toBe("function");
+    expect(typeof modules.Message).toBe("function");
+    expect(typeof modules.Memory).toBe("function");
+  });
 });

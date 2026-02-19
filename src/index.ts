@@ -6,8 +6,39 @@ import { createConfig } from "./settings/createConfig";
 export { DialogueDBError } from "./errors";
 export type { ErrorType } from "./utils/request";
 
-// dialogue class/utils
+// classes
 import { DialogueDB } from "./dialogue/class.dialogue-db";
+import { Dialogue } from "./dialogue/class.dialogue";
+import { Message } from "./dialogue/class.message";
+import { Memory } from "./dialogue/class.memory";
+
+// types
+export type {
+  IDialogue,
+  CreateDialogueInput,
+  UpdateDialogueInput,
+  GetDialogueInput,
+  ListDialogueFilters,
+} from "./types/dialogue";
+
+export type {
+  IMessage,
+  MessageContent,
+  CreateMessageInput,
+  ListMessageFilters,
+} from "./types/message";
+
+export type {
+  IMemory,
+  CreateMemoryInput,
+  ListMemoriesFilters,
+} from "./types/memory";
+
+export type { ListResponse } from "./types/utils";
+
+export type { SearchFilterOptions, SearchOptions } from "./api/search";
+
+export type { Settings } from "./settings/class.SettingsContainer";
 
 // api things
 import * as dialogueApi from "./api/dialogue";
@@ -54,6 +85,9 @@ export {
   settings,
   createConfig,
 
-  // expose the class
+  // classes
   DialogueDB,
+  Dialogue,
+  Message,
+  Memory,
 };
