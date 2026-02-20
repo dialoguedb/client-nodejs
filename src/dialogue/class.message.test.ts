@@ -177,7 +177,6 @@ describe("Message", () => {
       expect(message.tags).toEqual(["tag1", "tag2"]);
     });
 
-    // BUG TEST: tags getter returns direct reference
     it("tags getter returns clone - external mutation does not affect internal tags", () => {
       const message = new Message(
         dialogueId,
@@ -403,6 +402,25 @@ describe("Message", () => {
       expect(json).not.toHaveProperty("name");
     });
 
+    it("toJSON returns copies - mutating result does not affect internal state", () => {
+      const message = new Message(
+        dialogueId,
+        createMockMessage({
+          metadata: { key: "original" },
+          tags: ["original"],
+        })
+      );
+
+      const json = message.toJSON();
+
+      (json.metadata as any).key = "mutated";
+      (json.tags as any).push("mutated");
+
+      expect(message.metadata!.key).toBe("original");
+      expect(message.tags).toEqual(["original"]);
+      expect(message.isDirty).toBe(false);
+    });
+
     it("inspect.custom returns same as toJSON", () => {
       const { inspect } = require("util");
       const message = new Message(
@@ -412,6 +430,54 @@ describe("Message", () => {
 
       const json = message.toJSON();
       expect((message as any)[inspect.custom]()).toEqual(json);
+    });
+  });
+
+  describe("dark corners", () => {
+    it("metadata getter returns undefined when no metadata provided", () => {
+      const msg = createMockMessage();
+      delete (msg as any).metadata;
+      const message = new Message(dialogueId, msg);
+
+      expect(message.metadata).toBeUndefined();
+    });
+
+    it("throws when role is empty string", () => {
+      expect(() => {
+        new Message(dialogueId, { ...createMockMessage(), role: "" });
+      }).toThrow("Invalid role: is required and must be a string");
+    });
+
+    it("accepts structured content (object)", () => {
+      const content = { type: "text", text: "hello" };
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ content: content as any })
+      );
+      expect(message.content).toEqual(content);
+    });
+
+    it("accepts structured content (array)", () => {
+      const content = [{ type: "text", text: "hello" }];
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ content: content as any })
+      );
+      expect(message.content).toEqual(content);
+    });
+
+    it("excludes empty tags from toJSON", () => {
+      const message = new Message(dialogueId, createMockMessage({ tags: [] }));
+      const json = message.toJSON();
+      expect(json).not.toHaveProperty("tags");
+    });
+
+    it("excludes undefined metadata from toJSON", () => {
+      const msg = createMockMessage();
+      delete (msg as any).metadata;
+      const message = new Message(dialogueId, msg);
+      const json = message.toJSON();
+      expect(json).not.toHaveProperty("metadata");
     });
   });
 

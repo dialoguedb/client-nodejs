@@ -175,7 +175,7 @@ export class Dialogue {
   }
 
   get metadata(): Readonly<Record<string, any>> {
-    return { ...this.#metadata };
+    return structuredClone(this.#metadata);
   }
 
   get created(): string {
@@ -228,6 +228,14 @@ export class Dialogue {
     this.#tags = [...value];
     this.#isDirty = true;
     this.#tagsChanged = true;
+  }
+
+  /**
+   * Set state locally without saving. Call .save() to persist.
+   */
+  setState(value: Record<string, any>): this {
+    this.state = value;
+    return this;
   }
 
   /**
@@ -306,7 +314,7 @@ export class Dialogue {
     const isAppending = shouldLoadNext && !!this.#nextToken;
 
     const payload: ListMessageFilters = {
-      ...(restOfOptions ?? {}),
+      ...restOfOptions,
       dialogueId: this.#id,
     };
 
@@ -464,10 +472,10 @@ export class Dialogue {
       ...(this.#lastMessageCreated !== undefined && {
         lastMessageCreated: this.#lastMessageCreated,
       }),
-      metadata: this.#metadata,
-      state: this.#state,
-      tags: this.#tags,
-      messages: this.#messages,
+      metadata: structuredClone(this.#metadata),
+      state: structuredClone(this.#state),
+      tags: [...this.#tags],
+      messages: [...this.#messages],
       created: this.#created,
       modified: this.#modified,
     };

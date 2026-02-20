@@ -7,6 +7,7 @@ import {
   set,
   pick,
   defaults,
+  isPlainObject,
 } from "@/utils/lodash";
 
 describe("toNumber", () => {
@@ -169,16 +170,73 @@ describe("defaults", () => {
     expect(result).toEqual({ a: 1, b: 2, c: 3 });
   });
 
-  it("should apply multiple default sources", () => {
+  it("should apply multiple default sources with earlier sources taking priority", () => {
     const obj: any = { a: 1 };
-    // Note: defaults reverses sources, so last source is applied first
+    // Earlier sources have higher priority (matches lodash behavior)
     const result = defaults(obj, { a: 2, b: 2 } as any, { b: 3, c: 3 } as any);
-    expect(result).toEqual({ a: 1, b: 3, c: 3 });
+    expect(result).toEqual({ a: 1, b: 2, c: 3 });
   });
 
   it("should not overwrite null values", () => {
     const obj: any = { a: null };
     const result = defaults(obj, { a: 1 });
     expect(result).toEqual({ a: null });
+  });
+});
+
+describe("isPlainObject", () => {
+  it("returns true for plain object literal", () => {
+    expect(isPlainObject({})).toBe(true);
+  });
+
+  it("returns true for object with properties", () => {
+    expect(isPlainObject({ a: 1, b: 2 })).toBe(true);
+  });
+
+  it("returns true for Object.create(null)", () => {
+    expect(isPlainObject(Object.create(null))).toBe(true);
+  });
+
+  it("returns false for null", () => {
+    expect(isPlainObject(null)).toBe(false);
+  });
+
+  it("returns false for undefined", () => {
+    expect(isPlainObject(undefined)).toBe(false);
+  });
+
+  it("returns false for arrays", () => {
+    expect(isPlainObject([1, 2, 3])).toBe(false);
+  });
+
+  it("returns false for class instances", () => {
+    class Foo {}
+    expect(isPlainObject(new Foo())).toBe(false);
+  });
+
+  it("returns false for Date", () => {
+    expect(isPlainObject(new Date())).toBe(false);
+  });
+
+  it("returns false for RegExp", () => {
+    expect(isPlainObject(/test/)).toBe(false);
+  });
+
+  it("returns false for strings", () => {
+    expect(isPlainObject("string")).toBe(false);
+  });
+
+  it("returns false for numbers", () => {
+    expect(isPlainObject(42)).toBe(false);
+  });
+
+  it("returns false for Map", () => {
+    expect(isPlainObject(new Map())).toBe(false);
+  });
+
+  it("handles object with custom prototype that has no constructor", () => {
+    const proto = Object.create(null);
+    const obj = Object.create(proto);
+    expect(isPlainObject(obj)).toBe(false);
   });
 });
