@@ -63,5 +63,5 @@
     "url": "git+https://github.com/dialoguedb/client-nodejs.git"
   },
   "homepage": "https://dialoguedb.com",
-  "license": "MIT",
+  "license": "MIT"
 }
