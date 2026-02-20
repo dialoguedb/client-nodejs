@@ -51,9 +51,11 @@ export class DialogueDB {
   /**
    * Get an existing dialogue by ID, or create a new one
    */
-  getOrCreateDialogue(
-    input?: { id?: string; namespace?: string; threadOf?: string }
-  ): Promise<Dialogue> {
+  getOrCreateDialogue(input?: {
+    id?: string;
+    namespace?: string;
+    threadOf?: string;
+  }): Promise<Dialogue> {
     return getOrCreateDialogue(input, this.#settings);
   }
 
