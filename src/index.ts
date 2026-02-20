@@ -1,5 +1,5 @@
 // settings
-import { settings } from "./settings";
+import { settings, setGlobalConfig } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
 // errors
@@ -84,6 +84,7 @@ export {
   // settings
   settings,
   createConfig,
+  setGlobalConfig,
 
   // classes
   DialogueDB,

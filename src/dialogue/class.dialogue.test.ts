@@ -278,6 +278,34 @@ describe("Dialogue", () => {
       expect(dialogue.isDirty).toBe(true);
     });
 
+    it("setState sets state locally and returns this for chaining", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+      const newState = { step: 2, context: "onboarding" };
+
+      const result = dialogue.setState(newState);
+
+      expect(dialogue.state).toEqual(newState);
+      expect(dialogue.isDirty).toBe(true);
+      expect(result).toBe(dialogue);
+    });
+
+    it("setState does not call API", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+      dialogue.setState({ key: "value" });
+
+      expect(dialogueApi.update).not.toHaveBeenCalled();
+    });
+
+    it("setState deep clones the value", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+      const state = { nested: { value: "original" } };
+
+      dialogue.setState(state);
+      state.nested.value = "mutated";
+
+      expect(dialogue.state.nested.value).toBe("original");
+    });
+
     it("saveState sets state and calls save", async () => {
       const id = Math.random().toString(36).slice(2);
       const newState = { step: 2 };
