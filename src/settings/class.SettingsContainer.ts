@@ -35,7 +35,8 @@ export class SettingsContainer {
     return this.#settings[key];
   }
   has(key: keyof Settings) {
-    return !!this.get(key);
+    const val = this.get(key);
+    return val !== undefined && val !== null && val !== "";
   }
   set<K extends keyof Settings>(key: K, value: Settings[K]) {
     this.#settings[key] = value;

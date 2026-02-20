@@ -65,6 +65,7 @@ export const api = {
   message: {
     get: messageApi.get,
     create: messageApi.create,
+    update: messageApi.update,
     remove: messageApi.remove,
   },
   state: {

@@ -25,4 +25,19 @@ describe("getDialogue", () => {
     expect(typeof dialogue?.id).toBe("string");
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
+
+  it("returns null when API returns null", async () => {
+    apiGetMock.mockResolvedValueOnce(null);
+
+    const dialogue = await getDialogue({ id: "nonexistent" });
+    expect(apiGetMock).toHaveBeenCalledTimes(1);
+    expect(dialogue).toBeNull();
+  });
+
+  it("returns null when API returns undefined", async () => {
+    apiGetMock.mockResolvedValueOnce(undefined);
+
+    const dialogue = await getDialogue({ id: "nonexistent" });
+    expect(dialogue).toBeNull();
+  });
 });

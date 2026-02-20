@@ -314,7 +314,7 @@ export class Dialogue {
     const isAppending = shouldLoadNext && !!this.#nextToken;
 
     const payload: ListMessageFilters = {
-      ...(restOfOptions ?? {}),
+      ...restOfOptions,
       dialogueId: this.#id,
     };
 

@@ -80,7 +80,7 @@ export function defaults<T extends object>(
   ...sources: Array<Partial<T>>
 ): T {
   const result = { ...obj } as any;
-  for (const source of sources.reverse()) {
+  for (const source of sources) {
     for (const key in source) {
       if (!(key in result) || result[key] === undefined) {
         result[key] = source[key]!;
@@ -95,7 +95,7 @@ export function isNull(value: any): boolean {
 }
 
 export function isUndefined(value: any): boolean {
-  return value === undefined || typeof value === undefined;
+  return value === undefined || typeof value === "undefined";
 }
 
 export function isFinite(value: any): boolean {

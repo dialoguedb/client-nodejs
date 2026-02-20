@@ -12,6 +12,7 @@ import {
   searchMessages,
   searchMemories,
 } from "@/methods/search";
+import { listDialogues } from "@/methods/listDialogues";
 import * as dialogueApi from "@/api/dialogue";
 import * as memoryApi from "@/api/memory";
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
@@ -361,6 +362,76 @@ describe("DialogueDB", () => {
       await db.searchMemories("query");
 
       expect(searchMemoriesMock).toHaveBeenCalledWith("query", {}, settings);
+    });
+  });
+
+  describe("listDialogues", () => {
+    const listDialoguesMock = listDialogues as jest.Mock;
+
+    it("should list dialogues with default empty input", async () => {
+      const mockResponse = { items: [], next: undefined };
+      listDialoguesMock.mockResolvedValueOnce(mockResponse);
+
+      const db = new DialogueDB();
+      const result = await db.listDialogues();
+
+      expect(listDialoguesMock).toHaveBeenCalledWith(
+        {},
+        expect.any(SettingsContainer)
+      );
+      expect(result).toBe(mockResponse);
+    });
+
+    it("should list dialogues with filters", async () => {
+      const mockResponse = { items: [{ id: "d1" }], next: "token" };
+      listDialoguesMock.mockResolvedValueOnce(mockResponse);
+
+      const db = new DialogueDB();
+      await db.listDialogues({ limit: 10, threadOf: "parent" });
+
+      expect(listDialoguesMock).toHaveBeenCalledWith(
+        { limit: 10, threadOf: "parent" },
+        expect.any(SettingsContainer)
+      );
+    });
+
+    it("should pass settings to listDialogues", async () => {
+      const settings = new SettingsContainer();
+      settings.set("apiKey", "my-key");
+      listDialoguesMock.mockResolvedValueOnce({ items: [] });
+
+      const db = new DialogueDB(settings);
+      await db.listDialogues();
+
+      expect(listDialoguesMock).toHaveBeenCalledWith({}, settings);
+    });
+  });
+
+  describe("getDialogue with namespace", () => {
+    it("should pass namespace to getDialogue", async () => {
+      getDialogueMock.mockResolvedValueOnce(null);
+
+      const db = new DialogueDB();
+      await db.getDialogue("test-id", "my-namespace");
+
+      expect(getDialogueMock).toHaveBeenCalledWith(
+        { id: "test-id", namespace: "my-namespace" },
+        expect.any(SettingsContainer)
+      );
+    });
+  });
+
+  describe("getMemory with namespace", () => {
+    it("should pass namespace to getMemory", async () => {
+      getMemoryMock.mockResolvedValueOnce(null);
+
+      const db = new DialogueDB();
+      await db.getMemory("test-id", "my-namespace");
+
+      expect(getMemoryMock).toHaveBeenCalledWith(
+        { id: "test-id", namespace: "my-namespace" },
+        expect.any(SettingsContainer)
+      );
     });
   });
 

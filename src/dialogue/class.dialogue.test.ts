@@ -1186,6 +1186,184 @@ describe("Dialogue", () => {
     });
   });
 
+  describe("dark corners", () => {
+    it("save with label change where server returns non-string label does not overwrite local", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        label: null,
+        state: {},
+        tags: [],
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      dialogue.label = "My Label";
+      await dialogue.save();
+
+      // label should retain the local value since server returned non-string
+      expect(dialogue.label).toBe("My Label");
+    });
+
+    it("partial save failure: message save fails but dialogue still attempted", async () => {
+      const id = Math.random().toString(36).slice(2);
+      const msg1Id = Math.random().toString(36).slice(2);
+      const msg2Id = Math.random().toString(36).slice(2);
+
+      (messageApi.update as jest.Mock)
+        .mockRejectedValueOnce(new Error("Message save failed"))
+        .mockResolvedValueOnce({
+          ...createMockMessage({ id: msg2Id }),
+          tags: ["saved"],
+        });
+
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          id,
+          messages: [
+            createMockMessage({ id: msg1Id }),
+            createMockMessage({ id: msg2Id }),
+          ],
+        })
+      );
+
+      dialogue.messages[0].tags = ["will-fail"];
+      dialogue.messages[1].tags = ["will-succeed"];
+      dialogue.state = { changed: true };
+
+      // Promise.all rejects if any message save fails
+      await expect(dialogue.save()).rejects.toThrow("Message save failed");
+
+      // Dialogue API update was never called because message saves threw first
+      expect(dialogueApi.update).not.toHaveBeenCalled();
+    });
+
+    it("loadMessages with next:true but no stored token does a fresh load (replaces)", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const existingMsgId = Math.random().toString(36).slice(2);
+      const loadedMsgId = Math.random().toString(36).slice(2);
+
+      (messagesApi.list as jest.Mock).mockResolvedValueOnce({
+        items: [createMockMessage({ id: loadedMsgId })],
+        next: undefined,
+      });
+
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          id: dialogueId,
+          messages: [createMockMessage({ id: existingMsgId })],
+        })
+      );
+
+      // next:true but no pagination token stored yet - should replace, not append
+      await dialogue.loadMessages({ next: true });
+
+      expect(dialogue.messages.length).toBe(1);
+      expect(dialogue.messages[0].id).toBe(loadedMsgId);
+    });
+
+    it("concurrent loadMessages with pagination can cause duplicates", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const page1Msg = createMockMessage({ id: "page1-msg" });
+      const page2MsgA = createMockMessage({ id: "page2-msg-a" });
+      const page2MsgB = createMockMessage({ id: "page2-msg-b" });
+
+      // First load returns page1 with a next token
+      (messagesApi.list as jest.Mock).mockResolvedValueOnce({
+        items: [page1Msg],
+        next: "token-page2",
+      });
+
+      const dialogue = new Dialogue(createMockDialogue({ id: dialogueId }));
+      await dialogue.loadMessages();
+
+      expect(dialogue.messages.length).toBe(1);
+
+      // Both concurrent calls read the same token
+      (messagesApi.list as jest.Mock)
+        .mockResolvedValueOnce({
+          items: [page2MsgA],
+          next: undefined,
+        })
+        .mockResolvedValueOnce({
+          items: [page2MsgB],
+          next: undefined,
+        });
+
+      // Fire two pagination calls concurrently - both use the same token
+      const [loaded1, loaded2] = await Promise.all([
+        dialogue.loadMessages({ next: true }),
+        dialogue.loadMessages({ next: true }),
+      ]);
+
+      // Both calls append, leading to duplicated page results
+      expect(dialogue.messages.length).toBe(3);
+      expect(loaded1.length).toBe(1);
+      expect(loaded2.length).toBe(1);
+    });
+
+    it("toJSON messages are Message instances (have toJSON method)", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          messages: [createMockMessage({ content: "Hello" })],
+        })
+      );
+
+      const json = dialogue.toJSON();
+
+      // Messages in toJSON are spread copies of Message instances
+      // JSON.stringify still works because Message has toJSON()
+      const stringified = JSON.stringify(json);
+      const parsed = JSON.parse(stringified);
+
+      expect(parsed.messages.length).toBe(1);
+      expect(parsed.messages[0].content).toBe("Hello");
+      expect(parsed.messages[0]).toHaveProperty("id");
+      expect(parsed.messages[0]).toHaveProperty("role");
+    });
+
+    it("save only dirty messages, not all messages", async () => {
+      const id = Math.random().toString(36).slice(2);
+      const cleanMsgId = Math.random().toString(36).slice(2);
+      const dirtyMsgId = Math.random().toString(36).slice(2);
+
+      (messageApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockMessage({ id: dirtyMsgId }),
+        tags: ["updated"],
+      });
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockDialogue({ id }),
+        state: { changed: true },
+        tags: [],
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(
+        createMockDialogue({
+          id,
+          messages: [
+            createMockMessage({ id: cleanMsgId }),
+            createMockMessage({ id: dirtyMsgId }),
+          ],
+        })
+      );
+
+      dialogue.messages[1].tags = ["updated"];
+      dialogue.state = { changed: true };
+
+      await dialogue.save();
+
+      // Only the dirty message should trigger an API call
+      expect(messageApi.update).toHaveBeenCalledTimes(1);
+      expect(messageApi.update).toHaveBeenCalledWith(
+        expect.objectContaining({ id: dirtyMsgId }),
+        expect.anything()
+      );
+    });
+  });
+
   describe("messages initialization", () => {
     it("creates Message instances from constructor data", () => {
       const msgId = Math.random().toString(36).slice(2);
