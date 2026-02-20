@@ -521,6 +521,23 @@ describe("apiRequest", () => {
       });
     });
 
+    it("should handle non-Error thrown from fetch (e.g. string)", async () => {
+      fetchMock.mockRejectedValueOnce("socket hang up");
+
+      try {
+        await apiRequest("https://api.example.com", {
+          headers: { "Content-Type": "application/json" },
+        });
+        fail("Expected error to be thrown");
+      } catch (error) {
+        expect(error).toBeInstanceOf(DialogueDBError);
+        const dbError = error as DialogueDBError;
+        expect(dbError.code).toBe("NETWORK_ERROR");
+        expect(dbError.message).toBe("Network error");
+        expect(dbError.statusCode).toBe(0);
+      }
+    });
+
     it("should fall back to 'Request failed' when statusText is empty", async () => {
       const mockResponse = {
         ok: false,
@@ -536,6 +553,25 @@ describe("apiRequest", () => {
         message: "Request failed",
         code: "UNKNOWN_ERROR",
         type: "SERVER",
+      });
+    });
+
+    it("should handle null JSON response body", async () => {
+      const mockResponse = {
+        ok: false,
+        status: 500,
+        statusText: "Internal Server Error",
+        json: jest.fn().mockResolvedValue(null),
+      } as unknown as Response;
+      fetchMock.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        apiRequest("https://api.example.com", { headers: {} })
+      ).rejects.toMatchObject({
+        message: "Internal Server Error",
+        code: "UNKNOWN_ERROR",
+        type: "SERVER",
+        statusCode: 500,
       });
     });
   });

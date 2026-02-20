@@ -4,6 +4,7 @@ import { useSettings } from "@/settings/useSettings";
 import { createDialogue } from "./createDialogue";
 import { UseDialogueInput, GetDialogueInput } from "@/types";
 import { Dialogue } from "@/dialogue/class.dialogue";
+import { errors } from "@/errors";
 
 /**
  * Gets an existing dialogue by ID, or creates a new one.
@@ -21,7 +22,11 @@ export async function getOrCreateDialogue(
     if (res && res?.id) {
       return new Dialogue(res, settings);
     } else {
-      throw new Error(`Dialogue with id "${input.id}" not found`);
+      throw errors.invalidParameter(
+        "id",
+        `Dialogue with id "${input.id}" not found`,
+        input.id
+      );
     }
   } else {
     // no id, create new with generated ID

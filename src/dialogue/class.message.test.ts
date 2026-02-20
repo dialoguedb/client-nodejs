@@ -433,6 +433,54 @@ describe("Message", () => {
     });
   });
 
+  describe("dark corners", () => {
+    it("metadata getter returns undefined when no metadata provided", () => {
+      const msg = createMockMessage();
+      delete (msg as any).metadata;
+      const message = new Message(dialogueId, msg);
+
+      expect(message.metadata).toBeUndefined();
+    });
+
+    it("throws when role is empty string", () => {
+      expect(() => {
+        new Message(dialogueId, { ...createMockMessage(), role: "" });
+      }).toThrow("Invalid role: is required and must be a string");
+    });
+
+    it("accepts structured content (object)", () => {
+      const content = { type: "text", text: "hello" };
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ content: content as any })
+      );
+      expect(message.content).toEqual(content);
+    });
+
+    it("accepts structured content (array)", () => {
+      const content = [{ type: "text", text: "hello" }];
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ content: content as any })
+      );
+      expect(message.content).toEqual(content);
+    });
+
+    it("excludes empty tags from toJSON", () => {
+      const message = new Message(dialogueId, createMockMessage({ tags: [] }));
+      const json = message.toJSON();
+      expect(json).not.toHaveProperty("tags");
+    });
+
+    it("excludes undefined metadata from toJSON", () => {
+      const msg = createMockMessage();
+      delete (msg as any).metadata;
+      const message = new Message(dialogueId, msg);
+      const json = message.toJSON();
+      expect(json).not.toHaveProperty("metadata");
+    });
+  });
+
   describe("readonly properties", () => {
     it("id is readonly", () => {
       const message = new Message(dialogueId, createMockMessage());
