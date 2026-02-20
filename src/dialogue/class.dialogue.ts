@@ -231,6 +231,14 @@ export class Dialogue {
   }
 
   /**
+   * Set state locally without saving. Call .save() to persist.
+   */
+  setState(value: Record<string, any>): this {
+    this.state = value;
+    return this;
+  }
+
+  /**
    * Set state and save immediately
    */
   async saveState(state: Record<string, any>): Promise<Dialogue> {

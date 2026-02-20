@@ -23,4 +23,8 @@ describe("dialogue", () => {
     expect(typeof modules.Message).toBe("function");
     expect(typeof modules.Memory).toBe("function");
   });
+
+  it("exports setGlobalConfig for config isolation", () => {
+    expect(typeof modules.setGlobalConfig).toBe("function");
+  });
 });
