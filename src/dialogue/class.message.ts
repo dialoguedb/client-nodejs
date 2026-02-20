@@ -169,8 +169,10 @@ export class Message {
       content: this.#content,
       created: this.#created,
       ...(this.#name !== undefined && { name: this.#name }),
-      ...(this.#metadata !== undefined && { metadata: this.#metadata }),
-      ...(this.#tags.length > 0 && { tags: this.#tags }),
+      ...(this.#metadata !== undefined && {
+        metadata: structuredClone(this.#metadata),
+      }),
+      ...(this.#tags.length > 0 && { tags: [...this.#tags] }),
     };
   }
 

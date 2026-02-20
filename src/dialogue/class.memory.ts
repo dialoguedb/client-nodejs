@@ -178,9 +178,12 @@ export class Memory {
       ...(this.#description !== undefined && {
         description: this.#description,
       }),
-      value: this.#value,
-      metadata: this.#metadata,
-      tags: this.#tags,
+      value:
+        typeof this.#value === "object" && this.#value !== null
+          ? structuredClone(this.#value)
+          : this.#value,
+      metadata: structuredClone(this.#metadata),
+      tags: [...this.#tags],
       created: this.#created,
       modified: this.#modified,
     };

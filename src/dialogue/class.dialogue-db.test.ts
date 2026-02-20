@@ -4,6 +4,7 @@ import { Memory } from "./class.memory";
 import { Message } from "./class.message";
 import { createDialogue } from "@/methods/createDialogue";
 import { getDialogue } from "@/methods/getDialogue";
+import { getOrCreateDialogue } from "@/methods/getOrCreateDialogue";
 import { createMemory } from "@/methods/createMemory";
 import { getMemory } from "@/methods/getMemory";
 import {
@@ -11,22 +12,37 @@ import {
   searchMessages,
   searchMemories,
 } from "@/methods/search";
+import * as dialogueApi from "@/api/dialogue";
+import * as memoryApi from "@/api/memory";
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 
 jest.mock("@/methods/createDialogue");
 jest.mock("@/methods/getDialogue");
+jest.mock("@/methods/getOrCreateDialogue");
 jest.mock("@/methods/createMemory");
 jest.mock("@/methods/getMemory");
 jest.mock("@/methods/search");
+jest.mock("@/methods/listDialogues");
+jest.mock("@/api/dialogue", () => ({
+  remove: jest.fn(),
+}));
+jest.mock("@/api/memory", () => ({
+  list: jest.fn(),
+  remove: jest.fn(),
+}));
 
 describe("DialogueDB", () => {
   const createDialogueMock = createDialogue as jest.Mock;
   const getDialogueMock = getDialogue as jest.Mock;
+  const getOrCreateDialogueMock = getOrCreateDialogue as jest.Mock;
   const createMemoryMock = createMemory as jest.Mock;
   const getMemoryMock = getMemory as jest.Mock;
   const searchDialoguesMock = searchDialogues as jest.Mock;
   const searchMessagesMock = searchMessages as jest.Mock;
   const searchMemoriesMock = searchMemories as jest.Mock;
+  const dialogueRemoveMock = dialogueApi.remove as jest.Mock;
+  const memoryListMock = memoryApi.list as jest.Mock;
+  const memoryRemoveMock = memoryApi.remove as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -345,6 +361,103 @@ describe("DialogueDB", () => {
       await db.searchMemories("query");
 
       expect(searchMemoriesMock).toHaveBeenCalledWith("query", {}, settings);
+    });
+  });
+
+  describe("getOrCreateDialogue", () => {
+    it("should call getOrCreateDialogue with input", async () => {
+      const mockDialogue = { id: "test-id" } as unknown as Dialogue;
+      getOrCreateDialogueMock.mockResolvedValueOnce(mockDialogue);
+
+      const db = new DialogueDB();
+      const result = await db.getOrCreateDialogue({ id: "test-id" });
+
+      expect(getOrCreateDialogueMock).toHaveBeenCalledWith(
+        { id: "test-id" },
+        expect.any(SettingsContainer)
+      );
+      expect(result).toBe(mockDialogue);
+    });
+
+    it("should call getOrCreateDialogue without input", async () => {
+      const mockDialogue = { id: "new-id" } as unknown as Dialogue;
+      getOrCreateDialogueMock.mockResolvedValueOnce(mockDialogue);
+
+      const db = new DialogueDB();
+      const result = await db.getOrCreateDialogue();
+
+      expect(getOrCreateDialogueMock).toHaveBeenCalledWith(
+        undefined,
+        expect.any(SettingsContainer)
+      );
+      expect(result).toBe(mockDialogue);
+    });
+  });
+
+  describe("deleteDialogue", () => {
+    it("should delete dialogue by id", async () => {
+      dialogueRemoveMock.mockResolvedValueOnce(undefined);
+
+      const db = new DialogueDB();
+      await db.deleteDialogue("dialogue-123");
+
+      expect(dialogueRemoveMock).toHaveBeenCalledWith(
+        { id: "dialogue-123" },
+        expect.any(SettingsContainer)
+      );
+    });
+
+    it("should delete dialogue with namespace", async () => {
+      dialogueRemoveMock.mockResolvedValueOnce(undefined);
+
+      const db = new DialogueDB();
+      await db.deleteDialogue("dialogue-123", "my-ns");
+
+      expect(dialogueRemoveMock).toHaveBeenCalledWith(
+        { id: "dialogue-123", namespace: "my-ns" },
+        expect.any(SettingsContainer)
+      );
+    });
+  });
+
+  describe("listMemories", () => {
+    it("should list memories with default empty input", async () => {
+      memoryListMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+      const db = new DialogueDB();
+      const result = await db.listMemories();
+
+      expect(memoryListMock).toHaveBeenCalledWith(
+        {},
+        expect.any(SettingsContainer)
+      );
+      expect(result.items).toEqual([]);
+    });
+
+    it("should list memories with filters", async () => {
+      memoryListMock.mockResolvedValueOnce({ items: [{ id: "m1" }] });
+
+      const db = new DialogueDB();
+      await db.listMemories({ limit: 10, namespace: "my-ns" });
+
+      expect(memoryListMock).toHaveBeenCalledWith(
+        { limit: 10, namespace: "my-ns" },
+        expect.any(SettingsContainer)
+      );
+    });
+  });
+
+  describe("deleteMemory", () => {
+    it("should delete memory by id", async () => {
+      memoryRemoveMock.mockResolvedValueOnce(undefined);
+
+      const db = new DialogueDB();
+      await db.deleteMemory("memory-123");
+
+      expect(memoryRemoveMock).toHaveBeenCalledWith(
+        { id: "memory-123" },
+        expect.any(SettingsContainer)
+      );
     });
   });
 

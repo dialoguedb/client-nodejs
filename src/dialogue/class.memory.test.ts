@@ -156,7 +156,6 @@ describe("Memory", () => {
       expect(memory.tags).toEqual(["tag1", "tag2"]);
     });
 
-    // BUG TEST: tags getter returns direct reference
     it("tags getter returns clone - external mutation does not affect internal tags", () => {
       const memory = new Memory(createMockMemory({ tags: ["original"] }));
 
@@ -169,7 +168,6 @@ describe("Memory", () => {
       expect(memory.isDirty).toBe(false);
     });
 
-    // BUG TEST: value getter returns shallow copy for nested objects
     it("value getter returns deep clone - nested mutation does not affect internal value", () => {
       const memory = new Memory(
         createMockMemory({
@@ -409,6 +407,27 @@ describe("Memory", () => {
 
       expect(parsed.id).toBe(id);
       expect(parsed.value).toBe("test");
+    });
+
+    it("toJSON returns copies - mutating result does not affect internal state", () => {
+      const memory = new Memory(
+        createMockMemory({
+          value: { nested: "original" },
+          metadata: { key: "original" },
+          tags: ["original"],
+        })
+      );
+
+      const json = memory.toJSON();
+
+      (json.value as any).nested = "mutated";
+      (json.metadata as any).key = "mutated";
+      json.tags.push("mutated");
+
+      expect((memory.value as any).nested).toBe("original");
+      expect(memory.metadata.key).toBe("original");
+      expect(memory.tags).toEqual(["original"]);
+      expect(memory.isDirty).toBe(false);
     });
 
     it("inspect.custom returns same as toJSON", () => {
