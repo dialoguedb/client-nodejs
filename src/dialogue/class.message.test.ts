@@ -467,10 +467,7 @@ describe("Message", () => {
     });
 
     it("excludes empty tags from toJSON", () => {
-      const message = new Message(
-        dialogueId,
-        createMockMessage({ tags: [] })
-      );
+      const message = new Message(dialogueId, createMockMessage({ tags: [] }));
       const json = message.toJSON();
       expect(json).not.toHaveProperty("tags");
     });

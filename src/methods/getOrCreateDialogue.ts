@@ -22,7 +22,11 @@ export async function getOrCreateDialogue(
     if (res && res?.id) {
       return new Dialogue(res, settings);
     } else {
-      throw errors.invalidParameter("id", `Dialogue with id "${input.id}" not found`, input.id);
+      throw errors.invalidParameter(
+        "id",
+        `Dialogue with id "${input.id}" not found`,
+        input.id
+      );
     }
   } else {
     // no id, create new with generated ID
