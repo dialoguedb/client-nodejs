@@ -33,7 +33,9 @@
     "test": "jest --config jest.config.ts --maxWorkers 5 --coverage",
     "format:check": "prettier --check \"src\"",
     "format:write": "prettier --write \"src\"",
-    "prepublishOnly": "npm run build:package"
+    "prepublishOnly": "npm run build:package",
+    "publish-main": "npm publish",
+    "publish-beta": "npm publish --tag beta"
   },
   "author": "DialogueDB",
   "dependencies": {
@@ -60,5 +62,6 @@
     "type": "git",
     "url": "git+https://github.com/dialoguedb/client-nodejs.git"
   },
-  "homepage": "https://dialoguedb.com"
+  "homepage": "https://dialoguedb.com",
+  "license": "MIT"
 }

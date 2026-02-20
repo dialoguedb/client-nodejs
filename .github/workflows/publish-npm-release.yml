@@ -1,0 +1,40 @@
+name: Publish Main/Beta Package To Npm Registry
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: read
+  
+jobs:   
+  publish-npm:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Prerequisites for tests
+        uses: ./.github/actions/prerequisites
+
+      - name: Verify package can be built
+        run: npm pack --dry-run
+
+      - name: Add NPM Token
+        run: |
+          printf "//`node -p \"require('url').parse( 'https://registry.npmjs.org').host\"`/:_authToken=${{secrets.NPM_TOKEN}}\nregistry=${NPM_REGISTRY_URL:-https://registry.npmjs.org}\nalways-auth=true\n" >> .npmrc
+     
+      - name: Publish Main/Beta Package version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [[ "$version" == *"beta"* ]]; then
+            echo "Publishing beta version"
+            npm run publish-beta
+          else
+            echo "Publishing main version"
+            npm run publish-main
+          fi
+          
+          echo "✅ Package published successfully!"
