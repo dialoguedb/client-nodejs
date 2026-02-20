@@ -1,0 +1,20 @@
+name: 'Cache npm dependencies and node modules'
+description: 'Cache npm dependencies and node modules for private package'
+runs:
+  using: 'composite'
+  steps:
+  - name: Cache npm dependencies
+    uses: actions/cache@v4
+    with:
+      path: ~/.npm
+      key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+      restore-keys: |
+        ${{ runner.os }}-node-
+
+  - name: Cache node modules
+    uses: actions/cache@v4
+    with:
+      path: node_modules
+      key: ${{ runner.os }}-nodeModules-${{ hashFiles('**/package-lock.json') }}
+      restore-keys: |
+        ${{ runner.os }}-nodeModules-
