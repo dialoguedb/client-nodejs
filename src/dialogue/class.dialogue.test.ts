@@ -307,6 +307,40 @@ describe("Dialogue", () => {
       expect(dialogue.state.nested.value).toBe("original");
     });
 
+    it("setState merges with existing state instead of replacing", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({ state: { existing: "value", step: 1 } })
+      );
+
+      dialogue.setState({ step: 2, newKey: "added" });
+
+      expect(dialogue.state).toEqual({
+        existing: "value",
+        step: 2,
+        newKey: "added",
+      });
+    });
+
+    it("multiple setState calls accumulate keys", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      dialogue.setState({ a: 1 });
+      dialogue.setState({ b: 2 });
+
+      expect(dialogue.state).toEqual({ a: 1, b: 2 });
+    });
+
+    it("state setter replaces entirely", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({ state: { existing: "value" } })
+      );
+
+      dialogue.state = { replacement: true };
+
+      expect(dialogue.state).toEqual({ replacement: true });
+      expect(dialogue.state).not.toHaveProperty("existing");
+    });
+
     it("saveState sets state and calls save", async () => {
       const id = Math.random().toString(36).slice(2);
       const newState = { step: 2 };
@@ -1001,6 +1035,29 @@ describe("Dialogue", () => {
           threadOf: parentId,
           metadata: { topic: "billing" },
           tags: ["support"],
+        }),
+        expect.anything()
+      );
+    });
+
+    it("passes messages and state to thread", async () => {
+      const parentId = Math.random().toString(36).slice(2);
+
+      (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockDialogue()
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: parentId }));
+      await dialogue.createThread({
+        messages: [{ role: "user", content: "Hello" }],
+        state: { step: 1 },
+      });
+
+      expect(dialogueApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          threadOf: parentId,
+          messages: [{ role: "user", content: "Hello" }],
+          state: { step: 1 },
         }),
         expect.anything()
       );
