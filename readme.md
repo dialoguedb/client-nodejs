@@ -1,6 +1,6 @@
 # DialogueDB Client SDK
 
-[![Tests](https://github.com/dialoguedb/client-nodejs/actions/workflows/ci.yml/badge.svg)](https://github.com/dialoguedb/client-nodejs/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/dialoguedb/client-nodejs/badge.svg?branch=12-github-actions-workflows)](https://coveralls.io/github/dialoguedb/client-nodejs?branch=12-github-actions-workflows)
+[![Tests](https://github.com/dialoguedb/client-nodejs/actions/workflows/ci.yml/badge.svg)](https://github.com/dialoguedb/client-nodejs/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/dialoguedb/client-nodejs/badge.svg?branch=main)](https://coveralls.io/github/dialoguedb/client-nodejs?branch=main)
 [![npm version](https://img.shields.io/npm/v/dialogue-db.svg)](https://www.npmjs.com/package/dialogue-db)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
