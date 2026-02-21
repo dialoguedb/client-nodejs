@@ -384,8 +384,8 @@ export class Dialogue {
    * End/close the dialogue
    */
   async end(): Promise<void> {
-    // TODO: Implement when backend action endpoint is ready
-    throw errors.notImplemented("end");
+    const result = await dialogueApi.end({ id: this.#id }, this.#settings);
+    this.#setProperties(result);
   }
 
   /**
