@@ -58,9 +58,16 @@ describe("getDialogue", () => {
 
   it("throws non-404 errors", async () => {
     apiGetMock.mockRejectedValueOnce(
-      new DialogueDBError("Internal server error", "INTERNAL_ERROR", "SERVER", 500)
+      new DialogueDBError(
+        "Internal server error",
+        "INTERNAL_ERROR",
+        "SERVER",
+        500
+      )
     );
 
-    await expect(getDialogue({ id: "some-id" })).rejects.toThrow(DialogueDBError);
+    await expect(getDialogue({ id: "some-id" })).rejects.toThrow(
+      DialogueDBError
+    );
   });
 });
