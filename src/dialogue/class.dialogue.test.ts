@@ -8,6 +8,7 @@ jest.mock("@/api/dialogue", () => ({
   update: jest.fn(),
   create: jest.fn(),
   list: jest.fn(),
+  end: jest.fn(),
 }));
 
 jest.mock("@/api/message", () => ({
@@ -1034,15 +1035,39 @@ describe("Dialogue", () => {
     });
   });
 
-  describe("unimplemented methods", () => {
-    it("end() throws not implemented error", async () => {
-      const dialogue = new Dialogue(createMockDialogue());
+  describe("end()", () => {
+    it("calls the end API and updates status to ended", async () => {
+      const id = "dlg-end-test";
+      const endedDialogue: IDialogue = {
+        ...createMockDialogue({ id }),
+        status: "ended",
+        endedAt: "2025-01-15T12:00:00Z",
+      };
 
-      await expect(dialogue.end()).rejects.toThrow(
-        "end() is not yet implemented"
-      );
+      (dialogueApi.end as jest.Mock).mockResolvedValueOnce(endedDialogue);
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      expect(dialogue.status).toBe("active");
+
+      await dialogue.end();
+
+      expect(dialogueApi.end).toHaveBeenCalledWith({ id }, expect.anything());
+      expect(dialogue.status).toBe("ended");
     });
 
+    it("throws when API call fails", async () => {
+      (dialogueApi.end as jest.Mock).mockRejectedValueOnce(
+        new Error("Not found")
+      );
+
+      const dialogue = new Dialogue(createMockDialogue());
+
+      await expect(dialogue.end()).rejects.toThrow("Not found");
+      expect(dialogue.status).toBe("active");
+    });
+  });
+
+  describe("unimplemented methods", () => {
     it("compact() throws not implemented error", async () => {
       const dialogue = new Dialogue(createMockDialogue());
 
