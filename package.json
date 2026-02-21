@@ -1,6 +1,6 @@
 {
   "name": "dialogue-db",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "TypeScript SDK for DialogueDB - managed database service for AI memory and conversation management",
   "keywords": [
     "ai",
