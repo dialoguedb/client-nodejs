@@ -1039,6 +1039,29 @@ describe("Dialogue", () => {
         expect.anything()
       );
     });
+
+    it("passes messages and state to thread", async () => {
+      const parentId = Math.random().toString(36).slice(2);
+
+      (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockDialogue()
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: parentId }));
+      await dialogue.createThread({
+        messages: [{ role: "user", content: "Hello" }],
+        state: { step: 1 },
+      });
+
+      expect(dialogueApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          threadOf: parentId,
+          messages: [{ role: "user", content: "Hello" }],
+          state: { step: 1 },
+        }),
+        expect.anything()
+      );
+    });
   });
 
   describe("getThreads", () => {

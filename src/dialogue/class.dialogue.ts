@@ -1,6 +1,7 @@
 import {
   IDialogue,
   IMessage,
+  CreateDialogueInput,
   CreateMessageInput,
   ListMessageFilters,
 } from "@/types";
@@ -356,10 +357,7 @@ export class Dialogue {
    * Create a child thread of this dialogue
    */
   async createThread(
-    input: {
-      metadata?: Record<string, any>;
-      tags?: string[];
-    } = {}
+    input: Omit<CreateDialogueInput, "threadOf"> = {}
   ): Promise<Dialogue> {
     const data = await dialogueApi.create(
       { ...input, threadOf: this.#id },
