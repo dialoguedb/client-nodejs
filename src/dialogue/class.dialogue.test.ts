@@ -8,6 +8,7 @@ jest.mock("@/api/dialogue", () => ({
   update: jest.fn(),
   create: jest.fn(),
   list: jest.fn(),
+  end: jest.fn(),
 }));
 
 jest.mock("@/api/message", () => ({
@@ -304,6 +305,40 @@ describe("Dialogue", () => {
       state.nested.value = "mutated";
 
       expect(dialogue.state.nested.value).toBe("original");
+    });
+
+    it("setState merges with existing state instead of replacing", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({ state: { existing: "value", step: 1 } })
+      );
+
+      dialogue.setState({ step: 2, newKey: "added" });
+
+      expect(dialogue.state).toEqual({
+        existing: "value",
+        step: 2,
+        newKey: "added",
+      });
+    });
+
+    it("multiple setState calls accumulate keys", () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      dialogue.setState({ a: 1 });
+      dialogue.setState({ b: 2 });
+
+      expect(dialogue.state).toEqual({ a: 1, b: 2 });
+    });
+
+    it("state setter replaces entirely", () => {
+      const dialogue = new Dialogue(
+        createMockDialogue({ state: { existing: "value" } })
+      );
+
+      dialogue.state = { replacement: true };
+
+      expect(dialogue.state).toEqual({ replacement: true });
+      expect(dialogue.state).not.toHaveProperty("existing");
     });
 
     it("saveState sets state and calls save", async () => {
@@ -1004,6 +1039,29 @@ describe("Dialogue", () => {
         expect.anything()
       );
     });
+
+    it("passes messages and state to thread", async () => {
+      const parentId = Math.random().toString(36).slice(2);
+
+      (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockDialogue()
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: parentId }));
+      await dialogue.createThread({
+        messages: [{ role: "user", content: "Hello" }],
+        state: { step: 1 },
+      });
+
+      expect(dialogueApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          threadOf: parentId,
+          messages: [{ role: "user", content: "Hello" }],
+          state: { step: 1 },
+        }),
+        expect.anything()
+      );
+    });
   });
 
   describe("getThreads", () => {
@@ -1034,15 +1092,39 @@ describe("Dialogue", () => {
     });
   });
 
-  describe("unimplemented methods", () => {
-    it("end() throws not implemented error", async () => {
-      const dialogue = new Dialogue(createMockDialogue());
+  describe("end()", () => {
+    it("calls the end API and updates status to ended", async () => {
+      const id = "dlg-end-test";
+      const endedDialogue: IDialogue = {
+        ...createMockDialogue({ id }),
+        status: "ended",
+        endedAt: "2025-01-15T12:00:00Z",
+      };
 
-      await expect(dialogue.end()).rejects.toThrow(
-        "end() is not yet implemented"
-      );
+      (dialogueApi.end as jest.Mock).mockResolvedValueOnce(endedDialogue);
+
+      const dialogue = new Dialogue(createMockDialogue({ id }));
+      expect(dialogue.status).toBe("active");
+
+      await dialogue.end();
+
+      expect(dialogueApi.end).toHaveBeenCalledWith({ id }, expect.anything());
+      expect(dialogue.status).toBe("ended");
     });
 
+    it("throws when API call fails", async () => {
+      (dialogueApi.end as jest.Mock).mockRejectedValueOnce(
+        new Error("Not found")
+      );
+
+      const dialogue = new Dialogue(createMockDialogue());
+
+      await expect(dialogue.end()).rejects.toThrow("Not found");
+      expect(dialogue.status).toBe("active");
+    });
+  });
+
+  describe("unimplemented methods", () => {
     it("compact() throws not implemented error", async () => {
       const dialogue = new Dialogue(createMockDialogue());
 
