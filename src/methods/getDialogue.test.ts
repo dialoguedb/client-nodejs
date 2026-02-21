@@ -1,6 +1,7 @@
 import { assertDialogue } from "@/utils/assertIsDialogue";
 import { get } from "@/api/dialogue";
 import { getDialogue } from "./getDialogue";
+import { DialogueDBError } from "@/utils/request";
 
 jest.mock("@/api/dialogue", () => ({
   get: jest.fn(),
@@ -39,5 +40,27 @@ describe("getDialogue", () => {
 
     const dialogue = await getDialogue({ id: "nonexistent" });
     expect(dialogue).toBeNull();
+  });
+
+  it("returns null when API throws 404 DialogueDBError", async () => {
+    apiGetMock.mockRejectedValueOnce(
+      new DialogueDBError(
+        "Dialogue 'nonexistent' not found",
+        "DIALOGUE_NOT_FOUND",
+        "NOT_FOUND",
+        404
+      )
+    );
+
+    const dialogue = await getDialogue({ id: "nonexistent" });
+    expect(dialogue).toBeNull();
+  });
+
+  it("throws non-404 errors", async () => {
+    apiGetMock.mockRejectedValueOnce(
+      new DialogueDBError("Internal server error", "INTERNAL_ERROR", "SERVER", 500)
+    );
+
+    await expect(getDialogue({ id: "some-id" })).rejects.toThrow(DialogueDBError);
   });
 });
