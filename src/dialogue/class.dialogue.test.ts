@@ -1051,10 +1051,7 @@ describe("Dialogue", () => {
 
       await dialogue.end();
 
-      expect(dialogueApi.end).toHaveBeenCalledWith(
-        { id },
-        expect.anything()
-      );
+      expect(dialogueApi.end).toHaveBeenCalledWith({ id }, expect.anything());
       expect(dialogue.status).toBe("ended");
     });
 
