@@ -231,18 +231,20 @@ export class Dialogue {
   }
 
   /**
-   * Set state locally without saving. Call .save() to persist.
+   * Shallow-merge into state. Call .save() to persist.
    */
   setState(value: Record<string, any>): this {
-    this.state = value;
+    this.#state = { ...this.#state, ...structuredClone(value) };
+    this.#isDirty = true;
+    this.#stateChanged = true;
     return this;
   }
 
   /**
-   * Set state and save immediately
+   * Merge keys into state and save immediately.
    */
   async saveState(state: Record<string, any>): Promise<Dialogue> {
-    this.state = state;
+    this.setState(state);
     return this.save();
   }
 
