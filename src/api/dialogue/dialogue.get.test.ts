@@ -56,7 +56,7 @@ describe("get", () => {
     spyGet.mockRestore();
   });
 
-  it("will call get with namespace", async () => {
+  it("will call get with explicit settings", async () => {
     const id = "get-item-id";
     const key = "my-api-key";
     const endpoint = "my-api-endpoint";

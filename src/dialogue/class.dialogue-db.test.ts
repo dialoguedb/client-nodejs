@@ -407,34 +407,6 @@ describe("DialogueDB", () => {
     });
   });
 
-  describe("getDialogue with namespace", () => {
-    it("should pass namespace to getDialogue", async () => {
-      getDialogueMock.mockResolvedValueOnce(null);
-
-      const db = new DialogueDB();
-      await db.getDialogue("test-id", "my-namespace");
-
-      expect(getDialogueMock).toHaveBeenCalledWith(
-        { id: "test-id", namespace: "my-namespace" },
-        expect.any(SettingsContainer)
-      );
-    });
-  });
-
-  describe("getMemory with namespace", () => {
-    it("should pass namespace to getMemory", async () => {
-      getMemoryMock.mockResolvedValueOnce(null);
-
-      const db = new DialogueDB();
-      await db.getMemory("test-id", "my-namespace");
-
-      expect(getMemoryMock).toHaveBeenCalledWith(
-        { id: "test-id", namespace: "my-namespace" },
-        expect.any(SettingsContainer)
-      );
-    });
-  });
-
   describe("getOrCreateDialogue", () => {
     it("should call getOrCreateDialogue with input", async () => {
       const mockDialogue = { id: "test-id" } as unknown as Dialogue;
@@ -478,17 +450,6 @@ describe("DialogueDB", () => {
       );
     });
 
-    it("should delete dialogue with namespace", async () => {
-      dialogueRemoveMock.mockResolvedValueOnce(undefined);
-
-      const db = new DialogueDB();
-      await db.deleteDialogue("dialogue-123", "my-ns");
-
-      expect(dialogueRemoveMock).toHaveBeenCalledWith(
-        { id: "dialogue-123", namespace: "my-ns" },
-        expect.any(SettingsContainer)
-      );
-    });
   });
 
   describe("listMemories", () => {

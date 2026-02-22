@@ -51,7 +51,6 @@ export type UpdateDialogueInput = {
 
 export type GetDialogueInput = {
   id: string;
-  namespace?: string;
 };
 
 export type DeleteDialogueInput = GetDialogueInput;

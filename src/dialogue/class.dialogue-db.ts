@@ -9,7 +9,6 @@ import { Message } from "./class.message";
 import {
   CreateDialogueInput,
   CreateMemoryInput,
-  DeleteDialogueInput,
   ListMemoriesFilters,
 } from "@/types";
 import { createDialogue } from "@/methods/createDialogue";
@@ -44,8 +43,8 @@ export class DialogueDB {
   /**
    * Get an existing dialogue by ID
    */
-  getDialogue(id: string, namespace?: string): Promise<Dialogue | null> {
-    return getDialogue({ id, namespace }, this.#settings);
+  getDialogue(id: string): Promise<Dialogue | null> {
+    return getDialogue({ id }, this.#settings);
   }
 
   /**
@@ -69,10 +68,8 @@ export class DialogueDB {
   /**
    * Delete a dialogue by ID
    */
-  async deleteDialogue(id: string, namespace?: string): Promise<void> {
-    const input: DeleteDialogueInput = { id };
-    if (namespace) input.namespace = namespace;
-    return dialogueApi.remove(input, this.#settings);
+  async deleteDialogue(id: string): Promise<void> {
+    return dialogueApi.remove({ id }, this.#settings);
   }
 
   /**
@@ -85,8 +82,8 @@ export class DialogueDB {
   /**
    * Get an existing memory by id
    */
-  getMemory(id: string, namespace?: string): Promise<Memory | null> {
-    return getMemory({ id, namespace }, this.#settings);
+  getMemory(id: string): Promise<Memory | null> {
+    return getMemory({ id }, this.#settings);
   }
 
   /**

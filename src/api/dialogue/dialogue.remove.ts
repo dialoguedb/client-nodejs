@@ -17,11 +17,6 @@ export async function remove(
 
   let url = `${endpoint}/dialogue/${input.id}`;
 
-  if (input.namespace) {
-    const params = new URLSearchParams({ namespace: input.namespace });
-    url += `?${params.toString()}`;
-  }
-
   await apiRequest(
     url,
     {
