@@ -342,6 +342,18 @@ export class Dialogue {
   }
 
   /**
+   * Get a single message by ID
+   */
+  async getMessage(messageId: string): Promise<Message> {
+    const message = await messageApi.get(
+      { dialogueId: this.#id, id: messageId },
+      this.#settings
+    );
+
+    return this.#createMessage(message);
+  }
+
+  /**
    * Delete a message
    * Calls API and removes from local cache
    */
