@@ -19,7 +19,7 @@ export async function getOrCreateDialogue(
   const settings = useSettings(config);
   if (input?.id) {
     const res = await get(input as GetDialogueInput, settings);
-    if (res && res?.id) {
+    if (res && res.id) {
       return new Dialogue(res, settings);
     } else {
       throw errors.invalidParameter(
