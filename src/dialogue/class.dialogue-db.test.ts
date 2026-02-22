@@ -449,7 +449,6 @@ describe("DialogueDB", () => {
         expect.any(SettingsContainer)
       );
     });
-
   });
 
   describe("listMemories", () => {
