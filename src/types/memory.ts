@@ -32,7 +32,6 @@ export interface CreateMemoryInput {
 
 export type GetMemoryInput = {
   id: string;
-  namespace?: string;
 };
 
 export type DeleteMemoryInput = GetMemoryInput;
