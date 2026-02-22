@@ -56,7 +56,7 @@ export class Message {
     }
     this.#id = message.id;
 
-    if (!message?.role || typeof message.role !== "string") {
+    if (!message.role || typeof message.role !== "string") {
       throw errors.invalidParameter("role", "is required and must be a string");
     }
     this.#role = message.role;

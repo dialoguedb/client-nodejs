@@ -13,6 +13,7 @@ jest.mock("@/api/dialogue", () => ({
 
 jest.mock("@/api/message", () => ({
   create: jest.fn(),
+  get: jest.fn(),
   remove: jest.fn(),
   update: jest.fn(),
 }));
@@ -797,6 +798,70 @@ describe("Dialogue", () => {
       expect(dialogue.messages.length).toBe(2);
       expect(dialogue.messages[0].content).toBe("First");
       expect(dialogue.messages[1].content).toBe("Second");
+    });
+  });
+
+  describe("getMessage", () => {
+    it("fetches a single message by ID via API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.get as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId, content: "Found it" })
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: dialogueId }));
+      const message = await dialogue.getMessage(messageId);
+
+      expect(messageApi.get).toHaveBeenCalledWith(
+        { dialogueId, id: messageId },
+        expect.anything()
+      );
+      expect(message.id).toBe(messageId);
+      expect(message.content).toBe("Found it");
+    });
+
+    it("returns a Message instance with working methods", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.get as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId, tags: ["original"] })
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: dialogueId }));
+      const message = await dialogue.getMessage(messageId);
+
+      // Should be able to update tags
+      message.tags = ["updated"];
+      expect(message.isDirty).toBe(true);
+    });
+
+    it("does not add the message to local messages array", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.get as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId })
+      );
+
+      const dialogue = new Dialogue(createMockDialogue({ id: dialogueId }));
+
+      expect(dialogue.messages.length).toBe(0);
+      await dialogue.getMessage(messageId);
+      expect(dialogue.messages.length).toBe(0);
+    });
+
+    it("propagates API errors", async () => {
+      const dialogue = new Dialogue(createMockDialogue());
+
+      (messageApi.get as jest.Mock).mockRejectedValueOnce(
+        new Error("Message not found")
+      );
+
+      await expect(dialogue.getMessage("nonexistent")).rejects.toThrow(
+        "Message not found"
+      );
     });
   });
 
