@@ -48,6 +48,16 @@ describe("dialogue.end", () => {
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
 
+  it("should throw error for null input", async () => {
+    await expect(end(null as any)).rejects.toThrow("id is required");
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("should throw error for undefined input", async () => {
+    await expect(end(undefined as any)).rejects.toThrow("id is required");
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
   it("should set Authorization header correctly", async () => {
     const key = "test-api-key-123";
     const endpoint = "https://api.example.com";
