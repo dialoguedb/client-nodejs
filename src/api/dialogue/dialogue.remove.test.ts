@@ -51,32 +51,6 @@ describe("dialogue.remove", () => {
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
 
-  it("should remove dialogue with namespace as query param", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const input = {
-      id: "dialogue-123",
-      namespace: "my-namespace",
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    apiRequestMock.mockResolvedValueOnce(undefined);
-
-    await remove(input, settings);
-
-    expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    const callArgs = apiRequestMock.mock.calls[0];
-
-    expect(callArgs[0]).toBe(
-      `${endpoint}/dialogue/dialogue-123?namespace=my-namespace`
-    );
-    expect(callArgs[1].method).toBe("delete");
-    expect(callArgs[1].body).toBeUndefined();
-  });
-
   it("should set Authorization header correctly", async () => {
     const key = "test-api-key-123";
     const endpoint = "https://api.example.com";

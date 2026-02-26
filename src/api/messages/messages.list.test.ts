@@ -175,6 +175,18 @@ describe("messages.list", () => {
     );
   });
 
+  it("should use default settings when none provided", async () => {
+    const input = {
+      dialogueId: "dialogue-123",
+    };
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list(input);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+  });
+
   it("should set Authorization header correctly", async () => {
     const key = "test-api-key-123";
     const endpoint = "https://api.example.com";
