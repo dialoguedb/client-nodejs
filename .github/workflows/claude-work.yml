@@ -1,0 +1,179 @@
+name: Claude Work
+
+on:
+  issues:
+    types: [labeled]
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      instruction:
+        description: 'Issue number, task description, or leave empty to pick from open issues'
+        required: false
+        type: string
+
+env:
+  CLAUDE_MODEL: claude-opus-4-6
+
+concurrency:
+  group: claude-work-${{ github.event.issue.number || github.run_id }}-${{ github.actor }}
+  cancel-in-progress: true
+jobs:
+  discuss:
+    if: github.event_name == 'issues' && github.event.label.name == 'claude-work'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Generate bot token
+        id: bot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
+          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
+          owner: dialoguedb
+
+      - name: React with eyes
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        run: gh api repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/reactions -f content=eyes
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 1
+
+      - name: Run Claude (Discussion)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "dialoguedb-bot[bot]"
+          github_token: ${{ steps.bot-token.outputs.token }}
+          claude_args: |
+            --model ${{ env.CLAUDE_MODEL }}
+            --allowedTools "Bash(gh issue view:*),Bash(gh issue comment:*)"
+            --max-turns 30
+
+          prompt: |
+            You are discussing a task with the team before writing any code.
+
+            Read the full issue: `gh issue view ${{ github.event.issue.number }} --comments`
+
+            This is the `dialogue-db` TypeScript SDK published to npm.
+
+            Post ONE comment with: Understanding, Approach, Questions, Scope estimate.
+            End with: > _Use @claude to discuss further, or comment `/claude-start` when ready._
+
+            No code changes. Be specific with file references.
+
+  work:
+    if: >
+      (github.event_name == 'issue_comment' && startsWith(github.event.comment.body, '/claude-start') && github.actor != 'dialoguedb-bot[bot]') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Generate bot token
+        id: bot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
+          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
+          owner: dialoguedb
+
+      - name: React with eyes
+        if: github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        run: gh api repos/${{ github.repository }}/issues/comments/${{ github.event.comment.id }}/reactions -f content=eyes
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: development
+          fetch-depth: 0
+          token: ${{ steps.bot-token.outputs.token }}
+
+      - name: Configure git
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        run: |
+          git config user.name "dialoguedb-bot[bot]"
+          git config user.email "dialoguedb-bot[bot]@users.noreply.github.com"
+          git config --global credential.helper store
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
+
+      - name: Create working branch
+        id: branch
+        run: |
+          BRANCH_NAME="claude-work/run-${{ github.run_number }}"
+          git checkout -b "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
+          echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Claude (Work)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_bots: "dialoguedb-bot[bot]"
+          github_token: ${{ steps.bot-token.outputs.token }}
+          display_report: "false"
+          claude_args: |
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(echo:*),Bash(mkdir:*),Bash(npm install:*),Bash(npm ci:*),Bash(npm run build:*),Bash(npm run build\\:package:*),Bash(npm test:*),Bash(npm run format\\:write:*),Bash(npm run format\\:check:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh issue create:*)"
+            --model ${{ env.CLAUDE_MODEL }}
+            --max-turns 100
+
+          prompt: |
+            You are an autonomous software engineer.
+
+            ## Instruction
+            `${{ github.event.issue.number || inputs.instruction || '' }}`
+
+            ## How to interpret
+            - If it's a number: read that issue with `gh issue view <number> --comments` and implement it
+            - If it's text: treat it as a direct task and do it
+            - If empty: run `gh issue list --label claude-work --state open` and pick one. If none, exit cleanly.
+
+            ## Context
+            - Branch `${{ steps.branch.outputs.name }}`, from `development`
+            - This is the `dialogue-db` TypeScript SDK published to npm
+            - Messages post immediately, state changes batch until `.save()`
+            - Tests co-located with source (`*.test.ts`)
+
+            ## Workflow
+            1. Determine what to work on
+            2. If an issue, comment that you're starting
+            3. Implement changes
+            4. Verify: `npm run build` and `npm test`, then `npm run format:write`
+            5. Commit, push, create PR targeting `development`
+            6. If an issue, comment the PR link
+
+            ## Rules
+            - Follow existing patterns. Write tests for new functionality. Keep changes focused.
+
+      - name: Report failure
+        if: failure() && github.event_name == 'issue_comment'
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} --body "⚠️ **Hit a problem.**
+
+          **Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"

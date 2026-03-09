@@ -1,0 +1,58 @@
+name: Notify HQ
+
+on:
+  release:
+    types: [published]
+  issues:
+    types: [closed]
+
+jobs:
+  notify-deployment:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate bot token
+        id: bot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
+          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
+          owner: dialoguedb
+          repositories: hq
+
+      - name: Trigger HQ
+        run: |
+          gh api repos/dialoguedb/hq/dispatches \
+            -f event_type=deployment \
+            --field client_payload='{"source":"client","version":"${{ github.event.release.tag_name }}"}'
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+
+  notify-issue-closed:
+    if: github.event_name == 'issues' && contains(github.event.issue.body, 'Dispatched from')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate bot token
+        id: bot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
+          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
+          owner: dialoguedb
+          repositories: hq
+
+      - name: Notify HQ
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+          BODY: ${{ github.event.issue.body }}
+          REPO: ${{ github.repository }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          HQ_NUM=$(echo "$BODY" | grep -oP 'dialoguedb/hq#\K[0-9]+' || true)
+          if [ -z "$HQ_NUM" ]; then
+            echo "No HQ issue reference found"
+            exit 0
+          fi
+          gh api repos/dialoguedb/hq/dispatches \
+            -f event_type=issue-closed \
+            -f client_payload="{\"source\":\"$REPO\",\"issue_url\":\"$ISSUE_URL\",\"hq_issue\":\"$HQ_NUM\"}"
