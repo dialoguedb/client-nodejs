@@ -137,7 +137,7 @@ jobs:
           github_token: ${{ steps.bot-token.outputs.token }}
           display_report: "false"
           claude_args: |
-            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(echo:*),Bash(mkdir:*),Bash(npm install:*),Bash(npm ci:*),Bash(npm run build:*),Bash(npm run build\\:package:*),Bash(npm test:*),Bash(npm run format\\:write:*),Bash(npm run format\\:check:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh issue create:*)"
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(curl:*),Bash(cat:*),Bash(ls:*),Bash(find:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(echo:*),Bash(mkdir:*),Bash(npm install:*),Bash(npm ci:*),Bash(npm run build:*),Bash(npm run build\\:package:*),Bash(npm test:*),Bash(npm run format\\:write:*),Bash(npm run format\\:check:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),Bash(gh issue comment:*),Bash(gh issue list:*),Bash(gh issue create:*)"
             --model ${{ env.CLAUDE_MODEL }}
             --max-turns 100
 
@@ -163,8 +163,9 @@ jobs:
             2. If an issue, comment that you're starting
             3. Implement changes
             4. Verify: `npm run build` and `npm test`, then `npm run format:write`
-            5. Commit, push, create PR targeting `development`
-            6. If an issue, comment the PR link
+            5. Commit and push
+            6. Create a PR with `gh pr create --base development --title "..." --body "..."`. You MUST actually create the PR — do not post a "Create PR" link. The PR must exist when you're done.
+            7. If an issue, comment the PR link on the issue
 
             ## Rules
             - Follow existing patterns. Write tests for new functionality. Keep changes focused.
