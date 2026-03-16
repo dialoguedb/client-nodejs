@@ -50,7 +50,7 @@ export class Dialogue {
 
   constructor(
     dialogue: IDialogue,
-    settings?: SettingsContainer | Partial<Settings>
+    settings?: SettingsContainer | Partial<Settings>,
   ) {
     this.#settings = useSettings(settings);
     this.#setProperties(dialogue);
@@ -127,6 +127,7 @@ export class Dialogue {
       onRemoved: () => {
         this.#messages = this.#messages.filter((m) => m.id !== msg.id);
       },
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     });
     return msg;
   }
@@ -261,11 +262,15 @@ export class Dialogue {
    * Create and save a message to the dialogue
    */
   async saveMessage(
-    message: Omit<CreateMessageInput, "dialogueId">
+    message: Omit<CreateMessageInput, "dialogueId">,
   ): Promise<Message> {
     const created = await messageApi.create(
-      { ...message, dialogueId: this.#id },
-      this.#settings
+      {
+        ...message,
+        dialogueId: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
+      this.#settings,
     );
 
     const newMessage = this.#createMessage(created);
@@ -283,20 +288,21 @@ export class Dialogue {
       content: string;
       id?: string;
       created?: string;
-    }>
+    }>,
   ): Promise<Message[]> {
     const createdMessages = await messagesApi.create(
       {
         id: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
         messages: messages.map((message) => ({
           ...message,
         })),
       },
-      this.#settings
+      this.#settings,
     );
 
     const newMessages = createdMessages.map((created) =>
-      this.#createMessage(created)
+      this.#createMessage(created),
     );
     this.#messages.push(...newMessages);
     return newMessages;
@@ -309,7 +315,7 @@ export class Dialogue {
   async loadMessages(
     options?: Omit<ListMessageFilters, "dialogueId" | "next"> & {
       next?: boolean;
-    }
+    },
   ) {
     const { next: shouldLoadNext, ...restOfOptions } = options || {};
 
@@ -319,6 +325,7 @@ export class Dialogue {
     const payload: ListMessageFilters = {
       ...restOfOptions,
       dialogueId: this.#id,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     };
 
     if (isAppending) {
@@ -346,8 +353,12 @@ export class Dialogue {
    */
   async getMessage(messageId: string): Promise<Message> {
     const message = await messageApi.get(
-      { dialogueId: this.#id, id: messageId },
-      this.#settings
+      {
+        dialogueId: this.#id,
+        id: messageId,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
+      this.#settings,
     );
 
     return this.#createMessage(message);
@@ -359,8 +370,8 @@ export class Dialogue {
    */
   async deleteMessage(messageId: string): Promise<void> {
     await messageApi.remove(
-      { dialogueId: this.#id, id: messageId },
-      this.#settings
+      { dialogueId: this.#id, id: messageId, ...(this.#namespace !== undefined && { namespace: this.#namespace }) },
+      this.#settings,
     );
     this.#messages = this.#messages.filter((m) => m.id !== messageId);
   }
@@ -369,11 +380,11 @@ export class Dialogue {
    * Create a child thread of this dialogue
    */
   async createThread(
-    input: Omit<CreateDialogueInput, "threadOf"> = {}
+    input: Omit<CreateDialogueInput, "threadOf"> = {},
   ): Promise<Dialogue> {
     const data = await dialogueApi.create(
-      { ...input, threadOf: this.#id },
-      this.#settings
+      { ...input, threadOf: this.#id, ...(this.#namespace !== undefined && { namespace: this.#namespace }) },
+      this.#settings,
     );
     return new Dialogue(data, this.#settings);
   }
@@ -385,8 +396,9 @@ export class Dialogue {
     const response = await dialogueApi.list(
       {
         threadOf: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       },
-      this.#settings
+      this.#settings,
     );
 
     return response.items.map((d) => new Dialogue(d, this.#settings));
@@ -396,7 +408,7 @@ export class Dialogue {
    * End/close the dialogue
    */
   async end(): Promise<void> {
-    const result = await dialogueApi.end({ id: this.#id }, this.#settings);
+    const result = await dialogueApi.end({ id: this.#id, ...(this.#namespace !== undefined && { namespace: this.#namespace }) }, this.#settings);
     this.#setProperties(result);
   }
 
@@ -434,8 +446,9 @@ export class Dialogue {
       return this;
     }
 
-    const payload: { id: string } & Record<string, any> = {
+    const payload: { id: string; namespace?: string } & Record<string, any> = {
       id: this.#id,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     };
 
     if (this.#stateChanged) {

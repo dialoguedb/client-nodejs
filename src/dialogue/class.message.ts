@@ -16,6 +16,7 @@ export interface MessageOptions {
 export class Message {
   #id: string;
   #dialogueId: string;
+  #namespace?: string;
   #role: string;
   #content: IMessage["content"];
   #created: string;
@@ -33,15 +34,16 @@ export class Message {
     dialogueId: string,
     message: IMessage,
     settings?: SettingsContainer | Partial<Settings>,
-    options?: MessageOptions
+    options?: MessageOptions & { namespace?: string },
   ) {
     this.#settings = useSettings(settings);
     this.#onRemoved = options?.onRemoved;
+    this.#namespace = options?.namespace;
 
     if (!dialogueId || typeof dialogueId !== "string") {
       throw errors.invalidParameter(
         "dialogueId",
-        "is required and must be a string"
+        "is required and must be a string",
       );
     }
     this.#dialogueId = dialogueId;
@@ -146,8 +148,13 @@ export class Message {
     if (!this.#isDirty) return;
 
     const updated = await messageApi.update(
-      { dialogueId: this.#dialogueId, id: this.#id, tags: this.#tags },
-      this.#settings
+      {
+        dialogueId: this.#dialogueId,
+        id: this.#id,
+        tags: this.#tags,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
+      this.#settings,
     );
 
     this.#tags = updated.tags ?? [];
@@ -156,8 +163,12 @@ export class Message {
 
   async remove(): Promise<void> {
     await messageApi.remove(
-      { dialogueId: this.#dialogueId, id: this.id },
-      this.#settings
+      {
+        dialogueId: this.#dialogueId,
+        id: this.id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
+      this.#settings,
     );
     this.#onRemoved?.();
   }

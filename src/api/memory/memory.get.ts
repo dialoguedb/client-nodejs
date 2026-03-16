@@ -12,8 +12,13 @@ export async function get(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  let url = `${endpoint}/memory/${input.id}`;
+  if (input.namespace) {
+    url += `?namespace=${encodeURIComponent(input.namespace)}`;
+  }
+
   return apiRequest<IMemory>(
-    `${endpoint}/memory/${input.id}`,
+    url,
     {
       method: "get",
       headers,

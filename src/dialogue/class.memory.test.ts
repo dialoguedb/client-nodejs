@@ -259,6 +259,26 @@ describe("Memory", () => {
       expect(memoryApi.update).not.toHaveBeenCalled();
     });
 
+    it("passes namespace to API update when present", async () => {
+      const id = "test-key";
+      const namespace = "my-ns";
+
+      (memoryApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockMemory({ id, namespace }),
+        tags: ["updated"],
+        modified: new Date().toISOString(),
+      });
+
+      const memory = new Memory(createMockMemory({ id, namespace }));
+      memory.tags = ["updated"];
+      await memory.save();
+
+      expect(memoryApi.update).toHaveBeenCalledWith(
+        { id, tags: ["updated"], namespace },
+        expect.anything()
+      );
+    });
+
     it("calls API and clears dirty flag when dirty", async () => {
       const id = "test-key";
 
@@ -340,6 +360,21 @@ describe("Memory", () => {
       await memory.remove();
 
       expect(memoryApi.remove).toHaveBeenCalledWith({ id }, expect.anything());
+    });
+
+    it("passes namespace to API remove when present", async () => {
+      const id = "test-key";
+      const namespace = "my-ns";
+
+      (memoryApi.remove as jest.Mock).mockResolvedValueOnce({});
+
+      const memory = new Memory(createMockMemory({ id, namespace }));
+      await memory.remove();
+
+      expect(memoryApi.remove).toHaveBeenCalledWith(
+        { id, namespace },
+        expect.anything()
+      );
     });
 
     it("calls onRemoved callback after API remove", async () => {

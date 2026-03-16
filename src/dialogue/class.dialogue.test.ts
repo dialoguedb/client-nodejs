@@ -1511,6 +1511,190 @@ describe("Dialogue", () => {
     });
   });
 
+  describe("namespace propagation", () => {
+    const ns = "my-namespace";
+
+    function createNamespacedDialogue(overrides: Partial<IDialogue> = {}) {
+      return createMockDialogue({ namespace: ns, ...overrides });
+    }
+
+    it("save passes namespace in payload", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createNamespacedDialogue({ id }),
+        state: { key: "value" },
+        tags: [],
+        modified: new Date().toISOString(),
+      });
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id }));
+      dialogue.state = { key: "value" };
+      await dialogue.save();
+
+      expect(dialogueApi.update).toHaveBeenCalledWith(
+        expect.objectContaining({ id, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("saveMessage passes namespace to message API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+
+      (messageApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: "msg-1" })
+      );
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      await dialogue.saveMessage({ role: "user", content: "test" });
+
+      expect(messageApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("saveMessages passes namespace to messages API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+
+      (messagesApi.create as jest.Mock).mockResolvedValueOnce([
+        createMockMessage({ id: "msg-1" }),
+      ]);
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      await dialogue.saveMessages([{ role: "user", content: "test" }]);
+
+      expect(messagesApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({ id: dialogueId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("loadMessages passes namespace to list API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+
+      (messagesApi.list as jest.Mock).mockResolvedValueOnce({
+        items: [],
+        next: undefined,
+      });
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      await dialogue.loadMessages({ limit: 50 });
+
+      expect(messagesApi.list).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("getMessage passes namespace to get API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.get as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId })
+      );
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      await dialogue.getMessage(messageId);
+
+      expect(messageApi.get).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId, id: messageId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("deleteMessage passes namespace to remove API", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
+
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({
+          id: dialogueId,
+          messages: [createMockMessage({ id: messageId })],
+        })
+      );
+      await dialogue.deleteMessage(messageId);
+
+      expect(messageApi.remove).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId, id: messageId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("createThread passes namespace from parent", async () => {
+      const parentId = Math.random().toString(36).slice(2);
+
+      (dialogueApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockDialogue()
+      );
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: parentId }));
+      await dialogue.createThread();
+
+      expect(dialogueApi.create).toHaveBeenCalledWith(
+        expect.objectContaining({ threadOf: parentId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("getThreads passes namespace to list API", async () => {
+      const parentId = Math.random().toString(36).slice(2);
+
+      (dialogueApi.list as jest.Mock).mockResolvedValueOnce({ items: [] });
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: parentId }));
+      await dialogue.getThreads();
+
+      expect(dialogueApi.list).toHaveBeenCalledWith(
+        expect.objectContaining({ threadOf: parentId, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("end passes namespace to end API", async () => {
+      const id = Math.random().toString(36).slice(2);
+
+      (dialogueApi.end as jest.Mock).mockResolvedValueOnce(
+        createNamespacedDialogue({ id, status: "ended" })
+      );
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id }));
+      await dialogue.end();
+
+      expect(dialogueApi.end).toHaveBeenCalledWith(
+        expect.objectContaining({ id, namespace: ns }),
+        expect.anything()
+      );
+    });
+
+    it("#createMessage passes namespace to Message constructor", async () => {
+      const dialogueId = Math.random().toString(36).slice(2);
+      const messageId = Math.random().toString(36).slice(2);
+
+      (messageApi.create as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId })
+      );
+      (messageApi.update as jest.Mock).mockResolvedValueOnce(
+        createMockMessage({ id: messageId, tags: ["updated"] })
+      );
+
+      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      const message = await dialogue.saveMessage({ role: "user", content: "test" });
+
+      // Verify the Message instance has namespace by triggering save
+      message.tags = ["updated"];
+      await message.save();
+
+      expect(messageApi.update).toHaveBeenCalledWith(
+        expect.objectContaining({ namespace: ns }),
+        expect.anything()
+      );
+    });
+  });
+
   describe("messages initialization", () => {
     it("creates Message instances from constructor data", () => {
       const msgId = Math.random().toString(36).slice(2);
