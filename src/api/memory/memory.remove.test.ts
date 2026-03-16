@@ -64,6 +64,22 @@ describe("memory.remove", () => {
     );
   });
 
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const memoryId = "user-preferences";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(undefined);
+
+    await remove({ id: memoryId, namespace: "my-namespace" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryId}?namespace=my-namespace`);
+  });
+
   it("should remove memory with different key", async () => {
     const apiKey = "my-api-key";
     const endpoint = "https://api.example.com";

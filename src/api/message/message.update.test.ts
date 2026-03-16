@@ -68,7 +68,7 @@ describe("message.update", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -76,6 +76,23 @@ describe("message.update", () => {
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
+  });
+
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+    const messageId = "message-456";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({});
+
+    await update({ dialogueId, id: messageId, namespace: "my-namespace", tags: ["test"] }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(`${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`);
   });
 
   it("should update message with empty tags array", async () => {
@@ -105,7 +122,7 @@ describe("message.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -140,7 +157,7 @@ describe("message.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -192,7 +209,7 @@ describe("message.update", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`
     );
   });
 
@@ -207,7 +224,7 @@ describe("message.update", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `https://global.example.com/dialogue/${dialogueId}/message/${messageId}`,
+      `https://global.example.com/message/${messageId}?dialogueId=${dialogueId}`,
       expect.objectContaining({ method: "put" }),
       expect.any(Object)
     );

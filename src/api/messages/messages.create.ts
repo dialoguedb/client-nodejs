@@ -6,6 +6,7 @@ import { CreateMessageInput, IMessage } from "@/types";
 export async function create(
   input: {
     id: string;
+    namespace?: string;
     messages: Omit<CreateMessageInput, "dialogueId">[];
   },
   settings: SettingsContainer = getConfig()
@@ -15,8 +16,15 @@ export async function create(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  const params = new URLSearchParams();
+  params.set("dialogueId", input.id);
+  if (input.namespace) {
+    params.set("namespace", input.namespace);
+  }
+  const url = `${endpoint}/messages?${params.toString()}`;
+
   const req = await apiRequest<IMessage[]>(
-    `${endpoint}/dialogue/${input.id}/messages`,
+    url,
     {
       method: "post",
       headers,

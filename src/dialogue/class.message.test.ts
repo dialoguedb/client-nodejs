@@ -266,6 +266,26 @@ describe("Message", () => {
       expect(message.isDirty).toBe(false);
     });
 
+    it("passes namespace to API update when present", async () => {
+      const id = Math.random().toString(36).slice(2);
+      const namespace = "my-ns";
+
+      (messageApi.update as jest.Mock).mockResolvedValueOnce({
+        ...createMockMessage({ id }),
+        tags: ["updated"],
+        modified: new Date().toISOString(),
+      });
+
+      const message = new Message(dialogueId, createMockMessage({ id }), undefined, { namespace });
+      message.tags = ["updated"];
+      await message.save();
+
+      expect(messageApi.update).toHaveBeenCalledWith(
+        { dialogueId, id, tags: ["updated"], namespace },
+        expect.anything()
+      );
+    });
+
     it("syncs tags from server response after save", async () => {
       const id = Math.random().toString(36).slice(2);
       const serverTags = ["tag1", "server-added"];
@@ -311,6 +331,21 @@ describe("Message", () => {
 
       expect(messageApi.remove).toHaveBeenCalledWith(
         { dialogueId, id },
+        expect.anything()
+      );
+    });
+
+    it("passes namespace to API remove when present", async () => {
+      const id = Math.random().toString(36).slice(2);
+      const namespace = "my-ns";
+
+      (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
+
+      const message = new Message(dialogueId, createMockMessage({ id }), undefined, { namespace });
+      await message.remove();
+
+      expect(messageApi.remove).toHaveBeenCalledWith(
+        { dialogueId, id, namespace },
         expect.anything()
       );
     });

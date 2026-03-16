@@ -15,8 +15,15 @@ export async function get(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  const params = new URLSearchParams();
+  params.set("dialogueId", input.dialogueId);
+  if (input.namespace) {
+    params.set("namespace", input.namespace);
+  }
+  const url = `${endpoint}/message/${input.id}?${params.toString()}`;
+
   return apiRequest<IMessage>(
-    `${endpoint}/dialogue/${input.dialogueId}/message/${input.id}`,
+    url,
     {
       method: "get",
       headers,

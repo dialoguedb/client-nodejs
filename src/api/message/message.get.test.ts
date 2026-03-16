@@ -43,13 +43,30 @@ describe("message.get", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/message/${messageId}`,
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "get",
         headers: expect.any(Headers),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
+  });
+
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+    const messageId = "message-456";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({});
+
+    await get({ dialogueId, id: messageId, namespace: "my-namespace" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(`${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`);
   });
 
   it("should throw error for invalid input - missing dialogueId", async () => {
