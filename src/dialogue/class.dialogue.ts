@@ -427,7 +427,8 @@ export class Dialogue {
   }
 
   /**
-   * Compact/summarize the dialogue
+   * @internal
+   * @experimental Compact/summarize the dialogue — not yet available.
    */
   async compact(): Promise<any> {
     // TODO: Implement when backend action endpoint is ready
