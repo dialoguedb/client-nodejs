@@ -29,8 +29,9 @@ export async function end(
   return apiRequest<IDialogue>(
     url,
     {
-      method: "put",
+      method: "post",
       headers,
+      body: JSON.stringify({}),
     },
     settings.getRetryConfig()
   );

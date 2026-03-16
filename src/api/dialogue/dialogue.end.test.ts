@@ -35,8 +35,9 @@ describe("dialogue.end", () => {
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/dialogue/dialogue-123/end`,
       {
-        method: "put",
+        method: "post",
         headers: expect.any(Headers),
+        body: JSON.stringify({}),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
@@ -90,8 +91,9 @@ describe("dialogue.end", () => {
     expect(apiRequestMock).toHaveBeenCalledWith(
       `${endpoint}/dialogue/dialogue-123/end?namespace=my-namespace`,
       {
-        method: "put",
+        method: "post",
         headers: expect.any(Headers),
+        body: JSON.stringify({}),
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
