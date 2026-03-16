@@ -22,7 +22,7 @@ export async function create(
   if (namespace) {
     params.set("namespace", namespace);
   }
-  const url = `${endpoint}/message?${params.toString()}`;
+  const url = `${endpoint}/messages?${params.toString()}`;
 
   return apiRequest<IMessage>(
     url,
