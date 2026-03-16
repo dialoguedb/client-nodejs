@@ -41,7 +41,7 @@ describe("message.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/message`,
+      `${endpoint}/message?dialogueId=${dialogueId}`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -128,6 +128,30 @@ describe("message.create", () => {
     expect(bodyArg.tags).toEqual(["important"]);
 
     expect(result).toEqual(mockResponse);
+  });
+
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+    const input = {
+      dialogueId,
+      namespace: "my-namespace",
+      role: "user",
+      content: "Hello world",
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({});
+
+    await create(input, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(
+      `${endpoint}/message?dialogueId=${dialogueId}&namespace=my-namespace`
+    );
   });
 
   it("should set Authorization header correctly", async () => {

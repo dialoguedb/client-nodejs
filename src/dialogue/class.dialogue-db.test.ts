@@ -136,6 +136,19 @@ describe("DialogueDB", () => {
       expect(result).toBe(mockDialogue);
     });
 
+    it("should get dialogue by id with namespace", async () => {
+      const mockDialogue = { id: "found-id" } as unknown as Dialogue;
+      getDialogueMock.mockResolvedValueOnce(mockDialogue);
+
+      const db = new DialogueDB();
+      await db.getDialogue("found-id", "my-ns");
+
+      expect(getDialogueMock).toHaveBeenCalledWith(
+        { id: "found-id", namespace: "my-ns" },
+        expect.any(SettingsContainer)
+      );
+    });
+
     it("should return null when dialogue not found", async () => {
       getDialogueMock.mockResolvedValueOnce(null);
 
@@ -206,6 +219,19 @@ describe("DialogueDB", () => {
         expect.any(SettingsContainer)
       );
       expect(result).toBe(mockMemory);
+    });
+
+    it("should get memory by id with namespace", async () => {
+      const mockMemory = { id: "found-key" } as unknown as Memory;
+      getMemoryMock.mockResolvedValueOnce(mockMemory);
+
+      const db = new DialogueDB();
+      await db.getMemory("found-key", "my-ns");
+
+      expect(getMemoryMock).toHaveBeenCalledWith(
+        { id: "found-key", namespace: "my-ns" },
+        expect.any(SettingsContainer)
+      );
     });
 
     it("should return null when memory not found", async () => {
@@ -449,6 +475,18 @@ describe("DialogueDB", () => {
         expect.any(SettingsContainer)
       );
     });
+
+    it("should delete dialogue by id with namespace", async () => {
+      dialogueRemoveMock.mockResolvedValueOnce(undefined);
+
+      const db = new DialogueDB();
+      await db.deleteDialogue("dialogue-123", "my-ns");
+
+      expect(dialogueRemoveMock).toHaveBeenCalledWith(
+        { id: "dialogue-123", namespace: "my-ns" },
+        expect.any(SettingsContainer)
+      );
+    });
   });
 
   describe("listMemories", () => {
@@ -487,6 +525,18 @@ describe("DialogueDB", () => {
 
       expect(memoryRemoveMock).toHaveBeenCalledWith(
         { id: "memory-123" },
+        expect.any(SettingsContainer)
+      );
+    });
+
+    it("should delete memory by id with namespace", async () => {
+      memoryRemoveMock.mockResolvedValueOnce(undefined);
+
+      const db = new DialogueDB();
+      await db.deleteMemory("memory-123", "my-ns");
+
+      expect(memoryRemoveMock).toHaveBeenCalledWith(
+        { id: "memory-123", namespace: "my-ns" },
         expect.any(SettingsContainer)
       );
     });

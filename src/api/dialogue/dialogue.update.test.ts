@@ -58,6 +58,39 @@ describe("update", () => {
     spyGet.mockRestore();
   });
 
+  it("will call update with namespace query param", async () => {
+    const id = "updated-item-id";
+    const key = "my-api-key";
+    const endpoint = "my-api-endpoint";
+    const namespace = "my-namespace";
+
+    const body = { id, namespace };
+
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${key}`);
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(body);
+
+    const result = await update(body, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/${id}?namespace=${namespace}`,
+      {
+        method: "put",
+        headers,
+        body: JSON.stringify(body),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
+
+    expect(result.id).toEqual(id);
+  });
+
   it("will call update with default settings", async () => {
     const id = "created-item-id";
     const key = "my-api-key";

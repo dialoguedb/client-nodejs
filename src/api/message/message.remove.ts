@@ -15,8 +15,15 @@ export async function remove(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  const params = new URLSearchParams();
+  params.set("dialogueId", input.dialogueId);
+  if (input.namespace) {
+    params.set("namespace", input.namespace);
+  }
+  const url = `${endpoint}/message/${input.id}?${params.toString()}`;
+
   await apiRequest(
-    `${endpoint}/dialogue/${input.dialogueId}/message/${input.id}`,
+    url,
     {
       method: "delete",
       headers,

@@ -10,15 +10,22 @@ export async function create(
 ) {
   validateCreateMessageInput(input);
 
-  const { dialogueId, ...message } = input;
+  const { dialogueId, namespace, ...message } = input;
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  const params = new URLSearchParams();
+  params.set("dialogueId", dialogueId);
+  if (namespace) {
+    params.set("namespace", namespace);
+  }
+  const url = `${endpoint}/message?${params.toString()}`;
+
   return apiRequest<IMessage>(
-    `${endpoint}/dialogue/${dialogueId}/message`,
+    url,
     {
       method: "post",
       headers,

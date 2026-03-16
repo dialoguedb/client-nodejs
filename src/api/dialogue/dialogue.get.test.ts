@@ -93,6 +93,38 @@ describe("get", () => {
     spyGet.mockReset();
     spyGet.mockRestore();
   });
+  it("will call get with namespace query param", async () => {
+    const id = "get-item-id";
+    const key = "my-api-key";
+    const endpoint = "my-api-endpoint";
+    const namespace = "my-namespace";
+
+    const body = { id };
+
+    const headers = new Headers();
+    headers.set("Authorization", `Bearer ${key}`);
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", key);
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce(body);
+
+    const result = await get({ id: body.id, namespace }, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/get-item-id?namespace=${namespace}`,
+      {
+        method: "get",
+        headers,
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
+
+    expect(result?.id).toEqual(id);
+  });
+
   it("will call create with default settings", async () => {
     const id = "get-item-id";
     const key = "my-api-key";

@@ -127,6 +127,7 @@ export class Dialogue {
       onRemoved: () => {
         this.#messages = this.#messages.filter((m) => m.id !== msg.id);
       },
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     });
     return msg;
   }
@@ -264,7 +265,11 @@ export class Dialogue {
     message: Omit<CreateMessageInput, "dialogueId">
   ): Promise<Message> {
     const created = await messageApi.create(
-      { ...message, dialogueId: this.#id },
+      {
+        ...message,
+        dialogueId: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
       this.#settings
     );
 
@@ -288,6 +293,7 @@ export class Dialogue {
     const createdMessages = await messagesApi.create(
       {
         id: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
         messages: messages.map((message) => ({
           ...message,
         })),
@@ -319,6 +325,7 @@ export class Dialogue {
     const payload: ListMessageFilters = {
       ...restOfOptions,
       dialogueId: this.#id,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     };
 
     if (isAppending) {
@@ -346,7 +353,11 @@ export class Dialogue {
    */
   async getMessage(messageId: string): Promise<Message> {
     const message = await messageApi.get(
-      { dialogueId: this.#id, id: messageId },
+      {
+        dialogueId: this.#id,
+        id: messageId,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
       this.#settings
     );
 
@@ -359,7 +370,11 @@ export class Dialogue {
    */
   async deleteMessage(messageId: string): Promise<void> {
     await messageApi.remove(
-      { dialogueId: this.#id, id: messageId },
+      {
+        dialogueId: this.#id,
+        id: messageId,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
       this.#settings
     );
     this.#messages = this.#messages.filter((m) => m.id !== messageId);
@@ -372,7 +387,11 @@ export class Dialogue {
     input: Omit<CreateDialogueInput, "threadOf"> = {}
   ): Promise<Dialogue> {
     const data = await dialogueApi.create(
-      { ...input, threadOf: this.#id },
+      {
+        ...input,
+        threadOf: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
       this.#settings
     );
     return new Dialogue(data, this.#settings);
@@ -385,6 +404,7 @@ export class Dialogue {
     const response = await dialogueApi.list(
       {
         threadOf: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       },
       this.#settings
     );
@@ -396,7 +416,13 @@ export class Dialogue {
    * End/close the dialogue
    */
   async end(): Promise<void> {
-    const result = await dialogueApi.end({ id: this.#id }, this.#settings);
+    const result = await dialogueApi.end(
+      {
+        id: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+      },
+      this.#settings
+    );
     this.#setProperties(result);
   }
 
@@ -434,8 +460,9 @@ export class Dialogue {
       return this;
     }
 
-    const payload: { id: string } & Record<string, any> = {
+    const payload: { id: string; namespace?: string } & Record<string, any> = {
       id: this.#id,
+      ...(this.#namespace !== undefined && { namespace: this.#namespace }),
     };
 
     if (this.#stateChanged) {

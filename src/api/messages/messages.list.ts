@@ -14,6 +14,7 @@ export async function list(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   const params = new URLSearchParams();
+  params.set("dialogueId", dialogueId);
 
   if (options.limit) {
     params.set("limit", options.limit.toString());
@@ -21,8 +22,11 @@ export async function list(
   if (options.next) {
     params.set("next", options.next);
   }
+  if (options.namespace) {
+    params.set("namespace", options.namespace);
+  }
 
-  const url = `${endpoint}/dialogue/${dialogueId}/messages`;
+  const url = `${endpoint}/messages`;
 
   const req = await apiRequest<ListResponse<IMessage>>(
     url,

@@ -4,6 +4,7 @@ import { getConfig } from "@/settings";
 
 export interface RemoveMemoryInput {
   id: string;
+  namespace?: string;
 }
 
 export async function remove(
@@ -15,8 +16,13 @@ export async function remove(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  let url = `${endpoint}/memory/${input.id}`;
+  if (input.namespace) {
+    url += `?namespace=${encodeURIComponent(input.namespace)}`;
+  }
+
   await apiRequest(
-    `${endpoint}/memory/${input.id}`,
+    url,
     {
       method: "delete",
       headers,

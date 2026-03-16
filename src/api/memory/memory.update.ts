@@ -5,6 +5,7 @@ import { IMemory } from "@/types";
 
 export interface UpdateMemoryInput {
   id: string;
+  namespace?: string;
   tags?: string[];
 }
 
@@ -12,15 +13,20 @@ export async function update(
   input: UpdateMemoryInput,
   settings: SettingsContainer = getConfig()
 ) {
-  const { id, ...updates } = input;
+  const { id, namespace, ...updates } = input;
 
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
+  let url = `${endpoint}/memory/${id}`;
+  if (namespace) {
+    url += `?namespace=${encodeURIComponent(namespace)}`;
+  }
+
   const req = await apiRequest<IMemory>(
-    `${endpoint}/memory/${id}`,
+    url,
     {
       method: "put",
       headers,

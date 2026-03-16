@@ -16,6 +16,9 @@ export async function update(
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   let url = `${endpoint}/dialogue/${input.id}`;
+  if (input.namespace) {
+    url += `?namespace=${encodeURIComponent(input.namespace)}`;
+  }
 
   return apiRequest<IDialogue>(
     url,
