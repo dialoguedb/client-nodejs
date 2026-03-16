@@ -2,6 +2,7 @@ import { assertDialogue } from "@/utils/assertIsDialogue";
 import { get } from "@/api/dialogue";
 import { getOrCreateDialogue } from "./getOrCreateDialogue";
 import { createDialogue } from "./createDialogue";
+import { DialogueDBError } from "@/errors";
 
 jest.mock("@/api/dialogue", () => ({
   get: jest.fn(),
@@ -49,12 +50,25 @@ describe("useDialogue", () => {
 
   it("will create dialogue when get throws (not found)", async () => {
     const id = "some-id";
-    apiGetMock.mockRejectedValue(new Error("Not found"));
+    apiGetMock.mockRejectedValue(
+      new DialogueDBError("Not found", "NOT_FOUND", "NOT_FOUND", 404)
+    );
     createDialogueMock.mockResolvedValueOnce({ id });
 
     const dialogue = await getOrCreateDialogue({ id });
     expect(createDialogueMock).toHaveBeenCalledTimes(1);
     expect(dialogue.id).toBe(id);
+    apiGetMock.mockReset();
+  });
+
+  it("will re-throw non-404 errors from get", async () => {
+    const id = "some-id";
+    apiGetMock.mockRejectedValue(
+      new DialogueDBError("Internal error", "SERVER_ERROR", "SERVER", 500)
+    );
+
+    await expect(getOrCreateDialogue({ id })).rejects.toThrow(DialogueDBError);
+    expect(createDialogueMock).toHaveBeenCalledTimes(0);
     apiGetMock.mockReset();
   });
 
