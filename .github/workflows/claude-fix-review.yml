@@ -1,0 +1,105 @@
+name: Claude Fix Review
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+env:
+  CLAUDE_MODEL: claude-opus-4-6
+
+jobs:
+  fix-review:
+    if: >
+      github.event.review.state == 'changes_requested' &&
+      github.event.pull_request.user.login == 'dialoguedb-bot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Check for previous fix attempt
+        id: check-fix
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          COMMITS=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits[].messageHeadline')
+          if echo "$COMMITS" | grep -q "fix: address review feedback"; then
+            echo "already_fixed=true" >> $GITHUB_OUTPUT
+          else
+            echo "already_fixed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment if skipping
+        if: steps.check-fix.outputs.already_fixed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} --body "Review feedback received but I've already attempted one round of fixes. Flagging for human review."
+
+      - name: Generate bot token
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        id: bot-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
+          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
+          owner: dialoguedb
+
+      - name: Checkout repository
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ steps.bot-token.outputs.token }}
+
+      - name: Configure git
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        run: |
+          git config user.name "dialoguedb-bot[bot]"
+          git config user.email "dialoguedb-bot[bot]@users.noreply.github.com"
+
+      - name: Setup Node.js
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        run: npm ci
+
+      - name: Fix review feedback
+        if: steps.check-fix.outputs.already_fixed == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ steps.bot-token.outputs.token }}
+          allowed_bots: "dialoguedb-bot[bot]"
+          claude_args: |
+            --model ${{ env.CLAUDE_MODEL }}
+            --allowedTools "Read,Edit,Write,Glob,Grep,Bash(npm run build:*),Bash(npm run build\\:package:*),Bash(npm test:*),Bash(npm run format\\:write:*),Bash(git add:*),Bash(git commit:*),Bash(git push:*),Bash(git status:*),Bash(git diff:*),Bash(gh pr view:*),Bash(gh pr comment:*)"
+            --max-turns 30
+
+          prompt: |
+            A code review requested changes on this PR. Fix the issues.
+
+            ## Review to address
+            ```
+            ${{ github.event.review.body }}
+            ```
+
+            ## Instructions
+            1. Read the full PR diff: `gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path'`
+            2. Read all review comments: `gh pr view ${{ github.event.pull_request.number }} --comments`
+            3. Fix every issue raised in the review
+            4. Verify: `npm run build` and `npm test`
+            5. Commit with message "fix: address review feedback" and push
+
+            ## Rules
+            - Only fix what the review asks for — don't refactor unrelated code
+            - If a review comment is wrong or doesn't apply, explain why in a PR comment
