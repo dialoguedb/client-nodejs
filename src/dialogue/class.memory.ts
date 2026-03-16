@@ -156,7 +156,7 @@ export class Memory {
     if (!this.#isDirty) return;
 
     const updated = await memoryApi.update(
-      { id: this.#id, tags: this.#tags },
+      { id: this.#id, tags: this.#tags, ...(this.#namespace !== undefined && { namespace: this.#namespace }) },
       this.#settings
     );
 
@@ -166,7 +166,7 @@ export class Memory {
   }
 
   async remove(): Promise<void> {
-    await memoryApi.remove({ id: this.#id }, this.#settings);
+    await memoryApi.remove({ id: this.#id, ...(this.#namespace !== undefined && { namespace: this.#namespace }) }, this.#settings);
     this.#onRemoved?.();
   }
 

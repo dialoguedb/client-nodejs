@@ -64,7 +64,7 @@ describe("messages.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages`,
+      `${endpoint}/messages?dialogueId=${dialogueId}`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -74,6 +74,27 @@ describe("messages.create", () => {
     );
 
     expect(result).toEqual(mockResponse);
+  });
+
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+    const input = {
+      id: dialogueId,
+      namespace: "my-namespace",
+      messages: [{ role: "user", content: "Hello" }],
+    };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce([]);
+
+    await create(input, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    expect(callArgs[0]).toBe(`${endpoint}/messages?dialogueId=${dialogueId}&namespace=my-namespace`);
   });
 
   it("should create messages with full payload", async () => {
@@ -164,7 +185,7 @@ describe("messages.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/dialogue/${dialogueId}/messages`);
+    expect(callArgs[0]).toBe(`${endpoint}/messages?dialogueId=${dialogueId}`);
   });
 
   it("should create multiple messages at once", async () => {
@@ -215,7 +236,7 @@ describe("messages.create", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `https://global.example.com/dialogue/${dialogueId}/messages`,
+      `https://global.example.com/messages?dialogueId=${dialogueId}`,
       expect.objectContaining({ method: "post" }),
       expect.any(Object)
     );

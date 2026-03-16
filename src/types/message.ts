@@ -22,6 +22,7 @@ export interface CreateMessageInput {
   content: MessageContent;
   id?: string;
   name?: string;
+  namespace?: string;
   tags?: string[];
   metadata?: Record<string, string | number | boolean>;
   created?: string;
@@ -30,6 +31,7 @@ export interface CreateMessageInput {
 export type GetMessageInput = {
   id: string;
   dialogueId: string;
+  namespace?: string;
 };
 
 export type DeleteMessageInput = GetMessageInput;
@@ -52,6 +54,7 @@ export type ListMessageFilterByDateRange = {
 
 export type ListMessageFilters = {
   dialogueId: string;
+  namespace?: string;
 
   order?: "desc" | "asc";
   limit?: number;

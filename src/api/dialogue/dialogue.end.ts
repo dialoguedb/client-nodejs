@@ -5,6 +5,7 @@ import { getConfig } from "@/settings";
 
 export type EndDialogueInput = {
   id: string;
+  namespace?: string;
 };
 
 export async function end(
@@ -20,7 +21,10 @@ export async function end(
   const endpoint = settings.get("endpoint");
   headers.set("Authorization", `Bearer ${apiKey}`);
 
-  const url = `${endpoint}/dialogue/${input.id}/end`;
+  let url = `${endpoint}/dialogue/${input.id}/end`;
+  if (input.namespace) {
+    url += `?namespace=${encodeURIComponent(input.namespace)}`;
+  }
 
   return apiRequest<IDialogue>(
     url,

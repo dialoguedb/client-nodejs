@@ -75,6 +75,28 @@ describe("dialogue.end", () => {
     expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
   });
 
+  it("should include namespace query param when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const input = { id: "dialogue-123", namespace: "my-namespace" };
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({});
+
+    await end(input, settings);
+
+    expect(apiRequestMock).toHaveBeenCalledWith(
+      `${endpoint}/dialogue/dialogue-123/end?namespace=my-namespace`,
+      {
+        method: "put",
+        headers: expect.any(Headers),
+      },
+      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
+    );
+  });
+
   it("should handle API errors", async () => {
     const settings = new SettingsContainer();
     settings.set("apiKey", "key");

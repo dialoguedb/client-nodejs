@@ -49,12 +49,14 @@ describe("messages.list", () => {
     const result = await list(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    const expectedParams = new URLSearchParams();
+    expectedParams.set("dialogueId", dialogueId);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages`,
+      `${endpoint}/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
-        params: new URLSearchParams(),
+        params: expectedParams,
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
@@ -87,9 +89,10 @@ describe("messages.list", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     const expectedParams = new URLSearchParams();
+    expectedParams.set("dialogueId", dialogueId);
     expectedParams.set("limit", "5");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages`,
+      `${endpoint}/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -124,9 +127,10 @@ describe("messages.list", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     const expectedParams = new URLSearchParams();
+    expectedParams.set("dialogueId", dialogueId);
     expectedParams.set("next", "pagination-token-abc");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages`,
+      `${endpoint}/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -162,10 +166,11 @@ describe("messages.list", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     const expectedParams = new URLSearchParams();
+    expectedParams.set("dialogueId", dialogueId);
     expectedParams.set("limit", "10");
     expectedParams.set("next", "token-xyz");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}/messages`,
+      `${endpoint}/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -173,6 +178,24 @@ describe("messages.list", () => {
       },
       { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
     );
+  });
+
+  it("should include namespace in params when provided", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list({ dialogueId, namespace: "my-namespace" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const params = callArgs[1].params as URLSearchParams;
+    expect(params.get("dialogueId")).toBe(dialogueId);
+    expect(params.get("namespace")).toBe("my-namespace");
   });
 
   it("should use default settings when none provided", async () => {

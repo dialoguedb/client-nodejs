@@ -42,6 +42,7 @@ export type CreateDialogueInput = {
 
 export type UpdateDialogueInput = {
   id: string;
+  namespace?: string;
   label?: string;
   messages?: Omit<CreateMessageInput, "dialogueId">[];
   message?: Omit<CreateMessageInput, "dialogueId">;
@@ -51,6 +52,7 @@ export type UpdateDialogueInput = {
 
 export type GetDialogueInput = {
   id: string;
+  namespace?: string;
 };
 
 export type DeleteDialogueInput = GetDialogueInput;
