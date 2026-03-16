@@ -276,7 +276,12 @@ describe("Message", () => {
         modified: new Date().toISOString(),
       });
 
-      const message = new Message(dialogueId, createMockMessage({ id }), undefined, { namespace });
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ id }),
+        undefined,
+        { namespace }
+      );
       message.tags = ["updated"];
       await message.save();
 
@@ -341,7 +346,12 @@ describe("Message", () => {
 
       (messageApi.remove as jest.Mock).mockResolvedValueOnce({});
 
-      const message = new Message(dialogueId, createMockMessage({ id }), undefined, { namespace });
+      const message = new Message(
+        dialogueId,
+        createMockMessage({ id }),
+        undefined,
+        { namespace }
+      );
       await message.remove();
 
       expect(messageApi.remove).toHaveBeenCalledWith(

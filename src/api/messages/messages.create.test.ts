@@ -94,7 +94,9 @@ describe("messages.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/messages?dialogueId=${dialogueId}&namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/messages?dialogueId=${dialogueId}&namespace=my-namespace`
+    );
   });
 
   it("should create messages with full payload", async () => {

@@ -149,7 +149,9 @@ describe("message.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/message?dialogueId=${dialogueId}&namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/message?dialogueId=${dialogueId}&namespace=my-namespace`
+    );
   });
 
   it("should set Authorization header correctly", async () => {

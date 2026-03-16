@@ -89,10 +89,15 @@ describe("message.update", () => {
 
     apiRequestMock.mockResolvedValueOnce({});
 
-    await update({ dialogueId, id: messageId, namespace: "my-namespace", tags: ["test"] }, settings);
+    await update(
+      { dialogueId, id: messageId, namespace: "my-namespace", tags: ["test"] },
+      settings
+    );
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
+    );
   });
 
   it("should update message with empty tags array", async () => {

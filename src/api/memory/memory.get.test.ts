@@ -84,7 +84,9 @@ describe("memory.get", () => {
     await get({ id: memoryId, namespace: "my-namespace" }, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryId}?namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/memory/${memoryId}?namespace=my-namespace`
+    );
   });
 
   it("should get memory with different id", async () => {

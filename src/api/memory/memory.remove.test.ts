@@ -77,7 +77,9 @@ describe("memory.remove", () => {
     await remove({ id: memoryId, namespace: "my-namespace" }, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryId}?namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/memory/${memoryId}?namespace=my-namespace`
+    );
   });
 
   it("should remove memory with different key", async () => {
