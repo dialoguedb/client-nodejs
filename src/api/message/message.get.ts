@@ -20,7 +20,7 @@ export async function get(
   if (input.namespace) {
     params.set("namespace", input.namespace);
   }
-  const url = `${endpoint}/message/${input.id}?${params.toString()}`;
+  const url = `${endpoint}/messages/${input.id}?${params.toString()}`;
 
   return apiRequest<IMessage>(
     url,
