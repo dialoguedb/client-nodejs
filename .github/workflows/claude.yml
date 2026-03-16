@@ -24,9 +24,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
-      issues: read
+      issues: write
       id-token: write
-      actions: read # Required for Claude to read CI results on PRs
+      actions: write
     timeout-minutes: 30
     steps:
       - name: Checkout repository
@@ -39,11 +39,24 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-
-          # This is an optional setting that allows Claude to read CI results on PRs
-          additional_permissions: |
-            actions: read
-
           claude_args: |
             --model ${{ env.CLAUDE_MODEL }}
-            --allowedTools "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*)"
+            --allowedTools "Bash(npm install),Bash(npm run build),Bash(npm run test:*),Bash(npm run lint:*),Bash(gh workflow run:*),Bash(gh issue comment:*)"
+
+          prompt: |
+            You are a conversational assistant on this repository (DialogueDB TypeScript SDK).
+            Answer questions, review code, and discuss issues.
+
+            ## Dispatching work
+
+            If someone asks you to **implement**, **fix**, **build**, or **work on** something on an issue,
+            dispatch it to the autonomous Claude Work workflow:
+
+            ```
+            gh workflow run claude-work.yml -f instruction="${{ github.event.issue.number }}"
+            ```
+
+            Then comment on the issue confirming:
+            > "I've kicked off Claude Work on this issue. It will create a branch, implement the changes, and open a PR."
+
+            Only dispatch when the user clearly wants implementation — not for questions or discussion.

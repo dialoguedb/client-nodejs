@@ -84,10 +84,15 @@ describe("memory.update", () => {
 
     apiRequestMock.mockResolvedValueOnce({});
 
-    await update({ id: memoryId, namespace: "my-namespace", tags: ["test"] }, settings);
+    await update(
+      { id: memoryId, namespace: "my-namespace", tags: ["test"] },
+      settings
+    );
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/memory/${memoryId}?namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/memory/${memoryId}?namespace=my-namespace`
+    );
   });
 
   it("should update memory with empty tags array", async () => {

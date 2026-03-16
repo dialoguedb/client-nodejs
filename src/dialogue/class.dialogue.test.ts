@@ -1545,7 +1545,9 @@ describe("Dialogue", () => {
         createMockMessage({ id: "msg-1" })
       );
 
-      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({ id: dialogueId })
+      );
       await dialogue.saveMessage({ role: "user", content: "test" });
 
       expect(messageApi.create).toHaveBeenCalledWith(
@@ -1561,7 +1563,9 @@ describe("Dialogue", () => {
         createMockMessage({ id: "msg-1" }),
       ]);
 
-      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({ id: dialogueId })
+      );
       await dialogue.saveMessages([{ role: "user", content: "test" }]);
 
       expect(messagesApi.create).toHaveBeenCalledWith(
@@ -1578,7 +1582,9 @@ describe("Dialogue", () => {
         next: undefined,
       });
 
-      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({ id: dialogueId })
+      );
       await dialogue.loadMessages({ limit: 50 });
 
       expect(messagesApi.list).toHaveBeenCalledWith(
@@ -1595,7 +1601,9 @@ describe("Dialogue", () => {
         createMockMessage({ id: messageId })
       );
 
-      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({ id: dialogueId })
+      );
       await dialogue.getMessage(messageId);
 
       expect(messageApi.get).toHaveBeenCalledWith(
@@ -1681,8 +1689,13 @@ describe("Dialogue", () => {
         createMockMessage({ id: messageId, tags: ["updated"] })
       );
 
-      const dialogue = new Dialogue(createNamespacedDialogue({ id: dialogueId }));
-      const message = await dialogue.saveMessage({ role: "user", content: "test" });
+      const dialogue = new Dialogue(
+        createNamespacedDialogue({ id: dialogueId })
+      );
+      const message = await dialogue.saveMessage({
+        role: "user",
+        content: "test",
+      });
 
       // Verify the Message instance has namespace by triggering save
       message.tags = ["updated"];

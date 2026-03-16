@@ -55,10 +55,15 @@ describe("message.remove", () => {
 
     apiRequestMock.mockResolvedValueOnce(undefined);
 
-    await remove({ dialogueId, id: messageId, namespace: "my-namespace" }, settings);
+    await remove(
+      { dialogueId, id: messageId, namespace: "my-namespace" },
+      settings
+    );
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
+    );
   });
 
   it("should throw error for invalid input - missing dialogueId", async () => {

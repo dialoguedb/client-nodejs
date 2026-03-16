@@ -34,7 +34,7 @@ export class Message {
     dialogueId: string,
     message: IMessage,
     settings?: SettingsContainer | Partial<Settings>,
-    options?: MessageOptions & { namespace?: string },
+    options?: MessageOptions & { namespace?: string }
   ) {
     this.#settings = useSettings(settings);
     this.#onRemoved = options?.onRemoved;
@@ -43,7 +43,7 @@ export class Message {
     if (!dialogueId || typeof dialogueId !== "string") {
       throw errors.invalidParameter(
         "dialogueId",
-        "is required and must be a string",
+        "is required and must be a string"
       );
     }
     this.#dialogueId = dialogueId;
@@ -154,7 +154,7 @@ export class Message {
         tags: this.#tags,
         ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       },
-      this.#settings,
+      this.#settings
     );
 
     this.#tags = updated.tags ?? [];
@@ -168,7 +168,7 @@ export class Message {
         id: this.id,
         ...(this.#namespace !== undefined && { namespace: this.#namespace }),
       },
-      this.#settings,
+      this.#settings
     );
     this.#onRemoved?.();
   }
