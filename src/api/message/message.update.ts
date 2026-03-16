@@ -26,7 +26,7 @@ export async function update(
   if (namespace) {
     params.set("namespace", namespace);
   }
-  const url = `${endpoint}/messages/${id}?${params.toString()}`;
+  const url = `${endpoint}/message/${id}?${params.toString()}`;
 
   return apiRequest<IMessage>(
     url,
