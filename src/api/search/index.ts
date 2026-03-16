@@ -16,6 +16,8 @@ export interface SearchFilterOptions {
 
 export interface SearchOptions {
   limit?: number;
+  namespace?: string;
+  tags?: string[];
   filter?: SearchFilterOptions;
   metadata?: Record<string, any>;
 }

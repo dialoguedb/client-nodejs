@@ -36,40 +36,50 @@ describe("useDialogue", () => {
     expect(() => assertDialogue(dialogue)).not.toThrow();
   });
 
-  it("will throw DialogueDBError if given id that does not exist (null response)", async () => {
+  it("will create dialogue when given id that does not exist (null response)", async () => {
     const id = "non-existing-item-id";
     apiGetMock.mockResolvedValue(null);
+    createDialogueMock.mockResolvedValueOnce({ id });
 
-    await expect(getOrCreateDialogue({ id })).rejects.toThrow(
-      `Dialogue with id "${id}" not found`
+    const dialogue = await getOrCreateDialogue({ id });
+    expect(createDialogueMock).toHaveBeenCalledTimes(1);
+    expect(createDialogueMock).toHaveBeenCalledWith({ id }, expect.anything());
+    expect(dialogue.id).toBe(id);
+    apiGetMock.mockReset();
+  });
+
+  it("will create dialogue when get throws (not found)", async () => {
+    const id = "some-id";
+    apiGetMock.mockRejectedValue(
+      new DialogueDBError("Not found", "NOT_FOUND", "NOT_FOUND", 404)
     );
-    await expect(getOrCreateDialogue({ id })).rejects.toBeInstanceOf(
-      DialogueDBError
+    createDialogueMock.mockResolvedValueOnce({ id });
+
+    const dialogue = await getOrCreateDialogue({ id });
+    expect(createDialogueMock).toHaveBeenCalledTimes(1);
+    expect(dialogue.id).toBe(id);
+    apiGetMock.mockReset();
+  });
+
+  it("will re-throw non-404 errors from get", async () => {
+    const id = "some-id";
+    apiGetMock.mockRejectedValue(
+      new DialogueDBError("Internal error", "SERVER_ERROR", "SERVER", 500)
     );
+
+    await expect(getOrCreateDialogue({ id })).rejects.toThrow(DialogueDBError);
     expect(createDialogueMock).toHaveBeenCalledTimes(0);
     apiGetMock.mockReset();
   });
 
-  it("will throw when API returns response with empty id", async () => {
-    const id = "some-id";
-    apiGetMock.mockResolvedValue({ id: "" });
-
-    await expect(getOrCreateDialogue({ id })).rejects.toThrow(
-      `Dialogue with id "${id}" not found`
-    );
-    await expect(getOrCreateDialogue({ id })).rejects.toBeInstanceOf(
-      DialogueDBError
-    );
-    apiGetMock.mockReset();
-  });
-
-  it("will throw when API returns response with no id field", async () => {
+  it("will create dialogue when API returns response with no id field", async () => {
     const id = "some-id";
     apiGetMock.mockResolvedValueOnce({ status: "active" });
+    createDialogueMock.mockResolvedValueOnce({ id });
 
-    await expect(getOrCreateDialogue({ id })).rejects.toThrow(
-      `Dialogue with id "${id}" not found`
-    );
+    const dialogue = await getOrCreateDialogue({ id });
+    expect(createDialogueMock).toHaveBeenCalledTimes(1);
+    expect(dialogue.id).toBe(id);
   });
 
   it("will use existing item if found by id", async () => {
