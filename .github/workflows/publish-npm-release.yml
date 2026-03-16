@@ -14,6 +14,17 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:
+      - name: Validate Publisher
+        run: |
+          ALLOWED_PUBLISHERS="gregreindel"
+          if [[ ! ",$ALLOWED_PUBLISHERS," =~ ",${{ github.actor }}," ]]; then
+            echo "Error: User ${{ github.actor }} is not authorized to publish packages"
+            echo "Allowed publishers: $ALLOWED_PUBLISHERS"
+            exit 1
+          fi
+          echo "User ${{ github.actor }} is authorized to publish"
+      
+
       - uses: actions/checkout@v4
       
       - name: Prerequisites for tests
