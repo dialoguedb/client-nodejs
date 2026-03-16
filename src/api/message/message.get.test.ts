@@ -43,7 +43,7 @@ describe("message.get", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages/${messageId}?dialogueId=${dialogueId}`,
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -70,7 +70,7 @@ describe("message.get", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/messages/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
+      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
     );
   });
 
