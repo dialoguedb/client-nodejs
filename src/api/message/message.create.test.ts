@@ -41,7 +41,7 @@ describe("message.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/message?dialogueId=${dialogueId}`,
+      `${endpoint}/messages?dialogueId=${dialogueId}`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -150,7 +150,7 @@ describe("message.create", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/message?dialogueId=${dialogueId}&namespace=my-namespace`
+      `${endpoint}/messages?dialogueId=${dialogueId}&namespace=my-namespace`
     );
   });
 
