@@ -275,6 +275,9 @@ export class Dialogue {
 
     const newMessage = this.#createMessage(created);
     this.#messages.push(newMessage);
+    if (this.#totalMessages !== undefined) {
+      this.#totalMessages++;
+    }
 
     return newMessage;
   }
@@ -305,6 +308,9 @@ export class Dialogue {
       this.#createMessage(created)
     );
     this.#messages.push(...newMessages);
+    if (this.#totalMessages !== undefined) {
+      this.#totalMessages += newMessages.length;
+    }
     return newMessages;
   }
 
