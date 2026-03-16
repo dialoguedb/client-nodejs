@@ -43,9 +43,17 @@ export class DialogueDB {
   /**
    * Get an existing dialogue by ID
    */
-  getDialogue(id: string, namespace?: string): Promise<Dialogue | null> {
+  getDialogue(
+    id: string,
+    options?: { namespace?: string }
+  ): Promise<Dialogue | null> {
     return getDialogue(
-      { id, ...(namespace !== undefined && { namespace }) },
+      {
+        id,
+        ...(options?.namespace !== undefined && {
+          namespace: options.namespace,
+        }),
+      },
       this.#settings
     );
   }
@@ -71,9 +79,17 @@ export class DialogueDB {
   /**
    * Delete a dialogue by ID
    */
-  async deleteDialogue(id: string, namespace?: string): Promise<void> {
+  async deleteDialogue(
+    id: string,
+    options?: { namespace?: string }
+  ): Promise<void> {
     return dialogueApi.remove(
-      { id, ...(namespace !== undefined && { namespace }) },
+      {
+        id,
+        ...(options?.namespace !== undefined && {
+          namespace: options.namespace,
+        }),
+      },
       this.#settings
     );
   }
@@ -88,9 +104,17 @@ export class DialogueDB {
   /**
    * Get an existing memory by id
    */
-  getMemory(id: string, namespace?: string): Promise<Memory | null> {
+  getMemory(
+    id: string,
+    options?: { namespace?: string }
+  ): Promise<Memory | null> {
     return getMemory(
-      { id, ...(namespace !== undefined && { namespace }) },
+      {
+        id,
+        ...(options?.namespace !== undefined && {
+          namespace: options.namespace,
+        }),
+      },
       this.#settings
     );
   }
@@ -105,9 +129,17 @@ export class DialogueDB {
   /**
    * Delete a memory by id
    */
-  async deleteMemory(id: string, namespace?: string): Promise<void> {
+  async deleteMemory(
+    id: string,
+    options?: { namespace?: string }
+  ): Promise<void> {
     return memoryApi.remove(
-      { id, ...(namespace !== undefined && { namespace }) },
+      {
+        id,
+        ...(options?.namespace !== undefined && {
+          namespace: options.namespace,
+        }),
+      },
       this.#settings
     );
   }

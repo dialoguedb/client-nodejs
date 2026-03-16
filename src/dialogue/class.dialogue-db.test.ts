@@ -141,7 +141,7 @@ describe("DialogueDB", () => {
       getDialogueMock.mockResolvedValueOnce(mockDialogue);
 
       const db = new DialogueDB();
-      await db.getDialogue("found-id", "my-ns");
+      await db.getDialogue("found-id", { namespace: "my-ns" });
 
       expect(getDialogueMock).toHaveBeenCalledWith(
         { id: "found-id", namespace: "my-ns" },
@@ -226,7 +226,7 @@ describe("DialogueDB", () => {
       getMemoryMock.mockResolvedValueOnce(mockMemory);
 
       const db = new DialogueDB();
-      await db.getMemory("found-key", "my-ns");
+      await db.getMemory("found-key", { namespace: "my-ns" });
 
       expect(getMemoryMock).toHaveBeenCalledWith(
         { id: "found-key", namespace: "my-ns" },
@@ -480,7 +480,7 @@ describe("DialogueDB", () => {
       dialogueRemoveMock.mockResolvedValueOnce(undefined);
 
       const db = new DialogueDB();
-      await db.deleteDialogue("dialogue-123", "my-ns");
+      await db.deleteDialogue("dialogue-123", { namespace: "my-ns" });
 
       expect(dialogueRemoveMock).toHaveBeenCalledWith(
         { id: "dialogue-123", namespace: "my-ns" },
@@ -533,7 +533,7 @@ describe("DialogueDB", () => {
       memoryRemoveMock.mockResolvedValueOnce(undefined);
 
       const db = new DialogueDB();
-      await db.deleteMemory("memory-123", "my-ns");
+      await db.deleteMemory("memory-123", { namespace: "my-ns" });
 
       expect(memoryRemoveMock).toHaveBeenCalledWith(
         { id: "memory-123", namespace: "my-ns" },
