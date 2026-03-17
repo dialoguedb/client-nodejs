@@ -50,9 +50,16 @@ describe("DialogueDB", () => {
   });
 
   describe("constructor", () => {
-    it("should create instance without settings", () => {
-      const db = new DialogueDB();
-      expect(db).toBeInstanceOf(DialogueDB);
+    it("should throw when no API key is available", () => {
+      expect(() => new DialogueDB()).toThrow("API key is required");
+    });
+
+    it("should throw when API key is empty string", () => {
+      expect(() => new DialogueDB({ apiKey: "" })).toThrow("API key is required");
+    });
+
+    it("should throw when API key is whitespace", () => {
+      expect(() => new DialogueDB({ apiKey: "   " })).toThrow("API key is required");
     });
 
     it("should create instance with settings object", () => {
@@ -76,7 +83,7 @@ describe("DialogueDB", () => {
       const mockDialogue = { id: "test-id" } as unknown as Dialogue;
       createDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.createDialogue();
 
       expect(createDialogueMock).toHaveBeenCalledTimes(1);
@@ -94,7 +101,7 @@ describe("DialogueDB", () => {
       } as unknown as Dialogue;
       createDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.createDialogue({
         namespace: "ns",
         metadata: { key: "value" },
@@ -125,7 +132,7 @@ describe("DialogueDB", () => {
       const mockDialogue = { id: "found-id" } as unknown as Dialogue;
       getDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getDialogue("found-id");
 
       expect(getDialogueMock).toHaveBeenCalledTimes(1);
@@ -140,7 +147,7 @@ describe("DialogueDB", () => {
       const mockDialogue = { id: "found-id" } as unknown as Dialogue;
       getDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.getDialogue("found-id", { namespace: "my-ns" });
 
       expect(getDialogueMock).toHaveBeenCalledWith(
@@ -152,7 +159,7 @@ describe("DialogueDB", () => {
     it("should return null when dialogue not found", async () => {
       getDialogueMock.mockResolvedValueOnce(null);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getDialogue("nonexistent");
 
       expect(result).toBeNull();
@@ -175,7 +182,7 @@ describe("DialogueDB", () => {
       const mockMemory = { id: "my-key" } as unknown as Memory;
       createMemoryMock.mockResolvedValueOnce(mockMemory);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.createMemory({
         id: "my-key",
         value: "test value",
@@ -210,7 +217,7 @@ describe("DialogueDB", () => {
       const mockMemory = { id: "found-key" } as unknown as Memory;
       getMemoryMock.mockResolvedValueOnce(mockMemory);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getMemory("found-key");
 
       expect(getMemoryMock).toHaveBeenCalledTimes(1);
@@ -225,7 +232,7 @@ describe("DialogueDB", () => {
       const mockMemory = { id: "found-key" } as unknown as Memory;
       getMemoryMock.mockResolvedValueOnce(mockMemory);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.getMemory("found-key", { namespace: "my-ns" });
 
       expect(getMemoryMock).toHaveBeenCalledWith(
@@ -237,7 +244,7 @@ describe("DialogueDB", () => {
     it("should return null when memory not found", async () => {
       getMemoryMock.mockResolvedValueOnce(null);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getMemory("nonexistent");
 
       expect(result).toBeNull();
@@ -260,7 +267,7 @@ describe("DialogueDB", () => {
       const mockDialogues = [{ id: "d1" }, { id: "d2" }] as Dialogue[];
       searchDialoguesMock.mockResolvedValueOnce(mockDialogues);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchDialogues("test query");
 
       expect(searchDialoguesMock).toHaveBeenCalledTimes(1);
@@ -276,7 +283,7 @@ describe("DialogueDB", () => {
       const mockDialogues = [] as Dialogue[];
       searchDialoguesMock.mockResolvedValueOnce(mockDialogues);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchDialogues("query", { limit: 10 });
 
       expect(searchDialoguesMock).toHaveBeenCalledWith(
@@ -308,7 +315,7 @@ describe("DialogueDB", () => {
       const mockMessages = [{ id: "m1" }, { id: "m2" }] as Message[];
       searchMessagesMock.mockResolvedValueOnce(mockMessages);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMessages("test query");
 
       expect(searchMessagesMock).toHaveBeenCalledTimes(1);
@@ -324,7 +331,7 @@ describe("DialogueDB", () => {
       const mockMessages = [] as Message[];
       searchMessagesMock.mockResolvedValueOnce(mockMessages);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMessages("query", { limit: 20 });
 
       expect(searchMessagesMock).toHaveBeenCalledWith(
@@ -352,7 +359,7 @@ describe("DialogueDB", () => {
       const mockMemories = [{ id: "k1" }, { id: "k2" }] as Memory[];
       searchMemoriesMock.mockResolvedValueOnce(mockMemories);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMemories("test query");
 
       expect(searchMemoriesMock).toHaveBeenCalledTimes(1);
@@ -368,7 +375,7 @@ describe("DialogueDB", () => {
       const mockMemories = [] as Memory[];
       searchMemoriesMock.mockResolvedValueOnce(mockMemories);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMemories("query", { limit: 15 });
 
       expect(searchMemoriesMock).toHaveBeenCalledWith(
@@ -398,7 +405,7 @@ describe("DialogueDB", () => {
       const mockResponse = { items: [], next: undefined };
       listDialoguesMock.mockResolvedValueOnce(mockResponse);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.listDialogues();
 
       expect(listDialoguesMock).toHaveBeenCalledWith(
@@ -412,7 +419,7 @@ describe("DialogueDB", () => {
       const mockResponse = { items: [{ id: "d1" }], next: "token" };
       listDialoguesMock.mockResolvedValueOnce(mockResponse);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.listDialogues({ limit: 10, threadOf: "parent" });
 
       expect(listDialoguesMock).toHaveBeenCalledWith(
@@ -438,7 +445,7 @@ describe("DialogueDB", () => {
       const mockDialogue = { id: "test-id" } as unknown as Dialogue;
       getOrCreateDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getOrCreateDialogue({ id: "test-id" });
 
       expect(getOrCreateDialogueMock).toHaveBeenCalledWith(
@@ -452,7 +459,7 @@ describe("DialogueDB", () => {
       const mockDialogue = { id: "new-id" } as unknown as Dialogue;
       getOrCreateDialogueMock.mockResolvedValueOnce(mockDialogue);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.getOrCreateDialogue();
 
       expect(getOrCreateDialogueMock).toHaveBeenCalledWith(
@@ -467,7 +474,7 @@ describe("DialogueDB", () => {
     it("should delete dialogue by id", async () => {
       dialogueRemoveMock.mockResolvedValueOnce(undefined);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.deleteDialogue("dialogue-123");
 
       expect(dialogueRemoveMock).toHaveBeenCalledWith(
@@ -479,7 +486,7 @@ describe("DialogueDB", () => {
     it("should delete dialogue by id with namespace", async () => {
       dialogueRemoveMock.mockResolvedValueOnce(undefined);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.deleteDialogue("dialogue-123", { namespace: "my-ns" });
 
       expect(dialogueRemoveMock).toHaveBeenCalledWith(
@@ -493,7 +500,7 @@ describe("DialogueDB", () => {
     it("should list memories with default empty input", async () => {
       memoryListMock.mockResolvedValueOnce({ items: [], next: undefined });
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.listMemories();
 
       expect(memoryListMock).toHaveBeenCalledWith(
@@ -506,7 +513,7 @@ describe("DialogueDB", () => {
     it("should list memories with filters", async () => {
       memoryListMock.mockResolvedValueOnce({ items: [{ id: "m1" }] });
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.listMemories({ limit: 10, namespace: "my-ns" });
 
       expect(memoryListMock).toHaveBeenCalledWith(
@@ -520,7 +527,7 @@ describe("DialogueDB", () => {
     it("should delete memory by id", async () => {
       memoryRemoveMock.mockResolvedValueOnce(undefined);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.deleteMemory("memory-123");
 
       expect(memoryRemoveMock).toHaveBeenCalledWith(
@@ -532,7 +539,7 @@ describe("DialogueDB", () => {
     it("should delete memory by id with namespace", async () => {
       memoryRemoveMock.mockResolvedValueOnce(undefined);
 
-      const db = new DialogueDB();
+      const db = new DialogueDB({ apiKey: "test-key" });
       await db.deleteMemory("memory-123", { namespace: "my-ns" });
 
       expect(memoryRemoveMock).toHaveBeenCalledWith(
