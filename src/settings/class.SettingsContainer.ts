@@ -36,7 +36,7 @@ export class SettingsContainer {
     const apiKey = this.#settings.apiKey;
     if (!apiKey || apiKey.trim() === "") {
       throw new Error(
-        "API key is required. Pass { apiKey: \"your-key\" } or set DIALOGUE_DB_API_KEY environment variable."
+        'API key is required. Pass { apiKey: "your-key" } or set DIALOGUE_DB_API_KEY environment variable.'
       );
     }
   }

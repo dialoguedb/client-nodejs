@@ -55,11 +55,15 @@ describe("DialogueDB", () => {
     });
 
     it("should throw when API key is empty string", () => {
-      expect(() => new DialogueDB({ apiKey: "" })).toThrow("API key is required");
+      expect(() => new DialogueDB({ apiKey: "" })).toThrow(
+        "API key is required"
+      );
     });
 
     it("should throw when API key is whitespace", () => {
-      expect(() => new DialogueDB({ apiKey: "   " })).toThrow("API key is required");
+      expect(() => new DialogueDB({ apiKey: "   " })).toThrow(
+        "API key is required"
+      );
     });
 
     it("should create instance with settings object", () => {
