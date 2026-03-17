@@ -31,6 +31,7 @@ export class DialogueDB {
 
   constructor(settings?: SettingsContainer | Partial<Settings>) {
     this.#settings = useSettings(settings);
+    this.#settings.assertApiKey();
   }
 
   /**
