@@ -31,6 +31,14 @@ export class DialogueDB {
 
   constructor(settings?: SettingsContainer | Partial<Settings>) {
     this.#settings = useSettings(settings);
+    if (settings && typeof settings === "object" && "apiKey" in settings) {
+      const apiKey = (settings as Partial<Settings>).apiKey;
+      if (typeof apiKey === "string" && apiKey.trim() === "") {
+        throw new Error(
+          "API key cannot be empty. Pass a valid key or set DIALOGUE_DB_API_KEY environment variable."
+        );
+      }
+    }
   }
 
   /**
