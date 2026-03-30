@@ -99,12 +99,16 @@ describe("SettingsContainer", () => {
     });
 
     it("appends version path to custom endpoint", () => {
-      const settings = new SettingsContainer({ endpoint: "https://custom.example.com" });
+      const settings = new SettingsContainer({
+        endpoint: "https://custom.example.com",
+      });
       expect(settings.getApiUrl()).toBe("https://custom.example.com/api/v1");
     });
 
     it("handles trailing slash on endpoint", () => {
-      const settings = new SettingsContainer({ endpoint: "https://custom.example.com/" });
+      const settings = new SettingsContainer({
+        endpoint: "https://custom.example.com/",
+      });
       expect(settings.getApiUrl()).toBe("https://custom.example.com/api/v1");
     });
 
