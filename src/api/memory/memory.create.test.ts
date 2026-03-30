@@ -17,6 +17,7 @@ jest.mock("@/settings", () => {
       if (key === "retryMaxTimeout") return 10000;
       return undefined;
     }),
+    getApiUrl: jest.fn(() => "https://global.example.com/api/v1"),
     getRetryConfig: jest.fn(() => ({
       retries: 3,
       retryMinTimeout: 1000,
@@ -60,7 +61,7 @@ describe("memory.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory`,
+      `${endpoint}/api/v1/memory`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -171,7 +172,7 @@ describe("memory.create", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      "https://global.example.com/memory",
+      "https://global.example.com/api/v1/memory",
       expect.objectContaining({
         method: "post",
       }),

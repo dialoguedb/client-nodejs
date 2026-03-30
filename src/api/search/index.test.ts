@@ -17,6 +17,7 @@ jest.mock("@/settings", () => {
       if (key === "retryMaxTimeout") return 10000;
       return undefined;
     }),
+    getApiUrl: jest.fn(() => "https://global.example.com/api/v1"),
     getRetryConfig: jest.fn(() => ({
       retries: 3,
       retryMinTimeout: 1000,
@@ -73,7 +74,7 @@ describe("search", () => {
     expectedParams.set("query", "test search");
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/search`,
+      `${endpoint}/api/v1/search`,
       {
         method: "POST",
         headers: expect.any(Headers),
@@ -103,7 +104,7 @@ describe("search", () => {
     await search(filters, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/search`,
+      `${endpoint}/api/v1/search`,
       {
         method: "POST",
         headers: expect.any(Headers),
@@ -133,7 +134,7 @@ describe("search", () => {
     await search(filters, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/search`,
+      `${endpoint}/api/v1/search`,
       {
         method: "POST",
         headers: expect.any(Headers),
@@ -174,7 +175,7 @@ describe("search", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      "https://global.example.com/search",
+      "https://global.example.com/api/v1/search",
       expect.objectContaining({ method: "POST" }),
       expect.any(Object)
     );

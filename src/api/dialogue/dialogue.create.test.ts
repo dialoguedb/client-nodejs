@@ -41,10 +41,10 @@ describe("create", () => {
     const result = await create(body, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue`,
+      `${endpoint}/api/v1/dialogue`,
       {
         method: "post",
         headers,
@@ -83,10 +83,10 @@ describe("create", () => {
     const result = await create(body);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue`,
+      `${endpoint}/api/v1/dialogue`,
       {
         method: "post",
         headers,

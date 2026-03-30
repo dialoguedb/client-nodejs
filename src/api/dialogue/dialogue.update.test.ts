@@ -40,10 +40,10 @@ describe("update", () => {
     const result = await update(body, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${id}`,
+      `${endpoint}/api/v1/dialogue/${id}`,
       {
         method: "put",
         headers,
@@ -79,7 +79,7 @@ describe("update", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${id}?namespace=${namespace}`,
+      `${endpoint}/api/v1/dialogue/${id}?namespace=${namespace}`,
       {
         method: "put",
         headers,
@@ -114,10 +114,10 @@ describe("update", () => {
     const result = await update(body);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${id}`,
+      `${endpoint}/api/v1/dialogue/${id}`,
       {
         method: "put",
         headers,

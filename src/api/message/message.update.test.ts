@@ -17,6 +17,7 @@ jest.mock("@/settings", () => {
       if (key === "retryMaxTimeout") return 10000;
       return undefined;
     }),
+    getApiUrl: jest.fn(() => "https://global.example.com/api/v1"),
     getRetryConfig: jest.fn(() => ({
       retries: 3,
       retryMinTimeout: 1000,
@@ -68,7 +69,7 @@ describe("message.update", () => {
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
+      `${endpoint}/api/v1/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -96,7 +97,7 @@ describe("message.update", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
+      `${endpoint}/api/v1/message/${messageId}?dialogueId=${dialogueId}&namespace=my-namespace`
     );
   });
 
@@ -127,7 +128,7 @@ describe("message.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
+      `${endpoint}/api/v1/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -162,7 +163,7 @@ describe("message.update", () => {
 
     expect(result).toEqual(mockResponse);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`,
+      `${endpoint}/api/v1/message/${messageId}?dialogueId=${dialogueId}`,
       {
         method: "put",
         headers: expect.any(Headers),
@@ -214,7 +215,7 @@ describe("message.update", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/message/${messageId}?dialogueId=${dialogueId}`
+      `${endpoint}/api/v1/message/${messageId}?dialogueId=${dialogueId}`
     );
   });
 
@@ -229,7 +230,7 @@ describe("message.update", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `https://global.example.com/message/${messageId}?dialogueId=${dialogueId}`,
+      `https://global.example.com/api/v1/message/${messageId}?dialogueId=${dialogueId}`,
       expect.objectContaining({ method: "put" }),
       expect.any(Object)
     );
