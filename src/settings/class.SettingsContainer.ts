@@ -46,7 +46,8 @@ export class SettingsContainer {
 
   /** Returns the full API base URL with version path (e.g. https://api.dialoguedb.com/api/v1) */
   getApiUrl(): string {
-    return `${this.#settings.endpoint}${API_VERSION_PATH}`;
+    const base = this.#settings.endpoint.replace(/\/+$/, "");
+    return `${base}${API_VERSION_PATH}`;
   }
   has(key: keyof Settings) {
     const val = this.get(key);

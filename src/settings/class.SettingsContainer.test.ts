@@ -92,6 +92,29 @@ describe("SettingsContainer", () => {
     });
   });
 
+  describe("getApiUrl()", () => {
+    it("returns default endpoint with version path", () => {
+      const settings = new SettingsContainer();
+      expect(settings.getApiUrl()).toBe("https://api.dialoguedb.com/api/v1");
+    });
+
+    it("appends version path to custom endpoint", () => {
+      const settings = new SettingsContainer({ endpoint: "https://custom.example.com" });
+      expect(settings.getApiUrl()).toBe("https://custom.example.com/api/v1");
+    });
+
+    it("handles trailing slash on endpoint", () => {
+      const settings = new SettingsContainer({ endpoint: "https://custom.example.com/" });
+      expect(settings.getApiUrl()).toBe("https://custom.example.com/api/v1");
+    });
+
+    it("reflects endpoint changes via set()", () => {
+      const settings = new SettingsContainer();
+      settings.set("endpoint", "https://eu.api.dialoguedb.com");
+      expect(settings.getApiUrl()).toBe("https://eu.api.dialoguedb.com/api/v1");
+    });
+  });
+
   describe("getRetryConfig()", () => {
     it("returns retry config object", () => {
       const settings = new SettingsContainer({
