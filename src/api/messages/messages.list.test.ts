@@ -52,7 +52,7 @@ describe("messages.list", () => {
     const expectedParams = new URLSearchParams();
     expectedParams.set("dialogueId", dialogueId);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages`,
+      `${endpoint}/api/v1/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -92,7 +92,7 @@ describe("messages.list", () => {
     expectedParams.set("dialogueId", dialogueId);
     expectedParams.set("limit", "5");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages`,
+      `${endpoint}/api/v1/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -130,7 +130,7 @@ describe("messages.list", () => {
     expectedParams.set("dialogueId", dialogueId);
     expectedParams.set("next", "pagination-token-abc");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages`,
+      `${endpoint}/api/v1/messages`,
       {
         method: "get",
         headers: expect.any(Headers),
@@ -170,7 +170,7 @@ describe("messages.list", () => {
     expectedParams.set("limit", "10");
     expectedParams.set("next", "token-xyz");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages`,
+      `${endpoint}/api/v1/messages`,
       {
         method: "get",
         headers: expect.any(Headers),

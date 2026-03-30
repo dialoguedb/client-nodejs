@@ -46,7 +46,7 @@ export async function list(
   const params = prepareQuery(filters);
 
   const apiKey = settings.get("apiKey");
-  const endpoint = settings.get("endpoint");
+  const endpoint = settings.getApiUrl();
 
   const headers = new Headers();
   headers.set("Authorization", `Bearer ${apiKey}`);

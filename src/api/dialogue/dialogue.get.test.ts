@@ -39,10 +39,10 @@ describe("get", () => {
     const result = await get({ id: body.id }, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/get-item-id`,
+      `${endpoint}/api/v1/dialogue/get-item-id`,
       {
         method: "get",
         headers,
@@ -77,10 +77,10 @@ describe("get", () => {
     const result = await get({ id: body.id }, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/get-item-id`,
+      `${endpoint}/api/v1/dialogue/get-item-id`,
       {
         method: "get",
         headers,
@@ -114,7 +114,7 @@ describe("get", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/get-item-id?namespace=${namespace}`,
+      `${endpoint}/api/v1/dialogue/get-item-id?namespace=${namespace}`,
       {
         method: "get",
         headers,
@@ -148,10 +148,10 @@ describe("get", () => {
     const result = await get({ id: body.id });
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/get-item-id`,
+      `${endpoint}/api/v1/dialogue/get-item-id`,
       {
         method: "get",
         headers,

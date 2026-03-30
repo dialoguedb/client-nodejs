@@ -17,6 +17,7 @@ jest.mock("@/settings", () => {
       if (key === "retryMaxTimeout") return 10000;
       return undefined;
     }),
+    getApiUrl: jest.fn(() => "https://global.example.com/api/v1"),
     getRetryConfig: jest.fn(() => ({
       retries: 3,
       retryMinTimeout: 1000,
@@ -64,7 +65,7 @@ describe("messages.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/messages?dialogueId=${dialogueId}`,
+      `${endpoint}/api/v1/messages?dialogueId=${dialogueId}`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -95,7 +96,7 @@ describe("messages.create", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/messages?dialogueId=${dialogueId}&namespace=my-namespace`
+      `${endpoint}/api/v1/messages?dialogueId=${dialogueId}&namespace=my-namespace`
     );
   });
 
@@ -187,7 +188,9 @@ describe("messages.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/messages?dialogueId=${dialogueId}`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/api/v1/messages?dialogueId=${dialogueId}`
+    );
   });
 
   it("should create multiple messages at once", async () => {
@@ -238,7 +241,7 @@ describe("messages.create", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `https://global.example.com/messages?dialogueId=${dialogueId}`,
+      `https://global.example.com/api/v1/messages?dialogueId=${dialogueId}`,
       expect.objectContaining({ method: "post" }),
       expect.any(Object)
     );

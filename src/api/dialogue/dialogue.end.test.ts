@@ -33,7 +33,7 @@ describe("dialogue.end", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/dialogue-123/end`,
+      `${endpoint}/api/v1/dialogue/dialogue-123/end`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -89,7 +89,7 @@ describe("dialogue.end", () => {
     await end(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/dialogue-123/end?namespace=my-namespace`,
+      `${endpoint}/api/v1/dialogue/dialogue-123/end?namespace=my-namespace`,
       {
         method: "post",
         headers: expect.any(Headers),
