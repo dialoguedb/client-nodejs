@@ -188,7 +188,9 @@ describe("messages.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/api/v1/messages?dialogueId=${dialogueId}`);
+    expect(callArgs[0]).toBe(
+      `${endpoint}/api/v1/messages?dialogueId=${dialogueId}`
+    );
   });
 
   it("should create multiple messages at once", async () => {
