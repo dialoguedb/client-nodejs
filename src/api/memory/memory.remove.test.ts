@@ -17,6 +17,7 @@ jest.mock("@/settings", () => {
       if (key === "retryMaxTimeout") return 10000;
       return undefined;
     }),
+    getApiUrl: jest.fn(() => "https://global.example.com/api/v1"),
     getRetryConfig: jest.fn(() => ({
       retries: 3,
       retryMinTimeout: 1000,
@@ -55,7 +56,7 @@ describe("memory.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryId}`,
+      `${endpoint}/api/v1/memory/${memoryId}`,
       {
         method: "delete",
         headers: expect.any(Headers),
@@ -78,7 +79,7 @@ describe("memory.remove", () => {
 
     const callArgs = apiRequestMock.mock.calls[0];
     expect(callArgs[0]).toBe(
-      `${endpoint}/memory/${memoryId}?namespace=my-namespace`
+      `${endpoint}/api/v1/memory/${memoryId}?namespace=my-namespace`
     );
   });
 
@@ -100,7 +101,7 @@ describe("memory.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryId}`,
+      `${endpoint}/api/v1/memory/${memoryId}`,
       {
         method: "delete",
         headers: expect.any(Headers),
@@ -148,7 +149,7 @@ describe("memory.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory/${memoryId}`,
+      `${endpoint}/api/v1/memory/${memoryId}`,
       {
         method: "delete",
         headers: expect.any(Headers),
@@ -176,7 +177,7 @@ describe("memory.remove", () => {
 
     expect(getConfigMock).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledWith(
-      "https://global.example.com/memory/test-key",
+      "https://global.example.com/api/v1/memory/test-key",
       expect.objectContaining({ method: "delete" }),
       expect.any(Object)
     );

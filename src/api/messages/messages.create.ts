@@ -13,7 +13,7 @@ export async function create(
 ) {
   const headers = new Headers();
   const apiKey = settings.get("apiKey");
-  const endpoint = settings.get("endpoint");
+  const endpoint = settings.getApiUrl();
   headers.set("Authorization", `Bearer ${apiKey}`);
 
   const params = new URLSearchParams();

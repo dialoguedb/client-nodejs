@@ -33,7 +33,7 @@ describe("dialogue.remove", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}`,
+      `${endpoint}/api/v1/dialogue/${dialogueId}`,
       {
         method: "delete",
         headers: expect.any(Headers),
@@ -87,7 +87,7 @@ describe("dialogue.remove", () => {
     await remove(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/dialogue/dialogue-abc`);
+    expect(callArgs[0]).toBe(`${endpoint}/api/v1/dialogue/dialogue-abc`);
   });
 
   it("should include namespace query param when provided", async () => {
@@ -109,7 +109,7 @@ describe("dialogue.remove", () => {
     await remove(input, settings);
 
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue/${dialogueId}?namespace=${namespace}`,
+      `${endpoint}/api/v1/dialogue/${dialogueId}?namespace=${namespace}`,
       {
         method: "delete",
         headers: expect.any(Headers),

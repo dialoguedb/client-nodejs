@@ -40,10 +40,10 @@ describe("list", () => {
     const results = await list({}, settings);
 
     expect(spyList).toHaveBeenCalledWith("apiKey");
-    expect(spyList).toHaveBeenCalledWith("endpoint");
+    expect(spyList).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue`,
+      `${endpoint}/api/v1/dialogue`,
       {
         method: "get",
         headers,
@@ -79,12 +79,12 @@ describe("list", () => {
     const results = await list({ limit: 2 }, settings);
 
     expect(spyList).toHaveBeenCalledWith("apiKey");
-    expect(spyList).toHaveBeenCalledWith("endpoint");
+    expect(spyList).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     const expectedParams = new URLSearchParams();
     expectedParams.set("limit", "2");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/dialogue`,
+      `${endpoint}/api/v1/dialogue`,
       {
         method: "get",
         headers,

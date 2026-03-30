@@ -41,7 +41,7 @@ describe("message.create", () => {
 
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/message`,
+      `${endpoint}/api/v1/message`,
       {
         method: "post",
         headers: expect.any(Headers),
@@ -150,7 +150,7 @@ describe("message.create", () => {
     await create(input, settings);
 
     const callArgs = apiRequestMock.mock.calls[0];
-    expect(callArgs[0]).toBe(`${endpoint}/message`);
+    expect(callArgs[0]).toBe(`${endpoint}/api/v1/message`);
     const body = JSON.parse(callArgs[1].body);
     expect(body.dialogueId).toBe(dialogueId);
     expect(body.namespace).toBe("my-namespace");

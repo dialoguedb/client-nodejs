@@ -1,5 +1,5 @@
 import { getEnvironmentVariable } from "@/utils/getEnvironmentVariable";
-import { API_URL, API_KEY_ENV_NAME } from "@/const";
+import { API_URL, API_KEY_ENV_NAME, API_VERSION_PATH } from "@/const";
 import type { RetryConfig } from "@/utils/request";
 
 export interface Settings {
@@ -42,6 +42,12 @@ export class SettingsContainer {
   }
   get<K extends keyof Settings>(key: K): Settings[K] {
     return this.#settings[key];
+  }
+
+  /** Returns the full API base URL with version path (e.g. https://api.dialoguedb.com/api/v1) */
+  getApiUrl(): string {
+    const base = this.#settings.endpoint.replace(/\/+$/, "");
+    return `${base}${API_VERSION_PATH}`;
   }
   has(key: keyof Settings) {
     const val = this.get(key);

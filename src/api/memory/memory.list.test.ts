@@ -42,10 +42,10 @@ describe("memory.list", () => {
     const results = await list({}, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory`,
+      `${endpoint}/api/v1/memory`,
       {
         method: "get",
         headers,
@@ -79,13 +79,13 @@ describe("memory.list", () => {
     const results = await list({ limit: 5 }, settings);
 
     expect(spyGet).toHaveBeenCalledWith("apiKey");
-    expect(spyGet).toHaveBeenCalledWith("endpoint");
+    expect(spyGet).toHaveBeenCalled();
     expect(apiRequestMock).toHaveBeenCalledTimes(1);
 
     const expectedParams = new URLSearchParams();
     expectedParams.set("limit", "5");
     expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/memory`,
+      `${endpoint}/api/v1/memory`,
       {
         method: "get",
         headers,
