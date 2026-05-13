@@ -73,8 +73,22 @@ jobs:
         if: steps.check-fix.outputs.already_fixed == 'false'
         run: npm ci
 
-      - name: Fix review feedback
+      - name: Verify PR still open
         if: steps.check-fix.outputs.already_fixed == 'false'
+        id: verify
+        env:
+          GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+        run: |
+          STATE=$(gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+          if [ "$STATE" = "OPEN" ]; then
+            echo "is_open=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_open=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PR #${{ github.event.pull_request.number }} is $STATE — skipping LLM"
+          fi
+
+      - name: Fix review feedback
+        if: steps.check-fix.outputs.already_fixed == 'false' && steps.verify.outputs.is_open == 'true'
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}

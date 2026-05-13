@@ -24,7 +24,7 @@ export async function getOrCreateDialogue(
         return new Dialogue(res, settings);
       }
     } catch (error) {
-      if (error instanceof DialogueDBError && error.type === "NOT_FOUND") {
+      if (error instanceof DialogueDBError && error.type === "not_found") {
         // Dialogue not found — fall through to create
       } else {
         throw error;

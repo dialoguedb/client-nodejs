@@ -24,7 +24,7 @@ export const errors = {
     new DialogueDBError(
       `${param} is required`,
       "MISSING_PARAMETER",
-      "VALIDATION",
+      "validation_error",
       400,
       undefined,
       [{ field: param, code: "REQUIRED", message: `${param} is required` }]
@@ -41,7 +41,7 @@ export const errors = {
     new DialogueDBError(
       `Invalid ${param}: ${reason}`,
       "INVALID_PARAMETER",
-      "VALIDATION",
+      "validation_error",
       400,
       undefined,
       [{ field: param, code: "INVALID", message: reason, value }]
@@ -57,7 +57,7 @@ export const errors = {
     new DialogueDBError(
       message,
       "VALIDATION_ERROR",
-      "VALIDATION",
+      "validation_error",
       400,
       undefined,
       details
@@ -70,7 +70,7 @@ export const errors = {
     new DialogueDBError(
       `${method}() is not yet implemented`,
       "NOT_IMPLEMENTED",
-      "SERVER",
+      "server_error",
       501
     ),
 };

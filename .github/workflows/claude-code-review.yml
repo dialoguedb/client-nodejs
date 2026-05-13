@@ -30,12 +30,25 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Verify PR still open
+        id: verify
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          STATE=$(gh pr view ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+          if [ "$STATE" = "OPEN" ]; then
+            echo "is_open=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_open=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PR #${{ github.event.pull_request.number }} is $STATE — skipping LLM"
+          fi
+
       - name: Run Claude Code Review
+        if: steps.verify.outputs.is_open == 'true'
         id: claude-review
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          review_mode: "true"
           track_progress: true
           claude_args: |
             --model ${{ env.CLAUDE_MODEL }}
