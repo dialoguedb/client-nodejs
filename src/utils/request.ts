@@ -11,7 +11,7 @@ const httpsAgent = new Agent({
 /**
  * Error types matching the DialogueDB API error responses
  */
-export type ErrorType =
+export type KnownErrorType =
   | "validation_error"
   | "authentication_error"
   | "authorization_error"
@@ -20,6 +20,11 @@ export type ErrorType =
   | "rate_limit_exceeded"
   | "server_error"
   | "service_unavailable";
+
+// `(string & {})` preserves autocomplete for KnownErrorType while allowing
+// any string at runtime, so a backend addition doesn't silently violate
+// the type contract.
+export type ErrorType = KnownErrorType | (string & {});
 
 /**
  * Structured error class for DialogueDB API errors.
