@@ -12,11 +12,14 @@ const httpsAgent = new Agent({
  * Error types matching the DialogueDB API error responses
  */
 export type ErrorType =
-  | "NOT_FOUND"
-  | "VALIDATION"
-  | "CONFLICT"
-  | "RATE_LIMIT"
-  | "SERVER";
+  | "validation_error"
+  | "authentication_error"
+  | "authorization_error"
+  | "not_found"
+  | "conflict"
+  | "rate_limit_exceeded"
+  | "server_error"
+  | "service_unavailable";
 
 /**
  * Structured error class for DialogueDB API errors.
@@ -104,7 +107,7 @@ export async function apiRequest<T extends Record<string, any> | null>(
     } catch (error: unknown) {
       // Network error (DNS failure, connection refused, timeout, etc.)
       const message = error instanceof Error ? error.message : "Network error";
-      throw new DialogueDBError(message, "NETWORK_ERROR", "SERVER", 0);
+      throw new DialogueDBError(message, "NETWORK_ERROR", "server_error", 0);
     }
 
     if (!response.ok) {
@@ -121,7 +124,7 @@ export async function apiRequest<T extends Record<string, any> | null>(
       throw new DialogueDBError(
         err.message || response.statusText || "Request failed",
         err.code ?? "UNKNOWN_ERROR",
-        err.type ?? "SERVER",
+        err.type ?? "server_error",
         response.status,
         err.requestId,
         err.details

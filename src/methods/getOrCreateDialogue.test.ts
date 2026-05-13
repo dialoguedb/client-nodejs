@@ -51,7 +51,7 @@ describe("useDialogue", () => {
   it("will create dialogue when get throws (not found)", async () => {
     const id = "some-id";
     apiGetMock.mockRejectedValue(
-      new DialogueDBError("Not found", "NOT_FOUND", "NOT_FOUND", 404)
+      new DialogueDBError("Not found", "DIALOGUE_NOT_FOUND", "not_found", 404)
     );
     createDialogueMock.mockResolvedValueOnce({ id });
 
@@ -64,7 +64,7 @@ describe("useDialogue", () => {
   it("will re-throw non-404 errors from get", async () => {
     const id = "some-id";
     apiGetMock.mockRejectedValue(
-      new DialogueDBError("Internal error", "SERVER_ERROR", "SERVER", 500)
+      new DialogueDBError("Internal error", "SERVER_ERROR", "server_error", 500)
     );
 
     await expect(getOrCreateDialogue({ id })).rejects.toThrow(DialogueDBError);
