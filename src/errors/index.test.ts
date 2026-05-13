@@ -8,7 +8,7 @@ describe("errors factory", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("userId is required");
       expect(error.code).toBe("MISSING_PARAMETER");
-      expect(error.type).toBe("VALIDATION");
+      expect(error.type).toBe("validation_error");
       expect(error.statusCode).toBe(400);
       expect(error.details).toEqual([
         { field: "userId", code: "REQUIRED", message: "userId is required" },
@@ -27,7 +27,7 @@ describe("errors factory", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("Invalid limit: must be a positive integer");
       expect(error.code).toBe("INVALID_PARAMETER");
-      expect(error.type).toBe("VALIDATION");
+      expect(error.type).toBe("validation_error");
       expect(error.statusCode).toBe(400);
       expect(error.details).toEqual([
         {
@@ -62,7 +62,7 @@ describe("errors factory", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("Multiple validation errors occurred");
       expect(error.code).toBe("VALIDATION_ERROR");
-      expect(error.type).toBe("VALIDATION");
+      expect(error.type).toBe("validation_error");
       expect(error.statusCode).toBe(400);
       expect(error.details).toBeUndefined();
     });
@@ -95,7 +95,7 @@ describe("errors factory", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       expect(error.message).toBe("compact() is not yet implemented");
       expect(error.code).toBe("NOT_IMPLEMENTED");
-      expect(error.type).toBe("SERVER");
+      expect(error.type).toBe("server_error");
       expect(error.statusCode).toBe(501);
     });
   });

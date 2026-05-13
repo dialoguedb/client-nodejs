@@ -47,7 +47,7 @@ describe("apiRequest", () => {
       json: jest.fn().mockResolvedValue({
         error: {
           code: "DIALOGUE_NOT_FOUND",
-          type: "NOT_FOUND",
+          type: "not_found",
           message: "Dialogue not found",
           requestId: "req-123",
         },
@@ -65,7 +65,7 @@ describe("apiRequest", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       const dbError = error as DialogueDBError;
       expect(dbError.code).toBe("DIALOGUE_NOT_FOUND");
-      expect(dbError.type).toBe("NOT_FOUND");
+      expect(dbError.type).toBe("not_found");
       expect(dbError.statusCode).toBe(404);
       expect(dbError.message).toBe("Dialogue not found");
       expect(dbError.requestId).toBe("req-123");
@@ -81,7 +81,7 @@ describe("apiRequest", () => {
       json: jest.fn().mockResolvedValue({
         error: {
           code: "INTERNAL_ERROR",
-          type: "SERVER",
+          type: "server_error",
           message: "Something went wrong",
         },
       }),
@@ -110,7 +110,7 @@ describe("apiRequest", () => {
       json: jest.fn().mockResolvedValue({
         error: {
           code: "RATE_LIMIT_EXCEEDED",
-          type: "RATE_LIMIT",
+          type: "rate_limit_exceeded",
           message: "Rate limit exceeded",
         },
       }),
@@ -143,7 +143,7 @@ describe("apiRequest", () => {
       expect(error).toBeInstanceOf(DialogueDBError);
       const dbError = error as DialogueDBError;
       expect(dbError.code).toBe("NETWORK_ERROR");
-      expect(dbError.type).toBe("SERVER");
+      expect(dbError.type).toBe("server_error");
       expect(dbError.statusCode).toBe(0);
       expect(dbError.message).toBe("Connection refused");
       expect(dbError.retryable).toBe(true); // Network errors are retryable
@@ -244,7 +244,7 @@ describe("apiRequest", () => {
         json: jest.fn().mockResolvedValue({
           error: {
             code: "RATE_LIMIT",
-            type: "RATE_LIMIT",
+            type: "rate_limit_exceeded",
             message: "Rate limited",
           },
         }),
@@ -279,7 +279,7 @@ describe("apiRequest", () => {
         json: jest.fn().mockResolvedValue({
           error: {
             code: "SERVER_ERROR",
-            type: "SERVER",
+            type: "server_error",
             message: "Internal error",
           },
         }),
@@ -307,7 +307,7 @@ describe("apiRequest", () => {
         json: jest.fn().mockResolvedValue({
           error: {
             code: "VALIDATION_ERROR",
-            type: "VALIDATION",
+            type: "validation_error",
             message: "Invalid input",
           },
         }),
@@ -335,7 +335,7 @@ describe("apiRequest", () => {
         json: jest.fn().mockResolvedValue({
           error: {
             code: "NOT_FOUND",
-            type: "NOT_FOUND",
+            type: "not_found",
             message: "Resource not found",
           },
         }),
@@ -473,7 +473,7 @@ describe("apiRequest", () => {
       ).rejects.toMatchObject({
         message: "Internal Server Error",
         code: "UNKNOWN_ERROR",
-        type: "SERVER",
+        type: "server_error",
         statusCode: 500,
       });
     });
@@ -496,7 +496,7 @@ describe("apiRequest", () => {
       ).rejects.toMatchObject({
         message: "Validation failed",
         code: "UNKNOWN_ERROR",
-        type: "SERVER",
+        type: "server_error",
         statusCode: 400,
         requestId: undefined,
         details: undefined,
@@ -517,7 +517,7 @@ describe("apiRequest", () => {
       ).rejects.toMatchObject({
         message: "Forbidden",
         code: "UNKNOWN_ERROR",
-        type: "SERVER",
+        type: "server_error",
       });
     });
 
@@ -552,7 +552,7 @@ describe("apiRequest", () => {
       ).rejects.toMatchObject({
         message: "Request failed",
         code: "UNKNOWN_ERROR",
-        type: "SERVER",
+        type: "server_error",
       });
     });
 
@@ -570,7 +570,7 @@ describe("apiRequest", () => {
       ).rejects.toMatchObject({
         message: "Internal Server Error",
         code: "UNKNOWN_ERROR",
-        type: "SERVER",
+        type: "server_error",
         statusCode: 500,
       });
     });

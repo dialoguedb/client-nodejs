@@ -47,7 +47,7 @@ describe("getDialogue", () => {
       new DialogueDBError(
         "Dialogue 'nonexistent' not found",
         "DIALOGUE_NOT_FOUND",
-        "NOT_FOUND",
+        "not_found",
         404
       )
     );
@@ -61,7 +61,7 @@ describe("getDialogue", () => {
       new DialogueDBError(
         "Internal server error",
         "INTERNAL_ERROR",
-        "SERVER",
+        "server_error",
         500
       )
     );
