@@ -21,12 +21,14 @@ jobs:
           repositories: hq
 
       - name: Trigger HQ
-        run: |
-          gh api repos/dialoguedb/hq/dispatches \
-            -f event_type=deployment \
-            --field client_payload='{"source":"client","version":"${{ github.event.release.tag_name }}"}'
         env:
           GH_TOKEN: ${{ steps.bot-token.outputs.token }}
+          VERSION: ${{ github.event.release.tag_name }}
+        run: |
+          jq -n --arg version "$VERSION" '{
+            event_type: "deployment",
+            client_payload: { source: "client", version: $version }
+          }' | gh api repos/dialoguedb/hq/dispatches --input -
 
   notify-issue-closed:
     if: github.event_name == 'issues' && contains(github.event.issue.body, 'Dispatched from')
@@ -53,6 +55,7 @@ jobs:
             echo "No HQ issue reference found"
             exit 0
           fi
-          gh api repos/dialoguedb/hq/dispatches \
-            -f event_type=issue-closed \
-            -f client_payload="{\"source\":\"$REPO\",\"issue_url\":\"$ISSUE_URL\",\"hq_issue\":\"$HQ_NUM\"}"
+          jq -n --arg repo "$REPO" --arg url "$ISSUE_URL" --arg hq "$HQ_NUM" '{
+            event_type: "issue-closed",
+            client_payload: { source: $repo, issue_url: $url, hq_issue: $hq }
+          }' | gh api repos/dialoguedb/hq/dispatches --input -
