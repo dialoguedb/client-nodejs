@@ -76,7 +76,9 @@ export function registerMessageCommands(program: Command): void {
         const raw = await readFile(opts.file, "utf8");
         const messages = parseJSON("file", raw);
         if (!Array.isArray(messages)) {
-          throw new Error(`--file must contain a JSON array, got ${typeof messages}`);
+          throw new Error(
+            `--file must contain a JSON array, got ${typeof messages}`
+          );
         }
         const saved = await d.saveMessages(messages as any);
         output(saved);

@@ -13,9 +13,7 @@ import {
 } from "./shared";
 
 export function registerDialogueCommands(program: Command): void {
-  const dialogue = program
-    .command("dialogue")
-    .description("Manage dialogues");
+  const dialogue = program.command("dialogue").description("Manage dialogues");
 
   dialogue
     .command("create")
@@ -176,7 +174,9 @@ export function registerDialogueCommands(program: Command): void {
           process.stderr.write(`Dialogue ${id} not found\n`);
           process.exit(1);
         }
-        await d.saveState(parseJSON("state", opts.state) as Record<string, any>);
+        await d.saveState(
+          parseJSON("state", opts.state) as Record<string, any>
+        );
         output(d.toJSON());
       })
     );
