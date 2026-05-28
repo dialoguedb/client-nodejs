@@ -1,11 +1,11 @@
 import { errors } from "@/errors";
-import { SearchInput } from "@/api/search";
+import { SearchInput } from "./index";
 import {
   isObjectLike,
   validateOrderField,
   validatePositiveIntField,
   validateStringField,
-} from "../validation.utils";
+} from "@/utils/validation";
 
 const SEARCH_OBJECTS = ["message", "dialogue", "memory"] as const;
 const ORDER_BY_VALUES = ["relevance", "created", "modified"] as const;
@@ -216,15 +216,38 @@ function validateMetadataOperatorObject(
     }
 
     const operand = value[key];
+    const operandField = `${field}.${key}`;
+
     if (key === "$in" || key === "$nin") {
       if (!Array.isArray(operand)) {
         throw errors.invalidParameter(
-          `${field}.${key}`,
+          operandField,
           "must be a non-empty array",
           operand
         );
       }
-      validateMetadataPrimitiveArray(`${field}.${key}`, operand);
+      validateMetadataPrimitiveArray(operandField, operand);
+      continue;
+    }
+
+    if (key === "$eq" || key === "$ne") {
+      if (!isMetadataPrimitive(operand)) {
+        throw errors.invalidParameter(
+          operandField,
+          "must be a string, number, or boolean",
+          operand
+        );
+      }
+      continue;
+    }
+
+    // $gt, $gte, $lt, $lte
+    if (typeof operand !== "number" && typeof operand !== "string") {
+      throw errors.invalidParameter(
+        operandField,
+        "must be a number or string",
+        operand
+      );
     }
   }
 }
@@ -284,7 +307,7 @@ export function validateSearchInput(input: SearchInput): void {
   }
 
   if (input.namespace !== undefined) {
-    validateStringField(input.namespace, "namespace");
+    validateStringField(input.namespace, "namespace", 1);
   }
 
   if (input.timezone !== undefined) {

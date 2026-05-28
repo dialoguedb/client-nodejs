@@ -1,6 +1,6 @@
 import { DialogueDBError } from "@/errors";
-import { validateSearchInput } from "./search";
-import { SearchInput } from "@/api/search";
+import { validateSearchInput } from "./validate";
+import { SearchInput } from "./index";
 
 const base: SearchInput = { query: "hello", object: "dialogue" };
 
@@ -275,6 +275,59 @@ describe("validateSearchInput", () => {
         { ...base, metadata: { tier: { $in: [null] } } as any },
         "metadata.tier.$in"
       );
+    });
+
+    describe("scalar metadata operators", () => {
+      it.each([
+        ["$eq", "pro"],
+        ["$ne", 1],
+        ["$gt", 5],
+        ["$gte", "2025-01-01"],
+        ["$lt", 100],
+        ["$lte", "z"],
+      ])("accepts valid %s operand", (op, operand) => {
+        expect(() =>
+          validateSearchInput({
+            ...base,
+            metadata: { tier: { [op]: operand } } as any,
+          })
+        ).not.toThrow();
+      });
+
+      it.each([
+        ["$eq", null],
+        ["$eq", {}],
+        ["$eq", [1, 2, 3]],
+        ["$ne", null],
+        ["$ne", undefined],
+        ["$ne", [{}]],
+      ])("rejects non-primitive operand for %s", (op, operand) => {
+        expectInvalid(
+          {
+            ...base,
+            metadata: { tier: { [op]: operand } } as any,
+          },
+          `metadata.tier.${op}`
+        );
+      });
+
+      it.each([
+        ["$gt", null],
+        ["$gt", true],
+        ["$gt", {}],
+        ["$gt", [1, 2, 3]],
+        ["$gte", false],
+        ["$lt", null],
+        ["$lte", []],
+      ])("rejects non-number/string operand for %s", (op, operand) => {
+        expectInvalid(
+          {
+            ...base,
+            metadata: { tier: { [op]: operand } } as any,
+          },
+          `metadata.tier.${op}`
+        );
+      });
     });
   });
 });

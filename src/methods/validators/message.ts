@@ -10,7 +10,7 @@ import {
   validateTagsField,
   validateMetadataField,
   validateCreatedField,
-} from "../validation.utils";
+} from "@/utils/validation";
 import { isPlainObject } from "@/utils/lodash";
 
 function validateContentField(content: unknown): void {

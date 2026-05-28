@@ -2,7 +2,7 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { IMessage } from "@/types";
-import { validateSearchInput } from "@/methods/validators/search";
+import { validateSearchInput } from "./validate";
 
 export type SearchObject = "message" | "dialogue" | "memory";
 export type SearchOrderBy = "relevance" | "created" | "modified";
