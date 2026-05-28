@@ -36,7 +36,26 @@ export type {
 
 export type { ListResponse } from "./types/utils";
 
-export type { SearchFilterOptions, SearchOptions } from "./api/search";
+export type {
+  SearchObject,
+  SearchOrder,
+  SearchOrderBy,
+  SearchTagOperators,
+  SearchTagsValue,
+  SearchMetadataScalar,
+  SearchMetadataScalarArray,
+  SearchMetadataOperators,
+  SearchMetadataValue,
+  SearchDateRangeOperators,
+  SearchDateFilterValue,
+  SearchFilterOptions,
+  SearchOptions,
+  SearchInput,
+  SearchMatchEnvelope,
+  SearchResultEnvelope,
+  SearchRequestEcho,
+  SearchResponse,
+} from "./api/search";
 
 export type { Settings } from "./settings/class.SettingsContainer";
 

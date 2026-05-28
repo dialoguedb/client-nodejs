@@ -2,7 +2,7 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { IMessage, CreateMessageInput } from "@/types";
-import { validateCreateMessageInput } from "@/methods/validators";
+import { validateCreateMessageInput } from "./validate";
 
 export async function create(
   input: CreateMessageInput,

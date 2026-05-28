@@ -1,6 +1,6 @@
-import { isProbablyISOString } from "./validation.utils";
+import { isProbablyISOString } from "./validation";
 
-describe("validation.utils", () => {
+describe("validation", () => {
   describe("isProbablyISOString", () => {
     it("should return true for valid ISO 8601 string", () => {
       expect(isProbablyISOString("2024-01-01T00:00:00.000Z")).toBe(true);

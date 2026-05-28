@@ -2,7 +2,7 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { DeleteDialogueInput } from "@/types";
-import { validateGetDialogueInput } from "@/methods/validators";
+import { validateGetDialogueInput } from "./validate";
 
 export async function remove(
   input: DeleteDialogueInput,
