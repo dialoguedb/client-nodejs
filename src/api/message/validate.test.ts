@@ -3,7 +3,7 @@ import {
   validateCreateMessageInput,
   validateGetMessageInput,
   validateListMessageFilters,
-} from "./message";
+} from "./validate";
 
 describe("validateCreateMessageInput", () => {
   const validInput = {

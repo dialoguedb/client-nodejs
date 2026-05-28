@@ -2,7 +2,7 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { IDialogue, GetDialogueInput } from "@/types/index";
 import { getConfig } from "@/settings";
-import { validateGetDialogueInput } from "@/methods/validators";
+import { validateGetDialogueInput } from "./validate";
 
 export async function get(
   input: GetDialogueInput,

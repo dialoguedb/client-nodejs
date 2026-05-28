@@ -4,7 +4,7 @@ import {
   validateUpdateDialogueInput,
   validateGetDialogueInput,
   validateListDialogueFilters,
-} from "./dialogue";
+} from "./validate";
 
 describe("validateCreateDialogueInput", () => {
   it("accepts empty input", () => {

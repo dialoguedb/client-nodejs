@@ -2,7 +2,7 @@ import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { DeleteMessageInput } from "@/types";
-import { validateGetMessageInput } from "@/methods/validators";
+import { validateGetMessageInput } from "./validate";
 
 export async function remove(
   input: DeleteMessageInput,
