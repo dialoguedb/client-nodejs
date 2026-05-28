@@ -1,10 +1,10 @@
 import { Command } from "commander";
 import { createDialogue } from "../methods/createDialogue";
-import { getDialogue } from "../methods/getDialogue";
 import { getOrCreateDialogue } from "../methods/getOrCreateDialogue";
 import { listDialogues } from "../methods/listDialogues";
 import * as dialogueApi from "../api/dialogue";
 import {
+  loadDialogueOrExit,
   output,
   parseCSV,
   parseIntStrict,
@@ -51,14 +51,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const d = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!d) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const d = await loadDialogueOrExit(id, opts.namespace);
         output(d.toJSON());
       })
     );
@@ -127,14 +120,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const d = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!d) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const d = await loadDialogueOrExit(id, opts.namespace);
         await d.end();
         output(d.toJSON());
       })
@@ -146,14 +132,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const d = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!d) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const d = await loadDialogueOrExit(id, opts.namespace);
         const result = await d.compact();
         output(result);
       })
@@ -166,14 +145,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const d = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!d) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const d = await loadDialogueOrExit(id, opts.namespace);
         await d.saveState(
           parseJSON("state", opts.state) as Record<string, any>
         );
@@ -188,14 +160,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const d = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!d) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const d = await loadDialogueOrExit(id, opts.namespace);
         await d.saveTags(parseCSV(opts.tags));
         output(d.toJSON());
       })
@@ -208,14 +173,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const parent = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!parent) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const parent = await loadDialogueOrExit(id, opts.namespace);
         const thread = await parent.createThread({
           ...(opts.label && { label: opts.label }),
         });
@@ -229,14 +187,7 @@ export function registerDialogueCommands(program: Command): void {
     .option("--namespace <namespace>", "Namespace")
     .action(
       withErrorHandler(async (id: string, opts) => {
-        const parent = await getDialogue({
-          id,
-          ...(opts.namespace && { namespace: opts.namespace }),
-        });
-        if (!parent) {
-          process.stderr.write(`Dialogue ${id} not found\n`);
-          process.exit(1);
-        }
+        const parent = await loadDialogueOrExit(id, opts.namespace);
         const threads = await parent.getThreads();
         output(threads.map((t) => t.toJSON()));
       })

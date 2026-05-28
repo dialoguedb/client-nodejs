@@ -3,6 +3,9 @@ import { defineConfig } from "tsup";
 import { chmod } from "fs/promises";
 import { join } from "path";
 
+// Order matters: the SDK entry (clean: true) wipes dist/ first,
+// then the CLI entry (clean: false) appends cli.js into the cleaned dir.
+// Reordering would cause the CLI output to be deleted by the SDK build.
 export default defineConfig([
   {
     entry: ["src/index.ts"],

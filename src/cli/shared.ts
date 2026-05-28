@@ -1,4 +1,5 @@
 import { DialogueDBError } from "../errors";
+import { getDialogue } from "../methods/getDialogue";
 
 export function parseJSON(label: string, raw: string): unknown {
   try {
@@ -17,19 +18,36 @@ export function parseCSV(raw: string): string[] {
 }
 
 export function parseIntStrict(label: string, raw: string): number {
-  const n = parseInt(raw, 10);
-  if (Number.isNaN(n)) {
+  const n = Number(raw);
+  if (!Number.isInteger(n)) {
     throw new Error(`--${label} must be an integer, got "${raw}"`);
   }
   return n;
 }
 
 export async function readStdin(): Promise<string> {
+  if (process.stdin.isTTY) {
+    throw new Error(
+      "--stdin was passed but stdin is a terminal (no piped input detected)"
+    );
+  }
   const chunks: Buffer[] = [];
   for await (const chunk of process.stdin) {
     chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
   return Buffer.concat(chunks).toString("utf8");
+}
+
+export async function loadDialogueOrExit(id: string, namespace?: string) {
+  const d = await getDialogue({
+    id,
+    ...(namespace && { namespace }),
+  });
+  if (!d) {
+    process.stderr.write(`Dialogue ${id} not found\n`);
+    process.exit(1);
+  }
+  return d;
 }
 
 export async function resolveContent(opts: {

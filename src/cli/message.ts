@@ -1,25 +1,14 @@
 import { Command } from "commander";
 import { readFile } from "node:fs/promises";
-import { getDialogue } from "../methods/getDialogue";
 import {
+  loadDialogueOrExit,
   output,
+  parseCSV,
   parseIntStrict,
   parseJSON,
   resolveContent,
   withErrorHandler,
 } from "./shared";
-
-async function loadDialogueOrExit(id: string, namespace?: string) {
-  const d = await getDialogue({
-    id,
-    ...(namespace && { namespace }),
-  });
-  if (!d) {
-    process.stderr.write(`Dialogue ${id} not found\n`);
-    process.exit(1);
-  }
-  return d;
-}
 
 export function registerMessageCommands(program: Command): void {
   const message = program
@@ -54,9 +43,7 @@ export function registerMessageCommands(program: Command): void {
           role: opts.role,
           content: content as any,
           ...(opts.name && { name: opts.name }),
-          ...(opts.tags && {
-            tags: opts.tags.split(",").map((s: string) => s.trim()),
-          }),
+          ...(opts.tags && { tags: parseCSV(opts.tags) }),
         });
         output(msg);
       })
