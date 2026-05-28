@@ -53,7 +53,11 @@ function rejectDeprecatedFilterKeys(filter: Record<string, unknown>): void {
 
 function validateTagArray(field: string, arr: unknown): void {
   if (!Array.isArray(arr)) {
-    throw errors.invalidParameter(field, "must be an array of non-empty strings", arr);
+    throw errors.invalidParameter(
+      field,
+      "must be an array of non-empty strings",
+      arr
+    );
   }
   if (arr.length === 0) {
     throw errors.invalidParameter(field, "must not be empty", arr);
@@ -132,7 +136,11 @@ function validateDateFilterValue(field: string, value: unknown): void {
     }
     const bound = (value as Record<string, unknown>)[key];
     if (typeof bound !== "string") {
-      throw errors.invalidParameter(`${field}.${key}`, "must be a string", bound);
+      throw errors.invalidParameter(
+        `${field}.${key}`,
+        "must be a string",
+        bound
+      );
     }
   }
 }
@@ -197,7 +205,9 @@ function validateMetadataOperatorObject(
   }
 
   for (const key of keys) {
-    if (!METADATA_OPERATORS.includes(key as (typeof METADATA_OPERATORS)[number])) {
+    if (
+      !METADATA_OPERATORS.includes(key as (typeof METADATA_OPERATORS)[number])
+    ) {
       throw errors.invalidParameter(
         `${field}.${key}`,
         `unknown metadata operator — allowed: ${METADATA_OPERATORS.join(", ")}`,

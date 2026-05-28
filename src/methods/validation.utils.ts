@@ -74,17 +74,11 @@ export function validateOrderField(order: unknown, field = "order"): void {
 }
 
 export function validatePositiveIntField(value: unknown, field: string): void {
-  if (
-    typeof value !== "number" ||
-    !Number.isInteger(value) ||
-    value < 1
-  ) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
     throw errors.invalidParameter(field, "must be a positive integer", value);
   }
 }
 
-export function isObjectLike(
-  value: unknown
-): value is Record<string, unknown> {
+export function isObjectLike(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

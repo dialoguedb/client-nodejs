@@ -63,7 +63,10 @@ describe("search api", () => {
 
   describe("request", () => {
     it("posts to /search with body and Bearer auth", async () => {
-      const settings = makeSettings("test-api-key-123", "https://api.example.com");
+      const settings = makeSettings(
+        "test-api-key-123",
+        "https://api.example.com"
+      );
       const input: SearchInput = { query: "billing", object: "dialogue" };
 
       apiRequestMock.mockResolvedValueOnce(buildEmptyResponse());
@@ -92,7 +95,9 @@ describe("search api", () => {
         namespace: "ns",
         timezone: "America/Chicago",
         tags: { $all: ["urgent", "billing"] },
-        filter: { created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" } },
+        filter: {
+          created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" },
+        },
         metadata: { tier: { $in: ["pro", "enterprise"] } },
         orderBy: "created",
         order: "asc",
@@ -140,7 +145,10 @@ describe("search api", () => {
           order: "desc",
           candidateOrderBy: "relevance",
           filter: {
-            created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" },
+            created: {
+              gte: "2025-03-01T00:00:00Z",
+              lt: "2025-04-01T00:00:00Z",
+            },
           },
         },
       };

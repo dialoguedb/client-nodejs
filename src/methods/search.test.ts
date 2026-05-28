@@ -22,7 +22,10 @@ const baseRequest = {
   candidateOrderBy: "relevance" as const,
 };
 
-const wrap = <T>(results: { object: any; relevance: number; item: T; matches?: any[] }[], request = baseRequest) => ({
+const wrap = <T>(
+  results: { object: any; relevance: number; item: T; matches?: any[] }[],
+  request = baseRequest
+) => ({
   results,
   request,
 });
@@ -117,7 +120,9 @@ describe("search methods (wrapper shape)", () => {
         limit: 10,
         timezone: "America/Chicago",
         tags: { $all: ["urgent", "billing"] },
-        filter: { created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" } },
+        filter: {
+          created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" },
+        },
         metadata: { tier: { $in: ["pro", "enterprise"] } },
         orderBy: "created",
         order: "asc",
@@ -130,7 +135,12 @@ describe("search methods (wrapper shape)", () => {
           limit: 10,
           timezone: "America/Chicago",
           tags: { $all: ["urgent", "billing"] },
-          filter: { created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" } },
+          filter: {
+            created: {
+              gte: "2025-03-01T00:00:00Z",
+              lt: "2025-04-01T00:00:00Z",
+            },
+          },
           metadata: { tier: { $in: ["pro", "enterprise"] } },
           orderBy: "created",
           order: "asc",
@@ -152,15 +162,15 @@ describe("search methods (wrapper shape)", () => {
 
     it("surfaces request.filter echo when server reports NL parsing", async () => {
       searchMock.mockResolvedValueOnce(
-        wrap(
-          [],
-          {
-            ...baseRequest,
-            filter: {
-              created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" },
+        wrap([], {
+          ...baseRequest,
+          filter: {
+            created: {
+              gte: "2025-03-01T00:00:00Z",
+              lt: "2025-04-01T00:00:00Z",
             },
-          } as any
-        )
+          },
+        } as any)
       );
 
       const response = await searchDialogues("q", {

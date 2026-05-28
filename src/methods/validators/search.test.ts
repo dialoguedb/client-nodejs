@@ -151,7 +151,9 @@ describe("validateSearchInput", () => {
 
   describe("tags shape", () => {
     it("accepts string array", () => {
-      expect(() => validateSearchInput({ ...base, tags: ["a", "b"] })).not.toThrow();
+      expect(() =>
+        validateSearchInput({ ...base, tags: ["a", "b"] })
+      ).not.toThrow();
     });
 
     it("accepts operator object", () => {
