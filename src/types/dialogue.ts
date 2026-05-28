@@ -20,7 +20,7 @@ export interface IDialogue {
   state?: Record<string, any>;
   messages?: IMessage[];
 
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean | string[]>;
   tags: string[];
 
   created: string;
@@ -36,7 +36,7 @@ export type CreateDialogueInput = {
   message?: Omit<CreateMessageInput, "dialogueId">;
   created?: string;
   state?: Record<string, any>;
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean | string[]>;
   tags?: string[];
 };
 

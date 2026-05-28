@@ -66,3 +66,25 @@ export function validateCreatedField(created: unknown): void {
     );
   }
 }
+
+export function validateOrderField(order: unknown, field = "order"): void {
+  if (order !== "asc" && order !== "desc") {
+    throw errors.invalidParameter(field, "must be 'asc' or 'desc'", order);
+  }
+}
+
+export function validatePositiveIntField(value: unknown, field: string): void {
+  if (
+    typeof value !== "number" ||
+    !Number.isInteger(value) ||
+    value < 1
+  ) {
+    throw errors.invalidParameter(field, "must be a positive integer", value);
+  }
+}
+
+export function isObjectLike(
+  value: unknown
+): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

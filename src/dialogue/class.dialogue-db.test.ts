@@ -266,10 +266,28 @@ describe("DialogueDB", () => {
     });
   });
 
+  const baseRequest = {
+    orderBy: "relevance" as const,
+    order: "desc" as const,
+    candidateOrderBy: "relevance" as const,
+  };
+
+  const wrap = <T>(items: T[]) => ({
+    results: items.map((item, i) => ({
+      object: "dialogue" as const,
+      relevance: 1 - i * 0.1,
+      item,
+    })),
+    request: baseRequest,
+  });
+
   describe("searchDialogues", () => {
-    it("should search dialogues with query", async () => {
-      const mockDialogues = [{ id: "d1" }, { id: "d2" }] as Dialogue[];
-      searchDialoguesMock.mockResolvedValueOnce(mockDialogues);
+    it("should search dialogues with query and return wrapper", async () => {
+      const mockResponse = wrap<Dialogue>([
+        { id: "d1" } as Dialogue,
+        { id: "d2" } as Dialogue,
+      ]);
+      searchDialoguesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchDialogues("test query");
@@ -280,12 +298,14 @@ describe("DialogueDB", () => {
         {},
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockDialogues);
+      expect(result).toBe(mockResponse);
+      expect(result.request).toEqual(baseRequest);
+      expect(result.results.map((r) => r.item.id)).toEqual(["d1", "d2"]);
     });
 
     it("should search dialogues with options", async () => {
-      const mockDialogues = [] as Dialogue[];
-      searchDialoguesMock.mockResolvedValueOnce(mockDialogues);
+      const mockResponse = wrap<Dialogue>([]);
+      searchDialoguesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchDialogues("query", { limit: 10 });
@@ -295,13 +315,14 @@ describe("DialogueDB", () => {
         { limit: 10 },
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockDialogues);
+      expect(result).toBe(mockResponse);
+      expect(result.results).toEqual([]);
     });
 
     it("should pass settings to searchDialogues", async () => {
       const settings = new SettingsContainer();
       settings.set("apiKey", "my-key");
-      searchDialoguesMock.mockResolvedValueOnce([]);
+      searchDialoguesMock.mockResolvedValueOnce(wrap<Dialogue>([]));
 
       const db = new DialogueDB(settings);
       await db.searchDialogues("query", { limit: 5 });
@@ -315,9 +336,21 @@ describe("DialogueDB", () => {
   });
 
   describe("searchMessages", () => {
-    it("should search messages with query", async () => {
-      const mockMessages = [{ id: "m1" }, { id: "m2" }] as Message[];
-      searchMessagesMock.mockResolvedValueOnce(mockMessages);
+    const wrapMessages = (items: Message[]) => ({
+      results: items.map((item, i) => ({
+        object: "message" as const,
+        relevance: 1 - i * 0.1,
+        item,
+      })),
+      request: baseRequest,
+    });
+
+    it("should search messages with query and return wrapper", async () => {
+      const mockResponse = wrapMessages([
+        { id: "m1" } as Message,
+        { id: "m2" } as Message,
+      ]);
+      searchMessagesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMessages("test query");
@@ -328,12 +361,13 @@ describe("DialogueDB", () => {
         {},
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockMessages);
+      expect(result).toBe(mockResponse);
+      expect(result.results.map((r) => r.item.id)).toEqual(["m1", "m2"]);
     });
 
     it("should search messages with options", async () => {
-      const mockMessages = [] as Message[];
-      searchMessagesMock.mockResolvedValueOnce(mockMessages);
+      const mockResponse = wrapMessages([]);
+      searchMessagesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMessages("query", { limit: 20 });
@@ -343,13 +377,13 @@ describe("DialogueDB", () => {
         { limit: 20 },
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockMessages);
+      expect(result).toBe(mockResponse);
     });
 
     it("should pass settings to searchMessages", async () => {
       const settings = new SettingsContainer();
       settings.set("apiKey", "my-key");
-      searchMessagesMock.mockResolvedValueOnce([]);
+      searchMessagesMock.mockResolvedValueOnce(wrapMessages([]));
 
       const db = new DialogueDB(settings);
       await db.searchMessages("query");
@@ -359,9 +393,21 @@ describe("DialogueDB", () => {
   });
 
   describe("searchMemories", () => {
-    it("should search memories with query", async () => {
-      const mockMemories = [{ id: "k1" }, { id: "k2" }] as Memory[];
-      searchMemoriesMock.mockResolvedValueOnce(mockMemories);
+    const wrapMemories = (items: Memory[]) => ({
+      results: items.map((item, i) => ({
+        object: "memory" as const,
+        relevance: 1 - i * 0.1,
+        item,
+      })),
+      request: baseRequest,
+    });
+
+    it("should search memories with query and return wrapper", async () => {
+      const mockResponse = wrapMemories([
+        { id: "k1" } as Memory,
+        { id: "k2" } as Memory,
+      ]);
+      searchMemoriesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMemories("test query");
@@ -372,12 +418,13 @@ describe("DialogueDB", () => {
         {},
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockMemories);
+      expect(result).toBe(mockResponse);
+      expect(result.results.map((r) => r.item.id)).toEqual(["k1", "k2"]);
     });
 
     it("should search memories with options", async () => {
-      const mockMemories = [] as Memory[];
-      searchMemoriesMock.mockResolvedValueOnce(mockMemories);
+      const mockResponse = wrapMemories([]);
+      searchMemoriesMock.mockResolvedValueOnce(mockResponse);
 
       const db = new DialogueDB({ apiKey: "test-key" });
       const result = await db.searchMemories("query", { limit: 15 });
@@ -387,13 +434,13 @@ describe("DialogueDB", () => {
         { limit: 15 },
         expect.any(SettingsContainer)
       );
-      expect(result).toBe(mockMemories);
+      expect(result).toBe(mockResponse);
     });
 
     it("should pass settings to searchMemories", async () => {
       const settings = new SettingsContainer();
       settings.set("apiKey", "my-key");
-      searchMemoriesMock.mockResolvedValueOnce([]);
+      searchMemoriesMock.mockResolvedValueOnce(wrapMemories([]));
 
       const db = new DialogueDB(settings);
       await db.searchMemories("query");

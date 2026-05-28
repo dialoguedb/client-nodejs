@@ -1,11 +1,16 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
 import { apiRequest } from "@/utils/request";
 import { getConfig } from "@/settings";
-import { search } from "./index";
+import { search, SearchInput, SearchResponse } from "./index";
+import { IMessage } from "@/types";
 
-jest.mock("@/utils/request", () => ({
-  apiRequest: jest.fn(),
-}));
+jest.mock("@/utils/request", () => {
+  const actual = jest.requireActual("@/utils/request");
+  return {
+    ...actual,
+    apiRequest: jest.fn(),
+  };
+});
 
 jest.mock("@/settings", () => {
   const mockSettings = {
@@ -29,156 +34,256 @@ jest.mock("@/settings", () => {
   };
 });
 
-describe("search", () => {
+const buildEmptyResponse = (): SearchResponse<unknown, IMessage> => ({
+  results: [],
+  request: {
+    orderBy: "relevance",
+    order: "desc",
+    candidateOrderBy: "relevance",
+  },
+});
+
+describe("search api", () => {
   const apiRequestMock = apiRequest as jest.Mock;
   const getConfigMock = getConfig as jest.Mock;
-  const consoleLogSpy = jest.spyOn(console, "log").mockImplementation();
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  afterAll(() => {
-    consoleLogSpy.mockRestore();
+  const makeSettings = (
+    apiKey = "my-api-key",
+    endpoint = "https://api.example.com"
+  ) => {
+    const s = new SettingsContainer();
+    s.set("apiKey", apiKey);
+    s.set("endpoint", endpoint);
+    return s;
+  };
+
+  describe("request", () => {
+    it("posts to /search with body and Bearer auth", async () => {
+      const settings = makeSettings("test-api-key-123", "https://api.example.com");
+      const input: SearchInput = { query: "billing", object: "dialogue" };
+
+      apiRequestMock.mockResolvedValueOnce(buildEmptyResponse());
+
+      await search(input, settings);
+
+      expect(apiRequestMock).toHaveBeenCalledTimes(1);
+      const [url, opts, retry] = apiRequestMock.mock.calls[0];
+      expect(url).toBe("https://api.example.com/api/v1/search");
+      expect(opts.method).toBe("POST");
+      expect(opts.headers.get("Authorization")).toBe("Bearer test-api-key-123");
+      expect(opts.body).toBe(JSON.stringify(input));
+      expect(retry).toEqual({
+        retries: 3,
+        retryMinTimeout: 1000,
+        retryMaxTimeout: 10000,
+      });
+    });
+
+    it("passes the new option fields through to the body", async () => {
+      const settings = makeSettings();
+      const input: SearchInput = {
+        query: "q",
+        object: "message",
+        limit: 5,
+        namespace: "ns",
+        timezone: "America/Chicago",
+        tags: { $all: ["urgent", "billing"] },
+        filter: { created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" } },
+        metadata: { tier: { $in: ["pro", "enterprise"] } },
+        orderBy: "created",
+        order: "asc",
+      };
+
+      apiRequestMock.mockResolvedValueOnce(buildEmptyResponse());
+
+      await search(input, settings);
+
+      const [, opts] = apiRequestMock.mock.calls[0];
+      expect(JSON.parse(opts.body)).toEqual(input);
+    });
+
+    it("falls back to global config when settings omitted", async () => {
+      apiRequestMock.mockResolvedValueOnce(buildEmptyResponse());
+
+      await search({ query: "q", object: "memory" });
+
+      expect(getConfigMock).toHaveBeenCalled();
+      const [url] = apiRequestMock.mock.calls[0];
+      expect(url).toBe("https://global.example.com/api/v1/search");
+    });
   });
 
-  it("should search with required fields", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test search",
-      object: "message" as const,
-    };
-
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
-
-    const mockResponse = {
-      items: [
-        {
-          id: "message-1",
-          content: "test search result",
+  describe("response shape", () => {
+    it("returns the wrapper response unmodified", async () => {
+      const settings = makeSettings();
+      const wireResponse: SearchResponse<unknown, IMessage> = {
+        results: [
+          {
+            object: "dialogue",
+            relevance: 0.87,
+            item: { id: "d1" },
+            matches: [
+              {
+                object: "message",
+                relevance: 0.91,
+                item: { id: "m1", dialogueId: "d1" } as IMessage,
+              },
+            ],
+          },
+        ],
+        request: {
+          orderBy: "relevance",
+          order: "desc",
+          candidateOrderBy: "relevance",
+          filter: {
+            created: { gte: "2025-03-01T00:00:00Z", lt: "2025-04-01T00:00:00Z" },
+          },
         },
-      ],
-      next: undefined,
-    };
+      };
 
-    apiRequestMock.mockResolvedValueOnce(mockResponse);
+      apiRequestMock.mockResolvedValueOnce(wireResponse);
 
-    const result = await search(filters, settings);
+      const result = await search({ query: "q", object: "dialogue" }, settings);
 
-    expect(apiRequestMock).toHaveBeenCalledTimes(1);
-    const expectedParams = new URLSearchParams();
-    expectedParams.set("object", "message");
-    expectedParams.set("query", "test search");
-
-    expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/api/v1/search`,
-      {
-        method: "POST",
-        headers: expect.any(Headers),
-        body: JSON.stringify(filters),
-      },
-      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
-    );
-
-    expect(result).toEqual(mockResponse);
+      expect(result).toBe(wireResponse);
+      expect(result.results[0].relevance).toBe(0.87);
+      expect(result.results[0].matches?.[0].item.dialogueId).toBe("d1");
+      expect(result.request.filter?.created).toEqual({
+        gte: "2025-03-01T00:00:00Z",
+        lt: "2025-04-01T00:00:00Z",
+      });
+    });
   });
 
-  it("should search with limit parameter", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      limit: 5,
-    };
+  describe("client-side validation (SDK boundary)", () => {
+    it("rejects deprecated filter.createdYear with a migration hint", async () => {
+      const settings = makeSettings();
+      apiRequestMock.mockResolvedValueOnce(buildEmptyResponse());
 
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            filter: { createdYear: 2025 } as any,
+          },
+          settings
+        )
+      ).rejects.toMatchObject({
+        code: "INVALID_PARAMETER",
+        message: expect.stringContaining("filter.created"),
+      });
 
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+      expect(apiRequestMock).not.toHaveBeenCalled();
+    });
 
-    await search(filters, settings);
+    it("rejects deprecated filter.modifiedTimestamp with a migration hint", async () => {
+      const settings = makeSettings();
 
-    expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/api/v1/search`,
-      {
-        method: "POST",
-        headers: expect.any(Headers),
-        body: JSON.stringify(filters),
-      },
-      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
-    );
-  });
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            filter: { modifiedTimestamp: 1700000000 } as any,
+          },
+          settings
+        )
+      ).rejects.toMatchObject({
+        code: "INVALID_PARAMETER",
+        message: expect.stringContaining("filter.modified"),
+      });
+    });
 
-  it("should search with filter.created parameter", async () => {
-    const key = "my-api-key";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-      filter: {
-        created: "2024-01-01T00:00:00.000Z",
-      },
-    };
+    it("rejects an unknown tag operator", async () => {
+      const settings = makeSettings();
 
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            tags: { $weird: ["x"] } as any,
+          },
+          settings
+        )
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+    it("rejects an empty $in metadata operator", async () => {
+      const settings = makeSettings();
 
-    await search(filters, settings);
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            metadata: { tier: { $in: [] } },
+          },
+          settings
+        )
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    expect(apiRequestMock).toHaveBeenCalledWith(
-      `${endpoint}/api/v1/search`,
-      {
-        method: "POST",
-        headers: expect.any(Headers),
-        body: JSON.stringify(filters),
-      },
-      { retries: 3, retryMinTimeout: 1000, retryMaxTimeout: 10000 }
-    );
-  });
+    it("rejects mixed-type array in metadata $in", async () => {
+      const settings = makeSettings();
 
-  it("should set Authorization header correctly", async () => {
-    const key = "test-api-key-123";
-    const endpoint = "https://api.example.com";
-    const filters = {
-      query: "test",
-      object: "message" as const,
-    };
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            metadata: { tier: { $in: ["pro", 1 as any] } } as any,
+          },
+          settings
+        )
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    const settings = new SettingsContainer();
-    settings.set("apiKey", key);
-    settings.set("endpoint", endpoint);
+    it("rejects unknown filter key", async () => {
+      const settings = makeSettings();
 
-    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+      await expect(
+        search(
+          {
+            query: "q",
+            object: "dialogue",
+            filter: { whenever: "today" } as any,
+          },
+          settings
+        )
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    await search(filters, settings);
+    it("rejects missing query", async () => {
+      const settings = makeSettings();
 
-    const callArgs = apiRequestMock.mock.calls[0];
-    const headers = callArgs[1].headers;
+      await expect(
+        search({ object: "dialogue" } as any, settings)
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    expect(headers.get("Authorization")).toBe(`Bearer ${key}`);
-  });
+    it("rejects invalid object value", async () => {
+      const settings = makeSettings();
 
-  it("should use global config when no settings provided", async () => {
-    const mockResponse = { items: [], next: undefined };
+      await expect(
+        search({ query: "q", object: "other" as any }, settings)
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
 
-    apiRequestMock.mockResolvedValueOnce(mockResponse);
+    it("rejects orderBy outside the allowed set", async () => {
+      const settings = makeSettings();
 
-    const result = await search({ query: "test", object: "message" });
-
-    expect(getConfigMock).toHaveBeenCalled();
-    expect(apiRequestMock).toHaveBeenCalledWith(
-      "https://global.example.com/api/v1/search",
-      expect.objectContaining({ method: "POST" }),
-      expect.any(Object)
-    );
-    expect(result).toEqual(mockResponse);
+      await expect(
+        search(
+          { query: "q", object: "dialogue", orderBy: "stars" as any },
+          settings
+        )
+      ).rejects.toMatchObject({ code: "INVALID_PARAMETER" });
+    });
   });
 });
