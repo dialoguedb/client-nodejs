@@ -21,6 +21,7 @@ import {
   searchMessages,
   searchMemories,
   SearchOptions,
+  SearchResponse,
 } from "@/methods/search";
 import { listDialogues } from "@/methods/listDialogues";
 import * as dialogueApi from "@/api/dialogue";
@@ -146,32 +147,37 @@ export class DialogueDB {
   }
 
   /**
-   * Search dialogues
+   * Search dialogues. Returns the wrapper response with hydrated Dialogue
+   * instances in `results[].item` plus `relevance`, optional `matches`, and
+   * the server's `request` echo. Flatten with `response.results.map((r) => r.item)`
+   * if only domain objects are needed.
    */
   searchDialogues(
     query: string,
     options: SearchOptions = {}
-  ): Promise<Dialogue[]> {
+  ): Promise<SearchResponse<Dialogue, Message>> {
     return searchDialogues(query, options, this.#settings);
   }
 
   /**
-   * Search messages
+   * Search messages. Returns the wrapper response with hydrated Message
+   * instances in `results[].item`.
    */
   searchMessages(
     query: string,
     options: SearchOptions = {}
-  ): Promise<Message[]> {
+  ): Promise<SearchResponse<Message, Message>> {
     return searchMessages(query, options, this.#settings);
   }
 
   /**
-   * Search memories
+   * Search memories. Returns the wrapper response with hydrated Memory
+   * instances in `results[].item`.
    */
   searchMemories(
     query: string,
     options: SearchOptions = {}
-  ): Promise<Memory[]> {
+  ): Promise<SearchResponse<Memory, Message>> {
     return searchMemories(query, options, this.#settings);
   }
 }

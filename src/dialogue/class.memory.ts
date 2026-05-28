@@ -110,7 +110,9 @@ export class Memory {
     return this.#value;
   }
 
-  get metadata(): Readonly<Record<string, string | number | boolean>> {
+  get metadata(): Readonly<
+    Record<string, string | number | boolean | string[]>
+  > {
     return structuredClone(this.#metadata);
   }
 

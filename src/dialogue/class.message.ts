@@ -23,7 +23,7 @@ export class Message {
 
   // Optional fields
   #name?: string;
-  #metadata?: Record<string, string | number | boolean>;
+  #metadata?: Record<string, string | number | boolean | string[]>;
   #tags: string[] = [];
 
   #isDirty = false;
@@ -105,7 +105,7 @@ export class Message {
   }
 
   get metadata():
-    | Readonly<Record<string, string | number | boolean>>
+    | Readonly<Record<string, string | number | boolean | string[]>>
     | undefined {
     return this.#metadata ? structuredClone(this.#metadata) : undefined;
   }
