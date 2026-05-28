@@ -15,7 +15,10 @@ program
   )
   .version(version)
   .addOption(
-    new Option("--api-key <key>", "API key (overrides DIALOGUEDB_API_KEY)")
+    new Option(
+      "--api-key <key>",
+      "API key (overrides DIALOGUEDB_API_KEY). Avoid on shared machines — flag values are visible in `ps` and shell history; prefer the env var."
+    )
   )
   .hook("preAction", (cmd) => {
     const apiKey =
