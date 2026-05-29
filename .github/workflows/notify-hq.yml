@@ -30,28 +30,6 @@ jobs:
             client_payload: { source: "client", version: $version }
           }' | gh api repos/dialoguedb/hq/dispatches --input -
 
-      - name: Generate examples token
-        id: examples-token
-        if: ${{ !github.event.release.prerelease }}
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.DIALOGUEDB_BOT_APP_ID }}
-          private-key: ${{ secrets.DIALOGUEDB_BOT_PRIVATE_KEY }}
-          owner: dialoguedb
-          repositories: examples
-
-      - name: Trigger examples (build an example for the new feature)
-        if: ${{ !github.event.release.prerelease }}
-        env:
-          GH_TOKEN: ${{ steps.examples-token.outputs.token }}
-          VERSION: ${{ github.event.release.tag_name }}
-          FEATURE: ${{ github.event.release.name || github.event.release.tag_name }}
-        run: |
-          jq -n --arg version "$VERSION" --arg feature "$FEATURE" '{
-            event_type: "new-feature",
-            client_payload: { source: "client", version: $version, feature: $feature }
-          }' | gh api repos/dialoguedb/examples/dispatches --input -
-
   notify-issue-closed:
     if: github.event_name == 'issues' && contains(github.event.issue.body, 'Dispatched from')
     runs-on: ubuntu-latest
