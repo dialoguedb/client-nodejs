@@ -1,6 +1,6 @@
 {
   "name": "dialogue-db",
-  "version": "1.0.18",
+  "version": "2.0.0",
   "description": "TypeScript SDK for DialogueDB - managed database service for AI memory and conversation management",
   "keywords": [
     "ai",
@@ -20,6 +20,9 @@
       "import": "./dist/index.mjs"
     }
   },
+  "bin": {
+    "dialogue-db": "./dist/cli.js"
+  },
   "files": [
     "dist"
   ],
@@ -28,7 +31,7 @@
   },
   "scripts": {
     "build": "tsc && tsc-alias",
-    "build:package": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "build:package": "tsup",
     "build:watch": "(concurrently \"tsc -w\" \"tsc-alias -w\")",
     "test": "jest --config jest.config.ts --maxWorkers 5 --coverage",
     "format:check": "prettier --check \"src\"",
@@ -39,13 +42,14 @@
   },
   "author": "DialogueDB",
   "dependencies": {
+    "commander": "^12.1.0",
     "node-fetch": "^2.7.0",
     "p-retry": "^4.6.2"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.2",
     "@types/jest": "^30.0.0",
-    "@types/node": "^17.0.45",
+    "@types/node": "^20.19.41",
     "@types/node-fetch": "^2.6.11",
     "concurrently": "^8.2.2",
     "jest": "^30.2.0",

@@ -12,7 +12,7 @@ export interface IMemory {
   tags: string[];
   created: string;
   modified: string;
-  metadata: Record<string, string | number | boolean>;
+  metadata: Record<string, string | number | boolean | string[]>;
 }
 
 export interface CreateMemoryInput {
@@ -27,7 +27,7 @@ export interface CreateMemoryInput {
   label?: string;
   description?: string;
   tags?: string[];
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean | string[]>;
 }
 
 export type GetMemoryInput = {

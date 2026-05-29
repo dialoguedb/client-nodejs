@@ -10,7 +10,7 @@ export interface IMessage {
   content: MessageContent;
   created: string;
   modified: string;
-  metadata: Record<string, string | number | boolean>;
+  metadata: Record<string, string | number | boolean | string[]>;
   tags: string[];
 
   name?: string;
@@ -24,7 +24,7 @@ export interface CreateMessageInput {
   name?: string;
   namespace?: string;
   tags?: string[];
-  metadata?: Record<string, string | number | boolean>;
+  metadata?: Record<string, string | number | boolean | string[]>;
   created?: string;
 }
 

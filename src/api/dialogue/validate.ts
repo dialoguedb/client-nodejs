@@ -12,7 +12,7 @@ import {
   validateMetadataField,
   validateStateField,
   validateCreatedField,
-} from "../validation.utils";
+} from "@/utils/validation";
 
 /**
  * Validates CreateDialogueInput, throwing DialogueDBError if invalid.
