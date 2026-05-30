@@ -5,7 +5,7 @@ on:
     types: [submitted]
 
 env:
-  CLAUDE_MODEL: claude-opus-4-6
+  CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-4-6' }}
 
 jobs:
   fix-review:
