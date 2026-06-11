@@ -64,9 +64,9 @@ jobs:
 
       - name: Setup Node.js
         if: steps.check-fix.outputs.already_fixed == 'false'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20.x
+          node-version: 24.x
           cache: 'npm'
 
       - name: Install dependencies

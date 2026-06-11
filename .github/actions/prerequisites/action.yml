@@ -5,10 +5,7 @@ runs:
   steps:
       - name: Setup Node.js environment
         uses: ./.github/actions/setup-node
-        
-      - name: Cache npm dependencies and node modules
-        uses: ./.github/actions/cache
-        
+
       - name: Install
         shell: bash
         run: npm install
