@@ -20,7 +20,7 @@ jobs:
   run-tests-prerequisite:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Prerequisites for tests
         uses: ./.github/actions/prerequisites
@@ -36,7 +36,7 @@ jobs:
         node-version: [18, 20, 22, 24]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Prerequisites for tests
         uses: ./.github/actions/prerequisites
 
@@ -59,7 +59,7 @@ jobs:
     if: github.event_name == 'pull_request'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Prerequisites for tests
         uses: ./.github/actions/prerequisites
