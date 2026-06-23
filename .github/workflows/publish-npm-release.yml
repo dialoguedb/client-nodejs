@@ -25,7 +25,7 @@ jobs:
           echo "User ${{ github.actor }} is authorized to publish"
       
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       
       - name: Prerequisites for tests
         uses: ./.github/actions/prerequisites
