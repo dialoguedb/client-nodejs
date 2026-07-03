@@ -16,14 +16,29 @@ export async function list(
   const params = new URLSearchParams();
   params.set("dialogueId", dialogueId);
 
-  if (options.limit) {
+  if (options.limit !== undefined) {
     params.set("limit", options.limit.toString());
+  }
+  if (options.order) {
+    params.set("order", options.order);
   }
   if (options.next) {
     params.set("next", options.next);
   }
   if (options.namespace) {
     params.set("namespace", options.namespace);
+  }
+
+  // Date filters live on the discriminated union members of ListMessageFilters,
+  // so narrow with `in` before reading them.
+  if ("created" in options && options.created) {
+    params.set("created", options.created);
+  }
+  if ("startDate" in options && options.startDate) {
+    params.set("startDate", options.startDate);
+  }
+  if ("endDate" in options && options.endDate) {
+    params.set("endDate", options.endDate);
   }
 
   const url = `${endpoint}/messages`;

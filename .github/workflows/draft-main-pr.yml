@@ -24,7 +24,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.VERSION_BUMP_SECRET }}
       GH_TOKEN: ${{ secrets.VERSION_BUMP_SECRET }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

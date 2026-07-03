@@ -4,6 +4,7 @@ import {
   CreateDialogueInput,
   CreateMessageInput,
   ListMessageFilters,
+  MessageContent,
 } from "@/types";
 import * as dialogueApi from "@/api/dialogue";
 import * as messageApi from "@/api/message";
@@ -288,7 +289,9 @@ export class Dialogue {
   async saveMessages(
     messages: Array<{
       role: string;
-      content: string;
+      // string | object | object[], matching saveMessage
+      // (CreateMessageInput.content) and what the API accepts.
+      content: MessageContent;
       id?: string;
       created?: string;
     }>
