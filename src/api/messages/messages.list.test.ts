@@ -180,6 +180,84 @@ describe("messages.list", () => {
     );
   });
 
+  it("should list messages with order parameter", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list({ dialogueId, order: "desc" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const params = callArgs[1].params as URLSearchParams;
+    expect(params.get("dialogueId")).toBe(dialogueId);
+    expect(params.get("order")).toBe("desc");
+  });
+
+  it("should send order alongside limit for a recent-N query", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list({ dialogueId, limit: 10, order: "desc" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const params = callArgs[1].params as URLSearchParams;
+    expect(params.get("limit")).toBe("10");
+    expect(params.get("order")).toBe("desc");
+  });
+
+  it("should send the created date-prefix filter", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list({ dialogueId, created: "2026-06" }, settings);
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const params = callArgs[1].params as URLSearchParams;
+    expect(params.get("created")).toBe("2026-06");
+  });
+
+  it("should send startDate and endDate range filters", async () => {
+    const endpoint = "https://api.example.com";
+    const dialogueId = "dialogue-123";
+
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "my-api-key");
+    settings.set("endpoint", endpoint);
+
+    apiRequestMock.mockResolvedValueOnce({ items: [], next: undefined });
+
+    await list(
+      {
+        dialogueId,
+        startDate: "2026-01-01T00:00:00Z",
+        endDate: "2026-06-01T00:00:00Z",
+      },
+      settings
+    );
+
+    const callArgs = apiRequestMock.mock.calls[0];
+    const params = callArgs[1].params as URLSearchParams;
+    expect(params.get("startDate")).toBe("2026-01-01T00:00:00Z");
+    expect(params.get("endDate")).toBe("2026-06-01T00:00:00Z");
+  });
+
   it("should include namespace in params when provided", async () => {
     const endpoint = "https://api.example.com";
     const dialogueId = "dialogue-123";
