@@ -38,16 +38,16 @@ export async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+/**
+ * Loads a dialogue, or exits non-zero. A miss throws a DialogueDBError, which
+ * withErrorHandler reports and exits on — so the CLI prints the namespace hint
+ * and requestId rather than a bare "not found".
+ */
 export async function loadDialogueOrExit(id: string, namespace?: string) {
-  const d = await getDialogue({
+  return getDialogue({
     id,
     ...(namespace && { namespace }),
   });
-  if (!d) {
-    process.stderr.write(`Dialogue ${id} not found\n`);
-    process.exit(1);
-  }
-  return d;
 }
 
 export async function resolveContent(opts: {
