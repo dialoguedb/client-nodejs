@@ -9,6 +9,7 @@ jest.mock("@/api/dialogue", () => ({
   create: jest.fn(),
   list: jest.fn(),
   end: jest.fn(),
+  summarize: jest.fn(),
 }));
 
 jest.mock("@/api/message", () => ({
@@ -1189,12 +1190,35 @@ describe("Dialogue", () => {
     });
   });
 
-  describe("unimplemented methods", () => {
-    it("compact() throws not implemented error", async () => {
+  describe("summarize", () => {
+    it("calls the summarize API with the dialogue id and forwards options", async () => {
+      (dialogueApi.summarize as jest.Mock).mockResolvedValueOnce({
+        id: "sum-1",
+        status: "processing",
+      });
       const dialogue = new Dialogue(createMockDialogue());
 
-      await expect(dialogue.compact()).rejects.toThrow(
-        "compact() is not yet implemented"
+      const result = await dialogue.summarize({ template: "decisions" });
+
+      expect(dialogueApi.summarize).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId: dialogue.id, template: "decisions" }),
+        expect.anything()
+      );
+      expect(result).toEqual({ id: "sum-1", status: "processing" });
+    });
+
+    it("compact() is a deprecated alias that delegates to summarize", async () => {
+      (dialogueApi.summarize as jest.Mock).mockResolvedValueOnce({
+        id: "sum-2",
+        status: "processing",
+      });
+      const dialogue = new Dialogue(createMockDialogue());
+
+      await dialogue.compact({ template: "decisions" });
+
+      expect(dialogueApi.summarize).toHaveBeenCalledWith(
+        expect.objectContaining({ dialogueId: dialogue.id, template: "decisions" }),
+        expect.anything()
       );
     });
   });

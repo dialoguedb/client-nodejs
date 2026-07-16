@@ -4,3 +4,4 @@ export { list } from "./dialogue.list";
 export { get } from "./dialogue.get";
 export { update } from "./dialogue.update";
 export { end } from "./dialogue.end";
+export { summarize } from "./dialogue.summarize";
