@@ -3,7 +3,7 @@ import { settings, setGlobalConfig } from "./settings";
 import { createConfig } from "./settings/createConfig";
 
 // errors
-export { DialogueDBError } from "./errors";
+export { DialogueDBError, isNotFoundError } from "./errors";
 export type { ErrorType } from "./utils/request";
 
 // classes
