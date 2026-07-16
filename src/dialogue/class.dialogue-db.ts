@@ -43,12 +43,14 @@ export class DialogueDB {
   }
 
   /**
-   * Get an existing dialogue by ID
+   * Get an existing dialogue by ID.
+   *
+   * Pass the namespace the dialogue was created with — without it the lookup is
+   * scoped to the default namespace and will not find it.
+   *
+   * @throws {DialogueDBError} If the dialogue cannot be resolved.
    */
-  getDialogue(
-    id: string,
-    options?: { namespace?: string }
-  ): Promise<Dialogue | null> {
+  getDialogue(id: string, options?: { namespace?: string }): Promise<Dialogue> {
     return getDialogue(
       {
         id,
