@@ -29,9 +29,9 @@ describe("validateCreateDialogueInput", () => {
   it.each([
     ["id", { id: 123 }, "must be a string"],
     ["namespace", { namespace: 123 }, "must be a string"],
-    ["namespace", { namespace: "abcd" }, "must have length of at least 5"],
+    ["namespace", { namespace: "" }, "must have length of at least 1"],
     ["threadOf", { threadOf: 123 }, "must be a string"],
-    ["threadOf", { threadOf: "abcd" }, "must have length of at least 5"],
+    ["threadOf", { threadOf: "" }, "must have length of at least 1"],
     ["label", { label: 123 }, "must be a string"],
     ["tags", { tags: "not-array" }, "must be an array"],
     ["tags", { tags: Array(11).fill("t") }, "must have 10 or fewer items"],
@@ -73,7 +73,7 @@ describe("validateUpdateDialogueInput", () => {
 
   it.each([
     ["id type", { id: 123 }, "must be a string"],
-    ["id length", { id: "abc" }, "must have length of at least 5"],
+    ["id empty", { id: "" }, "is required"],
     ["label", { id: "valid-id", label: 123 }, "must be a string"],
     ["tags", { id: "valid-id", tags: "not-array" }, "must be an array"],
     ["state", { id: "valid-id", state: null }, "must be an object"],
