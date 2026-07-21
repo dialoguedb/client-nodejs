@@ -25,7 +25,7 @@ describe("validateCreateMessageInput", () => {
         tags: ["tag1"],
         metadata: { key: "value" },
         created: "2024-01-01T00:00:00.000Z",
-      }),
+      })
     ).not.toThrow();
   });
 
@@ -36,10 +36,10 @@ describe("validateCreateMessageInput", () => {
       ["content", { dialogueId: "dialogue-123", role: "user" }],
     ])("requires %s", (field, input) => {
       expect(() => validateCreateMessageInput(input as any)).toThrow(
-        `${field} is required`,
+        `${field} is required`
       );
       expect(() => validateCreateMessageInput(input as any)).toThrow(
-        DialogueDBError,
+        DialogueDBError
       );
     });
   });
@@ -47,7 +47,7 @@ describe("validateCreateMessageInput", () => {
   describe("content validation", () => {
     it("accepts string content", () => {
       expect(() =>
-        validateCreateMessageInput({ ...validInput, content: "text" }),
+        validateCreateMessageInput({ ...validInput, content: "text" })
       ).not.toThrow();
     });
 
@@ -56,7 +56,7 @@ describe("validateCreateMessageInput", () => {
         validateCreateMessageInput({
           ...validInput,
           content: { type: "json" },
-        }),
+        })
       ).not.toThrow();
     });
 
@@ -65,7 +65,7 @@ describe("validateCreateMessageInput", () => {
         validateCreateMessageInput({
           ...validInput,
           content: [{ type: "text" }, { type: "image" }],
-        }),
+        })
       ).not.toThrow();
     });
 
@@ -74,7 +74,7 @@ describe("validateCreateMessageInput", () => {
         validateCreateMessageInput({
           ...validInput,
           content: new Date(),
-        } as any),
+        } as any)
       ).toThrow("must be a string, object, or array of objects");
     });
 
@@ -83,19 +83,19 @@ describe("validateCreateMessageInput", () => {
         validateCreateMessageInput({
           ...validInput,
           content: ["string", 123],
-        } as any),
+        } as any)
       ).toThrow("array must contain only objects");
     });
 
     it("rejects empty string", () => {
       expect(() =>
-        validateCreateMessageInput({ ...validInput, content: "" }),
+        validateCreateMessageInput({ ...validInput, content: "" })
       ).toThrow("content is required");
     });
 
     it("rejects null", () => {
       expect(() =>
-        validateCreateMessageInput({ ...validInput, content: null } as any),
+        validateCreateMessageInput({ ...validInput, content: null } as any)
       ).toThrow("content is required");
     });
   });
@@ -127,7 +127,7 @@ describe("validateCreateMessageInput", () => {
     ],
   ])("rejects invalid %s", (_, input, expectedError) => {
     expect(() => validateCreateMessageInput(input as any)).toThrow(
-      expectedError,
+      expectedError
     );
   });
 });
@@ -135,28 +135,28 @@ describe("validateCreateMessageInput", () => {
 describe("validateGetMessageInput", () => {
   it("requires dialogueId", () => {
     expect(() => validateGetMessageInput({ id: "msg-123" } as any)).toThrow(
-      "dialogueId is required",
+      "dialogueId is required"
     );
   });
 
   it("requires id", () => {
     expect(() =>
-      validateGetMessageInput({ dialogueId: "dlg-123" } as any),
+      validateGetMessageInput({ dialogueId: "dlg-123" } as any)
     ).toThrow("id is required");
   });
 
   it("validates field types", () => {
     expect(() =>
-      validateGetMessageInput({ dialogueId: 123, id: "msg" } as any),
+      validateGetMessageInput({ dialogueId: 123, id: "msg" } as any)
     ).toThrow("must be a string");
     expect(() =>
-      validateGetMessageInput({ dialogueId: "dlg", id: 123 } as any),
+      validateGetMessageInput({ dialogueId: "dlg", id: 123 } as any)
     ).toThrow("must be a string");
   });
 
   it("accepts valid input", () => {
     expect(() =>
-      validateGetMessageInput({ dialogueId: "dlg-123", id: "msg-123" }),
+      validateGetMessageInput({ dialogueId: "dlg-123", id: "msg-123" })
     ).not.toThrow();
   });
 });
@@ -164,13 +164,13 @@ describe("validateGetMessageInput", () => {
 describe("validateListMessageFilters", () => {
   it("requires dialogueId", () => {
     expect(() => validateListMessageFilters({} as any)).toThrow(
-      "dialogueId is required",
+      "dialogueId is required"
     );
   });
 
   it("accepts valid minimal input", () => {
     expect(() =>
-      validateListMessageFilters({ dialogueId: "dlg-123" }),
+      validateListMessageFilters({ dialogueId: "dlg-123" })
     ).not.toThrow();
   });
 
@@ -181,7 +181,7 @@ describe("validateListMessageFilters", () => {
         limit: 10,
         order: "desc",
         next: "token",
-      }),
+      })
     ).not.toThrow();
   });
 
@@ -214,7 +214,7 @@ describe("validateListMessageFilters", () => {
     ["next type", { dialogueId: "dlg-123", next: 123 }, "must be a string"],
   ])("rejects invalid %s", (_, input, expectedError) => {
     expect(() => validateListMessageFilters(input as any)).toThrow(
-      expectedError,
+      expectedError
     );
   });
 });
