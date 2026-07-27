@@ -5,6 +5,7 @@ import { create } from "./messages.create";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 jest.mock("@/settings", () => {
@@ -246,5 +247,91 @@ describe("messages.create", () => {
       expect.any(Object)
     );
     expect(result).toEqual(mockResponse);
+  });
+
+  it("rejects a batch containing a malformed image part without calling the API", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create(
+        {
+          id: "dialogue-123",
+          messages: [
+            { role: "user", content: "fine" },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: "image/tiff",
+                    data: "aGVsbG8=",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        settings
+      )
+    ).rejects.toThrow(
+      "item 0: image source.media_type must be one of image/jpeg, image/png, image/gif, image/webp"
+    );
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a batch message missing a role without calling the API", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create(
+        {
+          id: "dialogue-123",
+          messages: [{ content: "no role here" } as any],
+        },
+        settings
+      )
+    ).rejects.toThrow("role is required");
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("accepts a batch containing a valid image part", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    apiRequestMock.mockResolvedValueOnce([]);
+
+    await create(
+      {
+        id: "dialogue-123",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "what is this?" },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/png",
+                  data: "iVBORw0KGgoAAAANSUhEUg==",
+                },
+              },
+            ],
+          },
+        ],
+      },
+      settings
+    );
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
   });
 });
