@@ -1,7 +1,70 @@
+/**
+ * Media types DialogueDB recognizes on an image part. Anything else is stored
+ * and returned untouched, but is not treated as an image (not offloaded, not
+ * embedded as an image vector).
+ */
+export type ImageMediaType =
+  | "image/jpeg"
+  | "image/png"
+  | "image/gif"
+  | "image/webp";
+
+export interface TextPart {
+  type: "text";
+  text: string;
+  [key: string]: unknown;
+}
+
+/** Anthropic: inline base64 bytes. `data` is raw base64, no `data:` prefix. */
+export interface AnthropicBase64ImageSource {
+  type: "base64";
+  media_type: ImageMediaType;
+  data: string;
+}
+
+/** Anthropic: a remote URL. Stored and returned verbatim; never re-hosted. */
+export interface AnthropicUrlImageSource {
+  type: "url";
+  url: string;
+  media_type?: ImageMediaType;
+}
+
+export type AnthropicImageSource =
+  | AnthropicBase64ImageSource
+  | AnthropicUrlImageSource;
+
+export interface AnthropicImagePart {
+  type: "image";
+  source: AnthropicImageSource;
+  [key: string]: unknown;
+}
+
+/** OpenAI: `url` is either an http(s) URL or a `data:<media-type>;base64,...` URI. */
+export interface OpenAIImagePart {
+  type: "image_url";
+  image_url: {
+    url: string;
+    detail?: "auto" | "low" | "high";
+  };
+  [key: string]: unknown;
+}
+
+export type ImagePart = AnthropicImagePart | OpenAIImagePart;
+
+/**
+ * A single element of array content.
+ *
+ * `Record<string, any>` stays in the union on purpose: DialogueDB stores
+ * unrecognized blocks (tool_use, tool_result, document, anything custom)
+ * untouched, so narrowing this type would break existing callers. The named
+ * members exist for editor completion on the two provider spellings.
+ */
+export type ContentPart = TextPart | ImagePart | Record<string, any>;
+
 export type MessageContent =
   | string
   | Record<string, any>
-  | Record<string, any>[];
+  | ContentPart[];
 
 export interface IMessage {
   id: string;

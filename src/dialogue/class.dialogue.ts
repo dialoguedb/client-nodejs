@@ -289,8 +289,9 @@ export class Dialogue {
   async saveMessages(
     messages: Array<{
       role: string;
-      // string | object | object[], matching saveMessage
-      // (CreateMessageInput.content) and what the API accepts.
+      // Same type as saveMessage (CreateMessageInput.content) and what the API
+      // accepts, including image parts. Keep this referencing MessageContent -
+      // spelling the union out here would let the batch path silently narrow.
       content: MessageContent;
       id?: string;
       created?: string;
