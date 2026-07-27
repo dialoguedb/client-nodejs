@@ -66,6 +66,208 @@ describe("validateCreateMessageInput", () => {
       ).not.toThrow();
     });
 
+    it("accepts a well-formed Anthropic base64 image part", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            { type: "text", text: "what is this?" },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoAAAANSUhEUg==",
+              },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("accepts an Anthropic url image part without inspecting the URL", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: { type: "url", url: "https://example.com/a.png" },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("accepts a well-formed OpenAI data URI image part", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ==",
+              },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("accepts an OpenAI remote image URL untouched", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "https://example.com/a.png" },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("rejects a non-string image source.data", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: { type: "base64", media_type: "image/png", data: 123 },
+            },
+          ],
+        } as any)
+      ).toThrow("item 0: image source.data must be a non-empty base64 string");
+    });
+
+    it("rejects a data: prefix in the Anthropic base64 payload", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "data:image/png;base64,iVBORw0KGgo=",
+              },
+            },
+          ],
+        })
+      ).toThrow(
+        'item 0: image source.data must be raw base64 without a "data:" prefix'
+      );
+    });
+
+    it("rejects non-base64 characters in the image payload", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "not base64!!",
+              },
+            },
+          ],
+        })
+      ).toThrow("item 0: image source.data is not valid base64");
+    });
+
+    it("rejects an unsupported image media type", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            { type: "text", text: "hi" },
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/tiff",
+                data: "aGVsbG8=",
+              },
+            },
+          ],
+        })
+      ).toThrow(
+        "item 1: image source.media_type must be one of image/jpeg, image/png, image/gif, image/webp"
+      );
+    });
+
+    it("rejects a malformed data URI on the OpenAI spelling", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "data:image/png,iVBORw0KGgo=" },
+            },
+          ],
+        })
+      ).toThrow("item 0: image_url.url is not a well-formed base64 data URI");
+    });
+
+    it("rejects an unsupported media type inside a data URI", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "data:image/tiff;base64,aGVsbG8=" },
+            },
+          ],
+        })
+      ).toThrow(
+        "item 0: image_url.url media type must be one of image/jpeg, image/png, image/gif, image/webp"
+      );
+    });
+
+    it("never echoes the rejected payload back in the error details", () => {
+      const payload = "A".repeat(5000);
+      try {
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/tiff",
+                data: payload,
+              },
+            },
+          ],
+        });
+        throw new Error("expected validateCreateMessageInput to throw");
+      } catch (e) {
+        const serialized = JSON.stringify((e as DialogueDBError).details);
+        expect(serialized).not.toContain(payload);
+      }
+    });
+
+    it("leaves unrecognized parts alone", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            { type: "tool_use", id: "call_1", name: "x", input: {} },
+            { type: "image", notASource: true },
+            { type: "document", source: { type: "base64", data: 42 } },
+          ],
+        } as any)
+      ).not.toThrow();
+    });
+
     it("rejects Date object", () => {
       expect(() =>
         validateCreateMessageInput({
