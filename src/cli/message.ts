@@ -11,6 +11,7 @@ import {
   resolveContent,
   withErrorHandler,
 } from "./shared";
+import type { MessageContent } from "../types/message";
 
 export function registerMessageCommands(program: Command): void {
   const message = program
@@ -56,7 +57,7 @@ export function registerMessageCommands(program: Command): void {
 
         const msg = await d.saveMessage({
           role: opts.role,
-          content: content as any,
+          content: content as MessageContent,
           ...(opts.name && { name: opts.name }),
           ...(opts.tags && { tags: parseCSV(opts.tags) }),
         });

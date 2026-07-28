@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { DialogueDBError } from "../errors";
 import { getDialogue } from "../methods/getDialogue";
 import type {
@@ -6,6 +6,13 @@ import type {
   ImageMediaType,
   MessageContent,
 } from "../types/message";
+
+/**
+ * Upper bound on a local image read from `--image`. Not a policy limit (the
+ * server enforces the per-plan maxImageBytes on the decoded bytes); this only
+ * keeps the CLI from loading an absurd file into memory and running out of heap.
+ */
+const MAX_IMAGE_FILE_BYTES = 20 * 1024 * 1024;
 
 export function parseJSON(label: string, raw: string): unknown {
   try {
@@ -95,6 +102,18 @@ export async function buildImagePart(source: string): Promise<ImagePart> {
     return { type: "image", source: { type: "url", url: source } };
   }
   const mediaType = mediaTypeForImagePath(source);
+  // Guard the read: the server enforces the real per-plan limit, this only
+  // stops the CLI loading an oversized file into memory and exhausting heap.
+  const { size } = await stat(source);
+  if (size > MAX_IMAGE_FILE_BYTES) {
+    throw new Error(
+      `--image: "${source}" is ${Math.round(
+        size / (1024 * 1024)
+      )}MB, over the ${
+        MAX_IMAGE_FILE_BYTES / (1024 * 1024)
+      }MB limit for reading an image from disk`
+    );
+  }
   const bytes = await readFile(source);
   return {
     type: "image",

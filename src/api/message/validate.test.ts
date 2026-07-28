@@ -297,6 +297,39 @@ describe("validateCreateMessageInput", () => {
         validateCreateMessageInput({ ...validInput, content: null } as any)
       ).toThrow("content is required");
     });
+
+    it("rejects an empty content array", () => {
+      expect(() =>
+        validateCreateMessageInput({ ...validInput, content: [] } as any)
+      ).toThrow("content is required");
+    });
+
+    it("does not echo image payloads when the array holds a non-object", () => {
+      const payload = "A".repeat(5000);
+      try {
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: payload,
+              },
+            },
+            123,
+          ],
+        } as any);
+        throw new Error("expected validateCreateMessageInput to throw");
+      } catch (e) {
+        expect((e as DialogueDBError).message).toContain(
+          "array must contain only objects"
+        );
+        const serialized = JSON.stringify((e as DialogueDBError).details);
+        expect(serialized).not.toContain(payload);
+      }
+    });
   });
 
   it.each([

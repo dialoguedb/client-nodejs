@@ -116,11 +116,17 @@ function validateContentField(content: unknown): void {
     return;
   }
   if (Array.isArray(content)) {
+    // An empty array carries no content, same as "" or null above. Array.every
+    // returns true for [], so without this guard it would pass silently.
+    if (content.length === 0) {
+      throw errors.missingParameter("content");
+    }
     if (!content.every((item) => isPlainObject(item))) {
+      // No third argument: the array can hold multi-megabyte image payloads,
+      // and this error is logged and serialized. See validateImagePart above.
       throw errors.invalidParameter(
         "content",
-        "array must contain only objects",
-        content
+        "array must contain only objects"
       );
     }
     content.forEach((item, index) =>

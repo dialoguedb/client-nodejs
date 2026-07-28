@@ -61,10 +61,7 @@ export type ImagePart = AnthropicImagePart | OpenAIImagePart;
  */
 export type ContentPart = TextPart | ImagePart | Record<string, any>;
 
-export type MessageContent =
-  | string
-  | Record<string, any>
-  | ContentPart[];
+export type MessageContent = string | Record<string, any> | ContentPart[];
 
 export interface IMessage {
   id: string;
