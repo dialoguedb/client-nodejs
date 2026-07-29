@@ -298,6 +298,59 @@ describe("validateCreateMessageInput", () => {
       ).toThrow("content is required");
     });
 
+    it("rejects a whitespace-only base64 payload", () => {
+      // \s is inside the allowed character class so that line-wrapped base64
+      // passes, which also meant whitespace on its own satisfied the pattern.
+      // The length check above cannot catch it either, since "   " is not empty.
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "   \n  ",
+              },
+            },
+          ],
+        } as any)
+      ).toThrow("is not valid base64");
+    });
+
+    it("rejects a data URI whose payload is only whitespace", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "data:image/png;base64,    " },
+            },
+          ],
+        } as any)
+      ).toThrow("not a well-formed base64 data URI");
+    });
+
+    it("still accepts line-wrapped base64", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoA\nAAANSUhEUgAA\nAAEAAAAB",
+              },
+            },
+          ],
+        } as any)
+      ).not.toThrow();
+    });
+
     it("rejects an empty content array", () => {
       expect(() =>
         validateCreateMessageInput({ ...validInput, content: [] } as any)

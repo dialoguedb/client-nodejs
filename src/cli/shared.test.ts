@@ -50,6 +50,15 @@ describe("buildImagePart", () => {
     });
   });
 
+  it("reports a fractional size when a file is just over the limit", async () => {
+    // Math.round rendered anything under 20.5MB as "is 20MB, over the 20MB
+    // limit", which reads like the check itself is broken.
+    const file = join(dir, "big.png");
+    await writeFile(file, Buffer.alloc(20 * 1024 * 1024 + 100 * 1024));
+
+    await expect(buildImagePart(file)).rejects.toThrow(/is 20\.1MB/);
+  });
+
   it("reads a local file into a base64 part", async () => {
     const file = join(dir, "pixel.png");
     await writeFile(file, Buffer.from([0x89, 0x50, 0x4e, 0x47]));

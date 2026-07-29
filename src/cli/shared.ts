@@ -107,8 +107,10 @@ export async function buildImagePart(source: string): Promise<ImagePart> {
   const { size } = await stat(source);
   if (size > MAX_IMAGE_FILE_BYTES) {
     throw new Error(
-      `--image: "${source}" is ${Math.round(
-        size / (1024 * 1024)
+      // One decimal, not a round: a file barely over the ceiling rounded to
+      // "is 20MB, over the 20MB limit", which reads like a bug in the check.
+      `--image: "${source}" is ${(size / (1024 * 1024)).toFixed(
+        1
       )}MB, over the ${
         MAX_IMAGE_FILE_BYTES / (1024 * 1024)
       }MB limit for reading an image from disk`

@@ -25,9 +25,12 @@ const SUPPORTED_IMAGE_MEDIA_TYPES: string[] = [
 ];
 
 // Whitespace is allowed: line-wrapped base64 is common in copied payloads.
-const BASE64_PATTERN = /^[A-Za-z0-9+/\s]+={0,2}$/;
+// The leading lookahead is what stops whitespace ALONE from qualifying: `\s`
+// inside the class satisfies the `+` on its own, so "   " would otherwise read
+// as a valid payload and the length check above cannot catch it.
+const BASE64_PATTERN = /^(?=\s*[A-Za-z0-9+/])[A-Za-z0-9+/\s]+={0,2}$/;
 const DATA_URI_PATTERN =
-  /^data:([a-z]+\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/\s]+={0,2})$/i;
+  /^data:([a-z]+\/[a-z0-9.+-]+);base64,(?=\s*[A-Za-z0-9+/])([A-Za-z0-9+/\s]+={0,2})$/i;
 
 /**
  * Validates the two image spellings DialogueDB recognizes, and only those.
