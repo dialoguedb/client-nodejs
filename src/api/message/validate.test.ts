@@ -333,6 +333,27 @@ describe("validateCreateMessageInput", () => {
       ).toThrow("not a well-formed base64 data URI");
     });
 
+    it("accepts a payload with a trailing newline after the padding", () => {
+      // The most common line-wrapped form of all: base64 read from a file ends
+      // with a newline. Anchoring the pattern right after the padding rejected
+      // it as invalid, even though it decodes fine.
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: "image/png",
+                data: "iVBORw0KGgoAAAANSUhEUg==\n",
+              },
+            },
+          ],
+        } as any)
+      ).not.toThrow();
+    });
+
     it("still accepts line-wrapped base64", () => {
       expect(() =>
         validateCreateMessageInput({
