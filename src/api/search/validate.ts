@@ -153,10 +153,21 @@ function validateFilter(filter: unknown): void {
   rejectDeprecatedFilterKeys(filter);
 
   for (const key of Object.keys(filter)) {
+    if (key === "hasImage") {
+      // The one non-date filter: a schema-field flag on message searches.
+      if (typeof filter[key] !== "boolean") {
+        throw errors.invalidParameter(
+          "filter.hasImage",
+          "must be a boolean",
+          filter[key]
+        );
+      }
+      continue;
+    }
     if (key !== "created" && key !== "modified") {
       throw errors.invalidParameter(
         `filter.${key}`,
-        "unknown filter key — allowed: created, modified",
+        "unknown filter key. Allowed: created, modified, hasImage",
         key
       );
     }

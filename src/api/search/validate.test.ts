@@ -130,6 +130,31 @@ describe("validateSearchInput", () => {
       ).not.toThrow();
     });
 
+    it("accepts filter.hasImage as a boolean", () => {
+      // The image-search filter this release adds. The server accepted it from
+      // the start; the SDK validator rejected it client-side, so the filter
+      // was unusable through the SDK even though the docs advertised it.
+      expect(() =>
+        validateSearchInput({ ...base, filter: { hasImage: true } })
+      ).not.toThrow();
+      expect(() =>
+        validateSearchInput({ ...base, filter: { hasImage: false } })
+      ).not.toThrow();
+      expect(() =>
+        validateSearchInput({
+          ...base,
+          filter: { hasImage: true, created: "last month" },
+        })
+      ).not.toThrow();
+    });
+
+    it("rejects a non-boolean filter.hasImage", () => {
+      expectInvalid(
+        { ...base, filter: { hasImage: "yes" } as any },
+        "filter.hasImage"
+      );
+    });
+
     it("rejects unknown filter key", () => {
       expectInvalid(
         { ...base, filter: { whenever: "today" } as any },

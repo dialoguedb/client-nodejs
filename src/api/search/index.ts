@@ -47,6 +47,12 @@ export type SearchDateFilterValue = string | SearchDateRangeOperators;
 export interface SearchFilterOptions {
   created?: SearchDateFilterValue;
   modified?: SearchDateFilterValue;
+  /**
+   * Restrict message searches to messages that carry at least one image
+   * (true) or none (false). Only meaningful when object is "message"; the
+   * API ignores it for dialogues and memories.
+   */
+  hasImage?: boolean;
 }
 
 export interface SearchOptions {
