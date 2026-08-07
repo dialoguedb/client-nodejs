@@ -8,11 +8,22 @@ import type {
 } from "../types/message";
 
 /**
- * Upper bound on a local image read from `--image`. Not a policy limit (the
- * server enforces the per-plan maxImageBytes on the decoded bytes); this only
- * keeps the CLI from loading an absurd file into memory and running out of heap.
+ * Upper bound on a local image read from `--image`.
+ *
+ * A memory guard, NOT a policy limit: the server enforces the per-plan
+ * `maxImageBytes` on the decoded bytes, and this only keeps the CLI from
+ * loading an absurd file into memory and running out of heap.
+ *
+ * It must therefore stay ABOVE the largest per-image cap any plan allows,
+ * currently 25,000,000 decimal bytes. At 20 MiB it sat *below* that, which
+ * quietly turned a heap guard into a stricter policy than the server's: a
+ * 22 MB image the API would have accepted was rejected here, with a message
+ * about reading from disk that gave no hint the server would have taken it.
+ *
+ * 25 MiB (26,214,400) clears the decimal cap with margin, and matches the
+ * backend's own remote-fetch backstop (MAX_REMOTE_IMAGE_BYTES).
  */
-const MAX_IMAGE_FILE_BYTES = 20 * 1024 * 1024;
+export const MAX_IMAGE_FILE_BYTES = 25 * 1024 * 1024;
 
 export function parseJSON(label: string, raw: string): unknown {
   try {

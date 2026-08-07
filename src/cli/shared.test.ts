@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   mediaTypeForImagePath,
   buildImagePart,
+  MAX_IMAGE_FILE_BYTES,
   composeMessageContent,
 } from "./shared";
 
@@ -51,12 +52,41 @@ describe("buildImagePart", () => {
   });
 
   it("reports a fractional size when a file is just over the limit", async () => {
-    // Math.round rendered anything under 20.5MB as "is 20MB, over the 20MB
+    // Math.round rendered anything under x.5MB as "is 20MB, over the 20MB
     // limit", which reads like the check itself is broken.
+    //
+    // Sized off the constant rather than a literal: written as `20 * 1024 *
+    // 1024 + 100 * 1024` this kept passing after the ceiling moved, because it
+    // was still over the OLD limit and the assertion still matched the old
+    // number. A test that follows the constant fails when they disagree.
+    const overBy = 100 * 1024;
     const file = join(dir, "big.png");
-    await writeFile(file, Buffer.alloc(20 * 1024 * 1024 + 100 * 1024));
+    await writeFile(file, Buffer.alloc(MAX_IMAGE_FILE_BYTES + overBy));
 
-    await expect(buildImagePart(file)).rejects.toThrow(/is 20\.1MB/);
+    const expected = ((MAX_IMAGE_FILE_BYTES + overBy) / (1024 * 1024)).toFixed(1);
+    await expect(buildImagePart(file)).rejects.toThrow(
+      new RegExp(`is ${expected.replace(".", "\\.")}MB`)
+    );
+  });
+
+  it("stays above the largest per-image cap any plan allows", async () => {
+    // This is a heap guard, not a policy limit. Below the server's cap it
+    // silently becomes the stricter of the two, rejecting images the API
+    // would accept and blaming disk reads for it.
+    const MAX_PLAN_IMAGE_BYTES = 25_000_000;
+    expect(MAX_IMAGE_FILE_BYTES).toBeGreaterThan(MAX_PLAN_IMAGE_BYTES);
+  });
+
+  it("accepts a file the server would accept", async () => {
+    // The regression in one case: 22 MB is under the 25,000,000 plan cap and
+    // was over the old 20 MiB client ceiling.
+    const file = join(dir, "twentytwo.png");
+    await writeFile(file, Buffer.alloc(22_000_000));
+
+    await expect(buildImagePart(file)).resolves.toMatchObject({
+      type: "image",
+      source: { type: "base64" },
+    });
   });
 
   it("reads a local file into a base64 part", async () => {
