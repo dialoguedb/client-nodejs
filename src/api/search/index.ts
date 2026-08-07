@@ -49,8 +49,15 @@ export interface SearchFilterOptions {
   modified?: SearchDateFilterValue;
   /**
    * Restrict message searches to messages that carry at least one image
-   * (true) or none (false). Only meaningful when object is "message"; the
-   * API ignores it for dialogues and memories.
+   * (true) or none (false).
+   *
+   * Use it with object "message". It is NOT ignored on the other object types:
+   * the API ANDs it into the vector predicate for whatever is being searched,
+   * and only message vectors are stamped with the flag it tests. So on
+   * object "memory", `hasImage: true` returns an EMPTY result set rather than
+   * an unfiltered one, and on object "dialogue" it drops dialogues that matched
+   * only on their own label. `false` is a no-op on both, because it is written
+   * as "not true" so that records predating image support still match.
    */
   hasImage?: boolean;
 }

@@ -154,7 +154,9 @@ function validateFilter(filter: unknown): void {
 
   for (const key of Object.keys(filter)) {
     if (key === "hasImage") {
-      // The one non-date filter: a schema-field flag on message searches.
+      // The one non-date filter. Accepted for every object type because the
+      // API accepts it for every object type; see SearchFilterOptions.hasImage
+      // for what it actually does on dialogues and memories.
       if (typeof filter[key] !== "boolean") {
         throw errors.invalidParameter(
           "filter.hasImage",
