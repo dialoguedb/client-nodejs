@@ -32,8 +32,45 @@ const SUPPORTED_IMAGE_MEDIA_TYPES: string[] = [
 // with a newline, and anchoring `$` right after the padding rejected exactly
 // the line-wrapped payloads this pattern exists to accept.
 const BASE64_PATTERN = /^(?=\s*[A-Za-z0-9+/])[A-Za-z0-9+/\s]+={0,2}\s*$/;
-const DATA_URI_PATTERN =
-  /^data:([a-z]+\/[a-z0-9.+-]+);base64,(?=\s*[A-Za-z0-9+/])([A-Za-z0-9+/\s]+={0,2}\s*)$/i;
+
+/**
+ * A data URI, split the way RFC 2397 defines one:
+ * `data:[<mediatype>][;<parameter>]*[;base64],<data>`.
+ *
+ * Deliberately mirrors the API's own parser (the media type, the FULL parameter
+ * list, then the payload) instead of hard-coding one shape. The previous
+ * pattern required exactly `data:<type>/<subtype>;base64,` with a non-empty
+ * media type and no other parameters, so it rejected two forms the API accepts,
+ * stores, and returns byte for byte:
+ *
+ *   data:image/png;charset=utf-8;base64,<payload>   extra parameter
+ *   data:;base64,<payload>                          media type omitted
+ *
+ * Both are legal RFC 2397, and the SDK is not supposed to add rejections the
+ * API does not make - a caller with either one got INVALID_PARAMETER from us
+ * for a payload the API would have taken.
+ */
+const DATA_URI_PATTERN = /^data:([^;,]*)((?:;[^;,]*)*),([\s\S]*)$/i;
+
+/** The base64 payload of a data URI, or null when it is not a base64 one. */
+function parseBase64DataUri(
+  value: string
+): { mediaType: string | null; base64: string } | null {
+  const match = DATA_URI_PATTERN.exec(value);
+  if (!match) {
+    return null;
+  }
+  // Lowercased before comparison for the same reason the scheme is matched
+  // case-insensitively: ";BASE64" is the same declaration.
+  const parameters = (match[2] || "")
+    .split(";")
+    .filter(Boolean)
+    .map((parameter) => parameter.toLowerCase());
+  if (parameters.indexOf("base64") === -1) {
+    return null;
+  }
+  return { mediaType: match[1] ? match[1] : null, base64: match[3] };
+}
 
 /**
  * Does this string begin a data URI?
@@ -48,8 +85,23 @@ const DATA_URI_PREFIX = /^data:/i;
 
 /**
  * Validates the two image spellings DialogueDB recognizes, and only those.
- * Unrecognized blocks pass through exactly as before, the API adds no new
- * rejections, so neither does the SDK.
+ * Unrecognized blocks pass through exactly as before.
+ *
+ * Where this sits relative to the API, stated exactly rather than as a blanket
+ * "no new rejections", because two of these checks ARE stricter and a future
+ * reader needs to know which:
+ *
+ * - `data:` prefix in the Anthropic `source.data`: the API rejects this too
+ *   (INVALID_IMAGE_CONTENT). Offload replaces that field with a pointer, so the
+ *   prefix could not be restored on read and content is write-once.
+ * - data URI shape in `image_url.url`: parsed exactly as the API parses it, so
+ *   the two agree on what is a base64 data URI. See DATA_URI_PATTERN.
+ * - base64 payload characters, and the media-type allowlist: STRICTER than the
+ *   API on purpose. The API stores an unrecognized payload as ordinary content
+ *   and never validates a declared media_type at all, so both of those failures
+ *   surface much later as "my image was stored but search never matches it".
+ *   Catching a typo at the call site is worth the divergence; widening either
+ *   check is safe, narrowing the API to match is not.
  *
  * The offending payload is deliberately never attached as the error `value`:
  * a rejected multi-megabyte base64 string must not be copied into an error
@@ -107,14 +159,21 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       // A genuine remote URL. Stored and returned verbatim, not ours to police.
       return;
     }
-    const match = DATA_URI_PATTERN.exec(url);
-    if (!match) {
+    const dataUri = parseBase64DataUri(url);
+    if (!dataUri || !BASE64_PATTERN.test(dataUri.base64)) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image_url.url is not a well-formed base64 data URI`
       );
     }
-    if (SUPPORTED_IMAGE_MEDIA_TYPES.indexOf(match[1].toLowerCase()) === -1) {
+    // Only checked when one is declared. RFC 2397 lets the media type be
+    // omitted and the API accepts that, so an absent one must not be reported
+    // as an unsupported one.
+    if (
+      dataUri.mediaType !== null &&
+      SUPPORTED_IMAGE_MEDIA_TYPES.indexOf(dataUri.mediaType.toLowerCase()) ===
+        -1
+    ) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image_url.url media type must be one of ${SUPPORTED_IMAGE_MEDIA_TYPES.join(

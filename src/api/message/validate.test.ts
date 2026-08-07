@@ -216,6 +216,91 @@ describe("validateCreateMessageInput", () => {
       ).toThrow("item 0: image_url.url is not a well-formed base64 data URI");
     });
 
+    // RFC 2397 is `data:[<mediatype>][;<parameter>]*[;base64],<data>`. The API
+    // parses the whole parameter list and treats the media type as optional
+    // (helpers/dialogue/images/detect.ts), so both of these are stored and
+    // returned byte for byte. The SDK used to demand exactly one parameter and
+    // a non-empty media type, and rejected them client-side with
+    // INVALID_PARAMETER for a payload the API would have accepted.
+    it("accepts a data URI carrying parameters besides base64", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: "data:image/png;charset=utf-8;base64,iVBORw0KGgo=",
+              },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("accepts a data URI with the media type omitted", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "data:;base64,iVBORw0KGgo=" },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("accepts an uppercase base64 parameter", () => {
+      // Matched case-insensitively for the same reason as the scheme: ";BASE64"
+      // is the same declaration, and the API lowercases before comparing.
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "DATA:image/png;BASE64,iVBORw0KGgo=" },
+            },
+          ],
+        })
+      ).not.toThrow();
+    });
+
+    it("still rejects a data URI whose payload is not base64", () => {
+      // Widening the shape must not widen the payload check with it.
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: "data:image/png;base64,not base64!!" },
+            },
+          ],
+        })
+      ).toThrow("item 0: image_url.url is not a well-formed base64 data URI");
+    });
+
+    it("still rejects an unsupported media type declared with extra parameters", () => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image_url",
+              image_url: {
+                url: "data:image/tiff;charset=utf-8;base64,aGVsbG8=",
+              },
+            },
+          ],
+        })
+      ).toThrow(
+        "item 0: image_url.url media type must be one of image/jpeg, image/png, image/gif, image/webp"
+      );
+    });
+
     it("rejects an unsupported media type inside a data URI", () => {
       expect(() =>
         validateCreateMessageInput({
