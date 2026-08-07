@@ -547,7 +547,10 @@ describe("data URI scheme casing", () => {
       expect(() =>
         validateCreateMessageInput(
           withContent([
-            { type: "image_url", image_url: { url: `${scheme}:image/tiff;base64,${payload}` } }
+            {
+              type: "image_url",
+              image_url: { url: `${scheme}:image/tiff;base64,${payload}` },
+            },
           ])
         )
       ).toThrow(/media type must be one of/);
@@ -560,7 +563,10 @@ describe("data URI scheme casing", () => {
       expect(() =>
         validateCreateMessageInput(
           withContent([
-            { type: "image_url", image_url: { url: `${scheme}:image/png;base64,!!!!` } }
+            {
+              type: "image_url",
+              image_url: { url: `${scheme}:image/png;base64,!!!!` },
+            },
           ])
         )
       ).toThrow(/well-formed base64 data URI/);
@@ -571,7 +577,10 @@ describe("data URI scheme casing", () => {
     expect(() =>
       validateCreateMessageInput(
         withContent([
-          { type: "image_url", image_url: { url: `${scheme}:image/jpeg;base64,${payload}` } }
+          {
+            type: "image_url",
+            image_url: { url: `${scheme}:image/jpeg;base64,${payload}` },
+          },
         ])
       )
     ).not.toThrow();
@@ -589,9 +598,9 @@ describe("data URI scheme casing", () => {
             source: {
               type: "base64",
               media_type: "image/png",
-              data: `DATA:image/png;base64,${payload}`
-            }
-          }
+              data: `DATA:image/png;base64,${payload}`,
+            },
+          },
         ])
       )
     ).toThrow(/must be raw base64 without a "data:" prefix/);
@@ -601,7 +610,10 @@ describe("data URI scheme casing", () => {
     expect(() =>
       validateCreateMessageInput(
         withContent([
-          { type: "image_url", image_url: { url: "https://cdn.example.com/a.tiff" } }
+          {
+            type: "image_url",
+            image_url: { url: "https://cdn.example.com/a.tiff" },
+          },
         ])
       )
     ).not.toThrow();

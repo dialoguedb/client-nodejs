@@ -63,7 +63,9 @@ describe("buildImagePart", () => {
     const file = join(dir, "big.png");
     await writeFile(file, Buffer.alloc(MAX_IMAGE_FILE_BYTES + overBy));
 
-    const expected = ((MAX_IMAGE_FILE_BYTES + overBy) / (1024 * 1024)).toFixed(1);
+    const expected = ((MAX_IMAGE_FILE_BYTES + overBy) / (1024 * 1024)).toFixed(
+      1
+    );
     await expect(buildImagePart(file)).rejects.toThrow(
       new RegExp(`is ${expected.replace(".", "\\.")}MB`)
     );
