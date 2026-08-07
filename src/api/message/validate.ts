@@ -36,6 +36,17 @@ const DATA_URI_PATTERN =
   /^data:([a-z]+\/[a-z0-9.+-]+);base64,(?=\s*[A-Za-z0-9+/])([A-Za-z0-9+/\s]+={0,2}\s*)$/i;
 
 /**
+ * Does this string begin a data URI?
+ *
+ * Case-insensitive, matching DATA_URI_PATTERN above and RFC 2397, which makes
+ * the scheme case-insensitive. The two gates below used startsWith("data:")
+ * while the pattern they guard was already case-insensitive, so an uppercase
+ * URI took the early return and skipped validation entirely: the one branch
+ * that would have accepted it never ran.
+ */
+const DATA_URI_PREFIX = /^data:/i;
+
+/**
  * Validates the two image spellings DialogueDB recognizes, and only those.
  * Unrecognized blocks pass through exactly as before, the API adds no new
  * rejections, so neither does the SDK.
@@ -57,7 +68,7 @@ function validateImagePart(part: Record<string, any>, index: number): void {
         `item ${index}: image source.data must be a non-empty base64 string`
       );
     }
-    if (source.data.startsWith("data:")) {
+    if (DATA_URI_PREFIX.test(source.data)) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image source.data must be raw base64 without a "data:" prefix`
@@ -92,7 +103,8 @@ function validateImagePart(part: Record<string, any>, index: number): void {
         `item ${index}: image_url.url must be a non-empty string`
       );
     }
-    if (!url.startsWith("data:")) {
+    if (!DATA_URI_PREFIX.test(url)) {
+      // A genuine remote URL. Stored and returned verbatim, not ours to police.
       return;
     }
     const match = DATA_URI_PATTERN.exec(url);

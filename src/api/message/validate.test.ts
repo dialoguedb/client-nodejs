@@ -532,3 +532,78 @@ describe("validateListMessageFilters", () => {
     );
   });
 });
+
+describe("data URI scheme casing", () => {
+  // RFC 2397 makes the scheme case-insensitive, and DATA_URI_PATTERN already
+  // was. Only the gates in front of it were not, so an uppercase URI took the
+  // early return and skipped every check below it.
+  const base = { dialogueId: "dialogue-123", role: "user" as const };
+  const payload = "/9j/4AAQSkZJRgABAQ==";
+  const withContent = (content: unknown[]) => ({ ...base, content });
+
+  it.each(["DATA", "Data", "dAtA"])(
+    "validates the media type of a %s: URI instead of skipping it",
+    (scheme) => {
+      expect(() =>
+        validateCreateMessageInput(
+          withContent([
+            { type: "image_url", image_url: { url: `${scheme}:image/tiff;base64,${payload}` } }
+          ])
+        )
+      ).toThrow(/media type must be one of/);
+    }
+  );
+
+  it.each(["DATA", "Data"])(
+    "rejects a malformed %s: URI instead of passing it through",
+    (scheme) => {
+      expect(() =>
+        validateCreateMessageInput(
+          withContent([
+            { type: "image_url", image_url: { url: `${scheme}:image/png;base64,!!!!` } }
+          ])
+        )
+      ).toThrow(/well-formed base64 data URI/);
+    }
+  );
+
+  it.each(["DATA", "Data"])("accepts a well-formed %s: URI", (scheme) => {
+    expect(() =>
+      validateCreateMessageInput(
+        withContent([
+          { type: "image_url", image_url: { url: `${scheme}:image/jpeg;base64,${payload}` } }
+        ])
+      )
+    ).not.toThrow();
+  });
+
+  it("names the real problem when source.data carries an uppercase prefix", () => {
+    // Previously fell through to the generic "not valid base64" message,
+    // because ":" is outside the base64 alphabet. Correct rejection, useless
+    // explanation.
+    expect(() =>
+      validateCreateMessageInput(
+        withContent([
+          {
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: "image/png",
+              data: `DATA:image/png;base64,${payload}`
+            }
+          }
+        ])
+      )
+    ).toThrow(/must be raw base64 without a "data:" prefix/);
+  });
+
+  it("still leaves a genuine remote url unvalidated", () => {
+    expect(() =>
+      validateCreateMessageInput(
+        withContent([
+          { type: "image_url", image_url: { url: "https://cdn.example.com/a.tiff" } }
+        ])
+      )
+    ).not.toThrow();
+  });
+});
