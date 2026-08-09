@@ -95,7 +95,9 @@ const DATA_URI_PREFIX = /^data:/i;
  *   (INVALID_IMAGE_CONTENT). Offload replaces that field with a pointer, so the
  *   prefix could not be restored on read and content is write-once.
  * - data URI shape in `image_url.url`: parsed exactly as the API parses it, so
- *   the two agree on what is a base64 data URI. See DATA_URI_PATTERN.
+ *   the two agree on what is a base64 data URI - AND on what is not one. A data
+ *   URI with no `;base64` parameter is not a malformed image, it is a
+ *   url-origin part, and both sides treat it as one. See DATA_URI_PATTERN.
  * - base64 payload characters, and the media-type allowlist: STRICTER than the
  *   API on purpose. The API stores an unrecognized payload as ordinary content
  *   and never validates a declared media_type at all, so both of those failures
@@ -160,7 +162,20 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       return;
     }
     const dataUri = parseBase64DataUri(url);
-    if (!dataUri || !BASE64_PATTERN.test(dataUri.base64)) {
+    if (!dataUri) {
+      // A data URI that never claimed to be base64: no `;base64` parameter, so
+      // the payload is literal or percent-encoded. `data:image/svg+xml,%3Csvg
+      // .../%3E` is the everyday example, `data:image/gif,...` the typo.
+      //
+      // The API's parser returns null on exactly this input too
+      // (helpers/dialogue/images/detect.ts parseDataUri) and files the part as
+      // url-origin: stored and returned verbatim, same as a remote URL, no
+      // rejection. Treating it as a malformed base64 URI made an inline SVG the
+      // product accepts fail inside the caller's own dependency, with a message
+      // about base64 they never asked for.
+      return;
+    }
+    if (!BASE64_PATTERN.test(dataUri.base64)) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image_url.url is not a well-formed base64 data URI`

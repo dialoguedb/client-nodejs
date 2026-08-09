@@ -202,14 +202,36 @@ describe("validateCreateMessageInput", () => {
       );
     });
 
-    it("rejects a malformed data URI on the OpenAI spelling", () => {
+    // A data URI with no `;base64` parameter is not a broken base64 URI, it is
+    // a different kind of part. The API's parser returns null for it
+    // (helpers/dialogue/images/detect.ts parseDataUri), files it as url-origin
+    // and stores it verbatim, so the SDK must not turn it into an
+    // INVALID_PARAMETER the API would never have raised.
+    it.each([
+      ["an inline SVG", "data:image/svg+xml,%3Csvg viewBox='0 0 1 1'/%3E"],
+      ["a percent-encoded payload", "data:image/gif,%89PNG"],
+      ["a literal payload", "data:image/png,iVBORw0KGgo="],
+      ["a media type outside the allowlist", "data:image/tiff,MM%00%2A"],
+    ])("accepts %s data URI the API stores verbatim", (_, url) => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [{ type: "image_url", image_url: { url } }],
+        })
+      ).not.toThrow();
+    });
+
+    it("still rejects a data URI that declares base64 and is not", () => {
+      // Dropping the rejection for non-base64 data URIs must not drop it for
+      // the ones that do claim `;base64`: that check is the deliberate
+      // divergence documented on validateImagePart.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
           content: [
             {
               type: "image_url",
-              image_url: { url: "data:image/png,iVBORw0KGgo=" },
+              image_url: { url: "data:image/png;base64,iVBORw0KGgo!" },
             },
           ],
         })
