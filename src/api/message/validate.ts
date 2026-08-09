@@ -24,14 +24,41 @@ const SUPPORTED_IMAGE_MEDIA_TYPES: string[] = [
   "image/webp",
 ];
 
-// Whitespace is allowed: line-wrapped base64 is common in copied payloads.
-// The leading lookahead is what stops whitespace ALONE from qualifying: `\s`
-// inside the class satisfies the `+` on its own, so "   " would otherwise read
-// as a valid payload and the length check above cannot catch it. The trailing
-// `\s*` matters for the same population: base64 read from a file usually ends
-// with a newline, and anchoring `$` right after the padding rejected exactly
-// the line-wrapped payloads this pattern exists to accept.
-const BASE64_PATTERN = /^(?=\s*[A-Za-z0-9+/])[A-Za-z0-9+/\s]+={0,2}\s*$/;
+/** The shape of a base64 payload once its whitespace is gone. */
+const BASE64_SHAPE = /^[A-Za-z0-9+/]+={0,2}$/;
+
+/**
+ * Is this a base64 payload the SDK will let through?
+ *
+ * Whitespace is allowed: line-wrapped base64 is common in copied payloads, and
+ * base64 read from a file usually ends with a newline. It is stripped in a
+ * separate pass rather than folded into the character class, and that is not a
+ * style choice. The single pattern this replaces was
+ *
+ *   /^(?=\s*[A-Za-z0-9+\/])[A-Za-z0-9+\/\s]+={0,2}\s*$/
+ *
+ * where `[A-Za-z0-9+/\s]+` and the trailing `\s*` can both consume the same
+ * whitespace. On a payload that ends up failing, the engine retries the tail
+ * from every position inside a whitespace run, which is quadratic in the length
+ * of that run: measured on node 20, 50 KB of spaces took 0.9s, 100 KB took 3.5s
+ * and 400 KB took 70s, all of it blocking the caller's own thread. source.data
+ * carries up to 25 MB and is entirely caller-supplied, so a payload that
+ * arrived mangled hangs the process instead of returning the error it was about
+ * to return. Both steps below are single-pass.
+ *
+ * Requiring one real base64 character after the strip is what stops whitespace
+ * ALONE from qualifying: "   " has nothing to decode, and the length check at
+ * the call site cannot catch it because it is not empty.
+ *
+ * One payload the old pattern rejected is now accepted: padding that is itself
+ * line-wrapped, "AA=\n=". It decodes fine, and the SDK is not supposed to add
+ * rejections the API does not make. Verified by differential fuzzing that this
+ * is the only direction the two disagree in.
+ */
+function isAcceptableBase64(value: string): boolean {
+  const withoutWhitespace = value.replace(/\s+/g, "");
+  return withoutWhitespace.length > 0 && BASE64_SHAPE.test(withoutWhitespace);
+}
 
 /**
  * A data URI, split the way RFC 2397 defines one:
@@ -138,7 +165,7 @@ function validateImagePart(part: Record<string, any>, index: number): void {
         `item ${index}: image source.data must be a non-empty base64 string`
       );
     }
-    if (!BASE64_PATTERN.test(source.data)) {
+    if (!isAcceptableBase64(source.data)) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image source.data is not valid base64`
@@ -185,7 +212,7 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       // about base64 they never asked for.
       return;
     }
-    if (!BASE64_PATTERN.test(dataUri.base64)) {
+    if (!isAcceptableBase64(dataUri.base64)) {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image_url.url is not a well-formed base64 data URI`

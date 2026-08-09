@@ -524,6 +524,40 @@ describe("validateCreateMessageInput", () => {
       ).not.toThrow();
     });
 
+    it("rejects a mangled payload in bounded time instead of hanging", () => {
+      // The payload check used one pattern whose character class and trailing
+      // `\s*` could both consume the same whitespace, so a failing payload was
+      // retried from every position inside a whitespace run: quadratic. 400 KB
+      // of whitespace took 70 seconds of blocked main thread, and source.data
+      // carries up to 25 MB of caller-supplied text.
+      //
+      // 200 KB of whitespace measured ~14 seconds before the fix and ~1
+      // millisecond after, so the budget below has four orders of magnitude of
+      // headroom on any machine and still fails outright on a return to a
+      // pattern with overlapping quantifiers.
+      const mangled = {
+        ...validInput,
+        content: [
+          {
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: "image/png",
+              data: `iVBORw0KGgo${" ".repeat(200_000)}!`,
+            },
+          },
+        ],
+      };
+
+      const startedAt = process.hrtime.bigint();
+      expect(() => validateCreateMessageInput(mangled as any)).toThrow(
+        "is not valid base64"
+      );
+      const elapsedMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
+
+      expect(elapsedMs).toBeLessThan(1500);
+    });
+
     it("rejects an empty content array", () => {
       expect(() =>
         validateCreateMessageInput({ ...validInput, content: [] } as any)
