@@ -1,5 +1,5 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { create } from "./messages.create";
 
@@ -298,6 +298,75 @@ describe("messages.create", () => {
         settings
       )
     ).rejects.toThrow("role is required");
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("names the offending message, not just the content item", async () => {
+    // Every message in a batch has an item 0, so "item 0: ..." on its own
+    // points at all of them. The API reports this as messages[i].content;
+    // the local error has to be at least as specific or the caller cannot
+    // act on it.
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    const filler = { role: "user" as const, content: "fine" };
+    let thrown: DialogueDBError | undefined;
+
+    try {
+      await create(
+        {
+          id: "dialogue-123",
+          messages: [
+            filler,
+            filler,
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: "image/tiff",
+                    data: "aGVsbG8=",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        settings
+      );
+    } catch (e) {
+      thrown = e as DialogueDBError;
+    }
+
+    expect(thrown).toBeInstanceOf(DialogueDBError);
+    expect(thrown!.message).toContain("messages[2]");
+    expect(thrown!.code).toBe("INVALID_PARAMETER");
+    expect(thrown!.details?.[0].field).toBe("messages[2].content");
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("blames the batch, not messages[0], for a bad dialogue id", async () => {
+    // dialogueId is a query parameter on this route, not a message field.
+    // Reattaching it per message to reuse the single-create validator made a
+    // batch-level mistake surface as a fault in the first message.
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create({ id: "", messages: [{ role: "user", content: "hi" }] }, settings)
+    ).rejects.toThrow("dialogueId is required");
+
+    await expect(
+      create(
+        { id: "abc", messages: [{ role: "user", content: "hi" }] },
+        settings
+      )
+    ).rejects.toThrow(/^(?!.*messages\[0\]).*dialogueId/s);
 
     expect(apiRequestMock).not.toHaveBeenCalled();
   });
