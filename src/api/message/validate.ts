@@ -93,7 +93,9 @@ const DATA_URI_PREFIX = /^data:/i;
  *
  * - `data:` prefix in the Anthropic `source.data`: the API rejects this too
  *   (INVALID_IMAGE_CONTENT). Offload replaces that field with a pointer, so the
- *   prefix could not be restored on read and content is write-once.
+ *   prefix could not be restored on read and content is write-once. Checked
+ *   wherever that field holds a string, because that is when the API checks it:
+ *   `source.type` does not gate it there and must not gate it here.
  * - data URI shape in `image_url.url`: parsed exactly as the API parses it, so
  *   the two agree on what is a base64 data URI - AND on what is not one. A data
  *   URI with no `;base64` parameter is not a malformed image, it is a
@@ -112,6 +114,20 @@ const DATA_URI_PREFIX = /^data:/i;
 function validateImagePart(part: Record<string, any>, index: number): void {
   if (part.type === "image" && isPlainObject(part.source)) {
     const source = part.source as Record<string, any>;
+    // Ahead of the source.type gate on purpose. The API reads source.data
+    // first and only falls through to source.url when there is no string there
+    // (helpers/dialogue/images/detect.ts detectAnthropicImage), so it raises
+    // INVALID_IMAGE_CONTENT for a data: URI in this field whatever source.type
+    // says - including when source.type was left off, which is the easiest
+    // field in the shape to forget. Behind the gate, that caller uploaded the
+    // whole payload to be told by the server what we could have told them
+    // before the request left the process.
+    if (typeof source.data === "string" && DATA_URI_PREFIX.test(source.data)) {
+      throw errors.invalidParameter(
+        "content",
+        `item ${index}: image source.data must be raw base64 without a "data:" prefix`
+      );
+    }
     if (source.type !== "base64") {
       // url-origin images are stored and returned verbatim, not ours to police.
       return;
@@ -120,12 +136,6 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       throw errors.invalidParameter(
         "content",
         `item ${index}: image source.data must be a non-empty base64 string`
-      );
-    }
-    if (DATA_URI_PREFIX.test(source.data)) {
-      throw errors.invalidParameter(
-        "content",
-        `item ${index}: image source.data must be raw base64 without a "data:" prefix`
       );
     }
     if (!BASE64_PATTERN.test(source.data)) {

@@ -163,6 +163,51 @@ describe("validateCreateMessageInput", () => {
       );
     });
 
+    // detectAnthropicImage reads source.data before it looks at source.type,
+    // and rejects a data: URI there with INVALID_IMAGE_CONTENT. source.type is
+    // the easiest field in the shape to leave off, and behind the type gate
+    // that omission bought the caller a full upload of the payload before the
+    // server said the same thing.
+    it.each([
+      ["source.type is omitted", { media_type: "image/png" }],
+      ["source.type says url", { type: "url", media_type: "image/png" }],
+      ["there is no media_type either", {}],
+    ])("rejects a data: prefix in source.data when %s", (_, source) => {
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: { ...source, data: "data:image/png;base64,iVBORw0KGgo=" },
+            },
+          ],
+        } as any)
+      ).toThrow(
+        'item 0: image source.data must be raw base64 without a "data:" prefix'
+      );
+    });
+
+    it("still leaves a url source with no data field alone", () => {
+      // The gate exists for a reason: a url-origin part is stored and returned
+      // verbatim, and nothing about it is the SDK's to police.
+      expect(() =>
+        validateCreateMessageInput({
+          ...validInput,
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "url",
+                url: "https://example.com/a.tiff",
+                media_type: "image/tiff",
+              },
+            },
+          ],
+        } as any)
+      ).not.toThrow();
+    });
+
     it("rejects non-base64 characters in the image payload", () => {
       expect(() =>
         validateCreateMessageInput({
