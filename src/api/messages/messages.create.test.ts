@@ -38,6 +38,81 @@ describe("messages.create", () => {
     jest.clearAllMocks();
   });
 
+  describe("the batch transport ceiling", () => {
+    // The per-message validator checks each message's inline images against the
+    // 36 MiB request ceiling INDEPENDENTLY, and this route serialises every
+    // message into one body. Messages that each pass can still add up past it,
+    // and the result is the bare, requestId-less 413 from the body parser that
+    // the per-message guard exists to eliminate.
+    const settings = () => {
+      const s = new SettingsContainer();
+      s.set("apiKey", "k");
+      s.set("endpoint", "https://api.example.com");
+      return s;
+    };
+    // 12 MiB of raw bytes per message, which is ~16 MiB encoded. One is fine.
+    const heavyMessage = () => ({
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/png",
+            data: "A".repeat(12 * 1024 * 1024),
+          },
+        },
+      ],
+    });
+
+    it("rejects a batch whose messages each fit but whose body does not", async () => {
+      apiRequestMock.mockResolvedValue([]);
+
+      await expect(
+        create(
+          { id: "dialogue-123", messages: [heavyMessage(), heavyMessage(), heavyMessage()] },
+          settings()
+        )
+      ).rejects.toThrow(DialogueDBError);
+
+      // Nothing left the machine: the point is to replace a transport failure,
+      // not to add a second one after paying to upload the body.
+      expect(apiRequestMock).not.toHaveBeenCalled();
+    });
+
+    it("names the batch, not a message index, and carries no payload", async () => {
+      let caught: unknown = null;
+      try {
+        await create(
+          { id: "dialogue-123", messages: [heavyMessage(), heavyMessage(), heavyMessage()] },
+          settings()
+        );
+      } catch (error) {
+        caught = error;
+      }
+
+      const err = caught as DialogueDBError;
+      expect(err.message).toContain("batch");
+      expect(err.message).toContain("one body");
+      const serialised = JSON.stringify({
+        message: err.message,
+        details: err.details,
+      });
+      expect(serialised).not.toContain("AAAA");
+    });
+
+    it("lets a batch that fits through untouched", async () => {
+      apiRequestMock.mockResolvedValue([]);
+
+      await create(
+        { id: "dialogue-123", messages: [heavyMessage()] },
+        settings()
+      );
+
+      expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("should create messages successfully", async () => {
     const key = "my-api-key";
     const endpoint = "https://api.example.com";

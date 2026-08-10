@@ -851,19 +851,28 @@ describe("aggregate inline image size", () => {
     expect(message).toContain("reference them by URL");
   });
 
-  it("never puts the payload in the error", () => {
+  it("never puts the payload in the error, in the message OR in details", () => {
     // These parts are megabytes each and the error is logged and serialised.
-    let message = "";
+    //
+    // `details` is checked as well as `message`. Inspecting only the message let
+    // this stay green while the payload travelled on the structured field, which
+    // is the half that actually gets logged verbatim by most callers.
+    let caught: unknown = null;
     try {
       validateCreateMessageInput({
         ...base,
         content: [anthropic(payload(20)), anthropic(payload(20))],
       });
     } catch (error) {
-      message = (error as Error).message;
+      caught = error;
     }
 
-    expect(message).not.toContain("AAAA");
+    expect(caught).toBeInstanceOf(DialogueDBError);
+    const serialised = JSON.stringify({
+      message: (caught as DialogueDBError).message,
+      details: (caught as DialogueDBError).details,
+    });
+    expect(serialised).not.toContain("AAAA");
   });
 
   it("does not count url-origin images, which carry no bytes", () => {

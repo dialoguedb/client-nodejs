@@ -146,7 +146,7 @@ const DATA_URI_PREFIX = /^data:/i;
  * because the SDK is the only layer that can see the whole request before it
  * is sent.
  */
-const REQUEST_BODY_CEILING_BYTES = 36 * 1024 * 1024;
+export const REQUEST_BODY_CEILING_BYTES = 36 * 1024 * 1024;
 
 /**
  * Base64 costs four characters per three bytes, so a payload's wire size is
@@ -210,6 +210,39 @@ function assertInlineImagesFitOneRequest(
       )} of image data fits in one request. Send fewer images per message, or reference them by URL, which carries no bytes in the request.`
     );
   }
+}
+
+/**
+ * Batch sibling of `assertInlineImagesFitOneRequest`, measured on the real body.
+ *
+ * The per-message guard above is applied to each message independently, and the
+ * batch route serialises ALL of them into one body. Four 12 MiB messages each
+ * pass it and the ~48 MiB request dies at the express parser as the same bare,
+ * requestId-less 413 that guard exists to eliminate.
+ *
+ * Measured on the serialised string rather than by summing base64 lengths,
+ * because the batch envelope is not negligible: JSON keys, text parts, metadata
+ * and 25 sets of braces all travel in the same body the ceiling applies to. The
+ * caller is about to serialise anyway, so the exact number is free and no
+ * headroom has to be guessed at.
+ *
+ * Takes the serialised body so it cannot disagree with what is actually sent.
+ */
+export function assertBatchBodyFitsOneRequest(body: string): void {
+  const bytes = Buffer.byteLength(body, "utf8");
+  if (bytes <= REQUEST_BODY_CEILING_BYTES) {
+    return;
+  }
+
+  const mib = (value: number) => `${(value / (1024 * 1024)).toFixed(1)} MiB`;
+  // No payload in the error: it is logged and serialised, and this body is
+  // megabytes by definition.
+  throw errors.invalidParameter(
+    "messages",
+    `this batch serialises to ${mib(bytes)}, over the ${mib(
+      REQUEST_BODY_CEILING_BYTES
+    )} request limit. The per-image and per-message limits are separate caps, not a combined budget, and a batch sends every message in one body. Split the batch across several calls, or reference images by URL, which carries no bytes in the request.`
+  );
 }
 
 function validateImagePart(part: Record<string, any>, index: number): void {

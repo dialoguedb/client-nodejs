@@ -3,7 +3,10 @@ import { apiRequest, DialogueDBError } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { errors } from "@/errors";
 import { CreateMessageInput, IMessage } from "@/types";
-import { validateCreateMessageInput } from "@/api/message/validate";
+import {
+  validateCreateMessageInput,
+  assertBatchBodyFitsOneRequest
+} from "@/api/message/validate";
 import { validateStringField } from "@/utils/validation";
 
 /**
@@ -75,12 +78,19 @@ export async function create(
   }
   const url = `${endpoint}/messages?${params.toString()}`;
 
+  // The per-message validator above cannot see the batch: it checks each
+  // message's inline images against the request ceiling independently, and this
+  // route puts all of them in one body. Measured here, on the exact string about
+  // to be sent, so the envelope is counted too.
+  const body = JSON.stringify(input.messages);
+  assertBatchBodyFitsOneRequest(body);
+
   const req = await apiRequest<IMessage[]>(
     url,
     {
       method: "post",
       headers,
-      body: JSON.stringify(input.messages),
+      body,
     },
     settings.getRetryConfig()
   );
