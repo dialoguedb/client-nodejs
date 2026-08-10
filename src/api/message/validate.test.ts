@@ -805,3 +805,92 @@ describe("data URI scheme casing", () => {
     ).not.toThrow();
   });
 });
+
+describe("aggregate inline image size", () => {
+  const base = { dialogueId: "dialogue-123", role: "user" as const };
+  /** Base64 of roughly `mib` mebibytes of decoded bytes. */
+  const payload = (mib: number) =>
+    "A".repeat(Math.ceil(((mib * 1024 * 1024) / 3) * 4));
+
+  const anthropic = (data: string) => ({
+    type: "image",
+    source: { type: "base64", media_type: "image/png", data },
+  });
+
+  it("rejects two images that are each within plan but cannot share a request", () => {
+    // The trap the documented limits create. maxImageBytes 25 MB and
+    // maxImagePartCount 20 are independent caps, so 2 x 20 MB is inside both,
+    // and the request dies at the express body parser before anything parses
+    // it: a bare 413 with no JSON, naming no image, indistinguishable from an
+    // outage. The server cannot improve on that, because by the time its code
+    // runs the body is already refused.
+    expect(() =>
+      validateCreateMessageInput({
+        ...base,
+        content: [anthropic(payload(20)), anthropic(payload(20))],
+      })
+    ).toThrow(/over the .* request limit/);
+  });
+
+  it("names the workaround that actually works", () => {
+    // Telling the caller to "send a smaller image" is wrong: each image is
+    // already within the per-image cap. The only fixes are fewer parts or a
+    // URL, and the error has to say so or the reader will shrink an image that
+    // was never the problem.
+    let message = "";
+    try {
+      validateCreateMessageInput({
+        ...base,
+        content: [anthropic(payload(20)), anthropic(payload(20))],
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(message).toContain("separate caps");
+    expect(message).toContain("reference them by URL");
+  });
+
+  it("never puts the payload in the error", () => {
+    // These parts are megabytes each and the error is logged and serialised.
+    let message = "";
+    try {
+      validateCreateMessageInput({
+        ...base,
+        content: [anthropic(payload(20)), anthropic(payload(20))],
+      });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+
+    expect(message).not.toContain("AAAA");
+  });
+
+  it("does not count url-origin images, which carry no bytes", () => {
+    // Referencing by URL is the workaround the error recommends, so counting
+    // those against the transport budget would make the advice self-defeating.
+    const many = Array.from({ length: 20 }, () => ({
+      type: "image_url",
+      image_url: { url: "https://cdn.example.com/very-large-photo.png" },
+    }));
+
+    expect(() =>
+      validateCreateMessageInput({ ...base, content: many })
+    ).not.toThrow();
+  });
+
+  it("lets a normal multi-image message through", () => {
+    // The guard must not become the limit. Three 5 MiB images encode to about
+    // 20 MiB, comfortably inside the ceiling.
+    expect(() =>
+      validateCreateMessageInput({
+        ...base,
+        content: [
+          anthropic(payload(5)),
+          anthropic(payload(5)),
+          anthropic(payload(5)),
+        ],
+      })
+    ).not.toThrow();
+  });
+});

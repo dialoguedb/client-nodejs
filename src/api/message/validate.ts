@@ -138,6 +138,80 @@ const DATA_URI_PREFIX = /^data:/i;
  * a rejected multi-megabyte base64 string must not be copied into an error
  * object that gets logged and serialized.
  */
+/**
+ * The service API's request body ceiling, in bytes.
+ *
+ * Not a plan limit and not something the caller can raise: it is the express
+ * body-parser limit on the ECS surface that serves message writes. Kept here
+ * because the SDK is the only layer that can see the whole request before it
+ * is sent.
+ */
+const REQUEST_BODY_CEILING_BYTES = 36 * 1024 * 1024;
+
+/**
+ * Base64 costs four characters per three bytes, so a payload's wire size is
+ * larger than its decoded size by a third.
+ */
+function encodedLengthOf(base64: string): number {
+  return base64.length;
+}
+
+/**
+ * Reject a request whose inline images cannot fit in one body.
+ *
+ * `maxImageBytes` and `maxImagePartCount` are INDEPENDENT caps, not a budget
+ * that multiplies: 20 parts of 25 MB each is 500 MB, and the request ceiling is
+ * 36 MB. A caller who reads the documented limits and sends two 20 MB images is
+ * inside both, and the request dies at the transport before anything parses it.
+ *
+ * That failure is a bare 413 with no JSON body, naming no image and no limit,
+ * because the body parser runs before route matching. It is indistinguishable
+ * from an outage and there is no `requestId` to chase.
+ *
+ * The server cannot improve on it: by the time our code runs the body has
+ * already been refused. The SDK can, because it holds the parts before
+ * serialising them. This is the one check here that exists purely to turn an
+ * opaque transport failure into an actionable message.
+ *
+ * URL-origin images are excluded deliberately: they carry no bytes in the
+ * request, which is exactly the workaround this error recommends.
+ */
+function assertInlineImagesFitOneRequest(
+  content: Array<Record<string, any>>
+): void {
+  let encoded = 0;
+
+  for (const part of content) {
+    if (part?.type === "image" && isPlainObject(part.source)) {
+      const data = (part.source as Record<string, any>).data;
+      if (typeof data === "string") {
+        encoded += encodedLengthOf(data);
+      }
+      continue;
+    }
+    if (part?.type === "image_url" && isPlainObject(part.image_url)) {
+      const url = (part.image_url as Record<string, any>).url;
+      if (typeof url === "string" && DATA_URI_PREFIX.test(url)) {
+        encoded += encodedLengthOf(url);
+      }
+    }
+  }
+
+  if (encoded > REQUEST_BODY_CEILING_BYTES) {
+    const mib = (value: number) => `${(value / (1024 * 1024)).toFixed(1)} MiB`;
+    // No payloads in the error: it is logged and serialised, and these parts
+    // are megabytes each.
+    throw errors.invalidParameter(
+      "content",
+      `inline images encode to ${mib(encoded)}, over the ${mib(
+        REQUEST_BODY_CEILING_BYTES
+      )} request limit. The per-image and per-message limits are separate caps, not a combined budget: base64 costs four bytes per three, so roughly ${mib(
+        (REQUEST_BODY_CEILING_BYTES * 3) / 4
+      )} of image data fits in one request. Send fewer images per message, or reference them by URL, which carries no bytes in the request.`
+    );
+  }
+}
+
 function validateImagePart(part: Record<string, any>, index: number): void {
   if (part.type === "image" && isPlainObject(part.source)) {
     const source = part.source as Record<string, any>;
@@ -258,6 +332,7 @@ function validateContentField(content: unknown): void {
         "array must contain only objects"
       );
     }
+    assertInlineImagesFitOneRequest(content as Array<Record<string, any>>);
     content.forEach((item, index) =>
       validateImagePart(item as Record<string, any>, index)
     );
