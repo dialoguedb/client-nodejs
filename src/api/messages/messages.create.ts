@@ -5,7 +5,7 @@ import { errors } from "@/errors";
 import { CreateMessageInput, IMessage } from "@/types";
 import {
   validateCreateMessageInput,
-  assertBatchBodyFitsOneRequest
+  assertBatchBodyFitsOneRequest,
 } from "@/api/message/validate";
 import { validateStringField } from "@/utils/validation";
 

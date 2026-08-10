@@ -70,7 +70,10 @@ describe("messages.create", () => {
 
       await expect(
         create(
-          { id: "dialogue-123", messages: [heavyMessage(), heavyMessage(), heavyMessage()] },
+          {
+            id: "dialogue-123",
+            messages: [heavyMessage(), heavyMessage(), heavyMessage()],
+          },
           settings()
         )
       ).rejects.toThrow(DialogueDBError);
@@ -84,7 +87,10 @@ describe("messages.create", () => {
       let caught: unknown = null;
       try {
         await create(
-          { id: "dialogue-123", messages: [heavyMessage(), heavyMessage(), heavyMessage()] },
+          {
+            id: "dialogue-123",
+            messages: [heavyMessage(), heavyMessage(), heavyMessage()],
+          },
           settings()
         );
       } catch (error) {
