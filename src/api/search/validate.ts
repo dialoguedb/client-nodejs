@@ -153,10 +153,23 @@ function validateFilter(filter: unknown): void {
   rejectDeprecatedFilterKeys(filter);
 
   for (const key of Object.keys(filter)) {
+    if (key === "hasImage") {
+      // hasImage is accepted for every object type; see
+      // SearchFilterOptions.hasImage for what it means on dialogues and
+      // memories.
+      if (typeof filter[key] !== "boolean") {
+        throw errors.invalidParameter(
+          "filter.hasImage",
+          "must be a boolean",
+          filter[key]
+        );
+      }
+      continue;
+    }
     if (key !== "created" && key !== "modified") {
       throw errors.invalidParameter(
         `filter.${key}`,
-        "unknown filter key — allowed: created, modified",
+        "unknown filter key. Allowed: created, modified, hasImage",
         key
       );
     }
@@ -279,7 +292,7 @@ function validateMetadata(metadata: unknown): void {
 }
 
 /**
- * Validates the new search request shape at the SDK boundary.
+ * Validates the search request shape at the SDK boundary.
  *
  * Catches deprecated date-decomposition fields with a migration hint and
  * obvious shape errors. The server remains the source of truth for full

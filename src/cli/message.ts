@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import { readFile } from "node:fs/promises";
 import {
+  buildImagePart,
+  composeMessageContent,
   loadDialogueOrExit,
   output,
   parseCSV,
@@ -9,6 +11,7 @@ import {
   resolveContent,
   withErrorHandler,
 } from "./shared";
+import type { MessageContent } from "../types/message";
 
 export function registerMessageCommands(program: Command): void {
   const message = program
@@ -22,6 +25,10 @@ export function registerMessageCommands(program: Command): void {
     .option("--content <content>", "Message content (string)")
     .option("--content-json <json>", "Message content (JSON)")
     .option("--stdin", "Read content from stdin")
+    .option(
+      "--image <path|url>",
+      "Attach an image. A local path is inlined as base64; an http(s) URL is stored verbatim. Combines with --content or --stdin."
+    )
     .option("--name <name>", "Optional name")
     .option("--namespace <namespace>", "Namespace")
     .option("--tags <csv>", "Tags (comma-separated)")
@@ -31,17 +38,26 @@ export function registerMessageCommands(program: Command): void {
 
         let content: unknown;
         if (opts.contentJson) {
+          if (opts.image) {
+            throw new Error(
+              "--image cannot be combined with --content-json; put the image part in the JSON instead"
+            );
+          }
           content = parseJSON("content-json", opts.contentJson);
         } else {
-          content = await resolveContent({
+          const text = await resolveContent({
             content: opts.content,
             stdin: opts.stdin,
           });
+          const imagePart = opts.image
+            ? await buildImagePart(opts.image)
+            : undefined;
+          content = composeMessageContent(text, imagePart);
         }
 
         const msg = await d.saveMessage({
           role: opts.role,
-          content: content as any,
+          content: content as MessageContent,
           ...(opts.name && { name: opts.name }),
           ...(opts.tags && { tags: parseCSV(opts.tags) }),
         });

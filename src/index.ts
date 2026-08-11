@@ -24,6 +24,15 @@ export type {
 export type {
   IMessage,
   MessageContent,
+  ContentPart,
+  TextPart,
+  ImagePart,
+  AnthropicImagePart,
+  AnthropicImageSource,
+  AnthropicBase64ImageSource,
+  AnthropicUrlImageSource,
+  OpenAIImagePart,
+  ImageMediaType,
   CreateMessageInput,
   ListMessageFilters,
 } from "./types/message";

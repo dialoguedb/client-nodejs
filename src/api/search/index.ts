@@ -47,6 +47,17 @@ export type SearchDateFilterValue = string | SearchDateRangeOperators;
 export interface SearchFilterOptions {
   created?: SearchDateFilterValue;
   modified?: SearchDateFilterValue;
+  /**
+   * Restrict message searches to messages that carry at least one image
+   * (true) or none (false).
+   *
+   * Intended for object "message", and it is not ignored on the other object
+   * types. Only messages carry an image flag, so on object "memory",
+   * `hasImage: true` returns an empty result set rather than an unfiltered
+   * one, and on object "dialogue" it drops dialogues that matched only on
+   * their own label. `false` is a no-op on both of those object types.
+   */
+  hasImage?: boolean;
 }
 
 export interface SearchOptions {

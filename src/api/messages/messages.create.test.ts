@@ -1,10 +1,11 @@
 import { SettingsContainer } from "@/settings/class.SettingsContainer";
-import { apiRequest } from "@/utils/request";
+import { apiRequest, DialogueDBError } from "@/utils/request";
 import { getConfig } from "@/settings";
 import { create } from "./messages.create";
 
 jest.mock("@/utils/request", () => ({
   apiRequest: jest.fn(),
+  DialogueDBError: jest.requireActual("@/utils/request").DialogueDBError,
 }));
 
 jest.mock("@/settings", () => {
@@ -35,6 +36,87 @@ describe("messages.create", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe("the batch transport ceiling", () => {
+    // Each message's inline images are checked on their own against the 36 MiB
+    // request limit, but a batch sends every message in one body. Messages that
+    // each fit can still add up past the limit, so the batch is measured as a
+    // whole; otherwise the caller uploads the body and gets a bare 413 with no
+    // detail about which message was too large.
+    const settings = () => {
+      const s = new SettingsContainer();
+      s.set("apiKey", "k");
+      s.set("endpoint", "https://api.example.com");
+      return s;
+    };
+    // 12 MiB of raw bytes per message, which is ~16 MiB encoded. One is fine.
+    const heavyMessage = () => ({
+      role: "user",
+      content: [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/png",
+            data: "A".repeat(12 * 1024 * 1024),
+          },
+        },
+      ],
+    });
+
+    it("rejects a batch whose messages each fit but whose body does not", async () => {
+      apiRequestMock.mockResolvedValue([]);
+
+      await expect(
+        create(
+          {
+            id: "dialogue-123",
+            messages: [heavyMessage(), heavyMessage(), heavyMessage()],
+          },
+          settings()
+        )
+      ).rejects.toThrow(DialogueDBError);
+
+      // The request is never sent. The whole point of the check is to fail
+      // before the caller pays to upload the body.
+      expect(apiRequestMock).not.toHaveBeenCalled();
+    });
+
+    it("names the batch, not a message index, and carries no payload", async () => {
+      let caught: unknown = null;
+      try {
+        await create(
+          {
+            id: "dialogue-123",
+            messages: [heavyMessage(), heavyMessage(), heavyMessage()],
+          },
+          settings()
+        );
+      } catch (error) {
+        caught = error;
+      }
+
+      const err = caught as DialogueDBError;
+      expect(err.message).toContain("batch");
+      expect(err.message).toContain("one body");
+      const serialised = JSON.stringify({
+        message: err.message,
+        details: err.details,
+      });
+      expect(serialised).not.toContain("AAAA");
+    });
+
+    it("lets a batch that fits through untouched", async () => {
+      apiRequestMock.mockResolvedValue([]);
+
+      await create(
+        { id: "dialogue-123", messages: [heavyMessage()] },
+        settings()
+      );
+
+      expect(apiRequestMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("should create messages successfully", async () => {
@@ -246,5 +328,160 @@ describe("messages.create", () => {
       expect.any(Object)
     );
     expect(result).toEqual(mockResponse);
+  });
+
+  it("rejects a batch containing a malformed image part without calling the API", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create(
+        {
+          id: "dialogue-123",
+          messages: [
+            { role: "user", content: "fine" },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: "image/tiff",
+                    data: "aGVsbG8=",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        settings
+      )
+    ).rejects.toThrow(
+      "item 0: image source.media_type must be one of image/jpeg, image/png, image/gif, image/webp"
+    );
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects a batch message missing a role without calling the API", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create(
+        {
+          id: "dialogue-123",
+          messages: [{ content: "no role here" } as any],
+        },
+        settings
+      )
+    ).rejects.toThrow("role is required");
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("names the offending message, not just the content item", async () => {
+    // Every message in a batch has an item 0, so "item 0: ..." on its own
+    // points at all of them. The API reports this as messages[i].content;
+    // the local error has to be at least as specific or the caller cannot
+    // act on it.
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    const filler = { role: "user" as const, content: "fine" };
+    let thrown: DialogueDBError | undefined;
+
+    try {
+      await create(
+        {
+          id: "dialogue-123",
+          messages: [
+            filler,
+            filler,
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  source: {
+                    type: "base64",
+                    media_type: "image/tiff",
+                    data: "aGVsbG8=",
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        settings
+      );
+    } catch (e) {
+      thrown = e as DialogueDBError;
+    }
+
+    expect(thrown).toBeInstanceOf(DialogueDBError);
+    expect(thrown!.message).toContain("messages[2]");
+    expect(thrown!.code).toBe("INVALID_PARAMETER");
+    expect(thrown!.details?.[0].field).toBe("messages[2].content");
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("blames the batch, not messages[0], for a bad dialogue id", async () => {
+    // The dialogue id applies to the whole batch, not to any one message, so an
+    // invalid id is reported against the batch rather than blamed on
+    // messages[0].
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    await expect(
+      create({ id: "", messages: [{ role: "user", content: "hi" }] }, settings)
+    ).rejects.toThrow("dialogueId is required");
+
+    await expect(
+      create(
+        { id: "abc", messages: [{ role: "user", content: "hi" }] },
+        settings
+      )
+    ).rejects.toThrow(/^(?!.*messages\[0\]).*dialogueId/s);
+
+    expect(apiRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("accepts a batch containing a valid image part", async () => {
+    const settings = new SettingsContainer();
+    settings.set("apiKey", "key");
+    settings.set("endpoint", "https://api.example.com");
+
+    apiRequestMock.mockResolvedValueOnce([]);
+
+    await create(
+      {
+        id: "dialogue-123",
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "what is this?" },
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: "image/png",
+                  data: "iVBORw0KGgoAAAANSUhEUg==",
+                },
+              },
+            ],
+          },
+        ],
+      },
+      settings
+    );
+
+    expect(apiRequestMock).toHaveBeenCalledTimes(1);
   });
 });

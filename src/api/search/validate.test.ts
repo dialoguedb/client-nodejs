@@ -130,6 +130,28 @@ describe("validateSearchInput", () => {
       ).not.toThrow();
     });
 
+    it("accepts filter.hasImage as a boolean", () => {
+      expect(() =>
+        validateSearchInput({ ...base, filter: { hasImage: true } })
+      ).not.toThrow();
+      expect(() =>
+        validateSearchInput({ ...base, filter: { hasImage: false } })
+      ).not.toThrow();
+      expect(() =>
+        validateSearchInput({
+          ...base,
+          filter: { hasImage: true, created: "last month" },
+        })
+      ).not.toThrow();
+    });
+
+    it("rejects a non-boolean filter.hasImage", () => {
+      expectInvalid(
+        { ...base, filter: { hasImage: "yes" } as any },
+        "filter.hasImage"
+      );
+    });
+
     it("rejects unknown filter key", () => {
       expectInvalid(
         { ...base, filter: { whenever: "today" } as any },

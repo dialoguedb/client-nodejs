@@ -32,10 +32,16 @@ export function registerMemoryCommands(program: Command): void {
         if (opts.valueJson) {
           value = parseJSON("value-json", opts.valueJson);
         } else {
-          value = await resolveContent({
+          const resolved = await resolveContent({
             content: opts.value,
             stdin: opts.stdin,
           });
+          if (resolved === undefined) {
+            throw new Error(
+              "Provide --value <text>, --value-json <json>, or --stdin"
+            );
+          }
+          value = resolved;
         }
 
         const m = await createMemory({

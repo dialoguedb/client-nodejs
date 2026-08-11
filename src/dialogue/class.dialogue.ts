@@ -289,8 +289,8 @@ export class Dialogue {
   async saveMessages(
     messages: Array<{
       role: string;
-      // string | object | object[], matching saveMessage
-      // (CreateMessageInput.content) and what the API accepts.
+      // Same content the API accepts on saveMessage (CreateMessageInput.content),
+      // including image parts.
       content: MessageContent;
       id?: string;
       created?: string;
@@ -440,7 +440,6 @@ export class Dialogue {
    * @experimental Compact/summarize the dialogue — not yet available.
    */
   async compact(): Promise<any> {
-    // TODO: Implement when backend action endpoint is ready
     throw errors.notImplemented("compact");
   }
 
