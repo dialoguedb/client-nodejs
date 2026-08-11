@@ -23,11 +23,11 @@ export function validateCreateDialogueInput(input: CreateDialogueInput): void {
   }
 
   if (input.namespace !== undefined) {
-    validateStringField(input.namespace, "namespace", 5);
+    validateStringField(input.namespace, "namespace", 1);
   }
 
   if (input.threadOf !== undefined) {
-    validateStringField(input.threadOf, "threadOf", 5);
+    validateStringField(input.threadOf, "threadOf", 1);
   }
 
   if (input.label !== undefined) {
@@ -58,7 +58,7 @@ export function validateUpdateDialogueInput(input: UpdateDialogueInput): void {
   if (!input.id) {
     throw errors.missingParameter("id");
   }
-  validateStringField(input.id, "id", 5);
+  validateStringField(input.id, "id", 1);
 
   if (input.label !== undefined) {
     validateStringField(input.label, "label");
