@@ -15,13 +15,8 @@ import type {
  * loading an absurd file into memory and running out of heap.
  *
  * It must therefore stay ABOVE the largest per-image cap any plan allows,
- * currently 25,000,000 decimal bytes. At 20 MiB it sat *below* that, which
- * quietly turned a heap guard into a stricter policy than the server's: a
- * 22 MB image the API would have accepted was rejected here, with a message
- * about reading from disk that gave no hint the server would have taken it.
- *
- * 25 MiB (26,214,400) clears the decimal cap with margin, and matches the
- * backend's own remote-fetch backstop (MAX_REMOTE_IMAGE_BYTES).
+ * currently 25,000,000 decimal bytes.  *
+ * 25 MiB (26,214,400) clears that cap with margin.
  */
 export const MAX_IMAGE_FILE_BYTES = 25 * 1024 * 1024;
 
@@ -118,8 +113,8 @@ export async function buildImagePart(source: string): Promise<ImagePart> {
   const { size } = await stat(source);
   if (size > MAX_IMAGE_FILE_BYTES) {
     throw new Error(
-      // One decimal, not a round: a file barely over the ceiling rounded to
-      // "is 20MB, over the 20MB limit", which reads like a bug in the check.
+      // One decimal place, so a file barely over the limit does not render as
+      // "is 25MB, over the 25MB limit".
       `--image: "${source}" is ${(size / (1024 * 1024)).toFixed(
         1
       )}MB, over the ${

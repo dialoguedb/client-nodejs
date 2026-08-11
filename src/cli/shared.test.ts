@@ -52,13 +52,9 @@ describe("buildImagePart", () => {
   });
 
   it("reports a fractional size when a file is just over the limit", async () => {
-    // Math.round rendered anything under x.5MB as "is 20MB, over the 20MB
-    // limit", which reads like the check itself is broken.
-    //
-    // Sized off the constant rather than a literal: written as `20 * 1024 *
-    // 1024 + 100 * 1024` this kept passing after the ceiling moved, because it
-    // was still over the OLD limit and the assertion still matched the old
-    // number. A test that follows the constant fails when they disagree.
+    // Both the file size and the expected string are derived from
+    // MAX_IMAGE_FILE_BYTES, so this test tracks the limit instead of pinning a
+    // literal that can silently drift away from it.
     const overBy = 100 * 1024;
     const file = join(dir, "big.png");
     await writeFile(file, Buffer.alloc(MAX_IMAGE_FILE_BYTES + overBy));
@@ -72,16 +68,16 @@ describe("buildImagePart", () => {
   });
 
   it("stays above the largest per-image cap any plan allows", async () => {
-    // This is a heap guard, not a policy limit. Below the server's cap it
-    // silently becomes the stricter of the two, rejecting images the API
-    // would accept and blaming disk reads for it.
+    // The local ceiling is a memory guard, not a policy limit: it has to stay
+    // above the largest per-image size any plan allows so the CLI never
+    // rejects an image the API would have accepted.
     const MAX_PLAN_IMAGE_BYTES = 25_000_000;
     expect(MAX_IMAGE_FILE_BYTES).toBeGreaterThan(MAX_PLAN_IMAGE_BYTES);
   });
 
   it("accepts a file the server would accept", async () => {
-    // The regression in one case: 22 MB is under the 25,000,000 plan cap and
-    // was over the old 20 MiB client ceiling.
+    // 22 MB is under the 25,000,000-byte per-image plan cap, so the CLI must
+    // read the file rather than reject it locally.
     const file = join(dir, "twentytwo.png");
     await writeFile(file, Buffer.alloc(22_000_000));
 

@@ -7,9 +7,8 @@ import type {
 } from "./message";
 import type { Dialogue } from "@/dialogue/class.dialogue";
 
-// These are compile-time assertions. ts-jest type-checks this file (no
-// `isolatedModules` override in jest.config.ts), so an assignment the public
-// type rejects fails the suite before a single expectation runs.
+// These are compile-time assertions: ts-jest type-checks this file, so any
+// assignment the public types reject fails the suite.
 
 const anthropicBase64Image: ImagePart = {
   type: "image",
@@ -43,8 +42,7 @@ const stringContent: MessageContent = "hello";
 const objectContent: MessageContent = { type: "structured_output", data: {} };
 const legacyArrayContent: MessageContent = [{ anything: true }];
 
-// saveMessages carries a second, inline spelling of the content type. It must
-// move in lockstep with MessageContent or the batch path silently narrows.
+// saveMessages must accept the same content as saveMessage, including image parts.
 type SaveMessagesItem = Parameters<Dialogue["saveMessages"]>[0][number];
 const batchedImageMessage: SaveMessagesItem = {
   role: "user",
@@ -62,7 +60,7 @@ describe("MessageContent", () => {
     expect(openAiImage.image_url.url.startsWith("data:")).toBe(true);
   });
 
-  it("still accepts every shape that compiled before images existed", () => {
+  it("accepts string, object, and array content alongside typed parts", () => {
     expect(textPart.text).toContain("image");
     expect(toolUsePart).toHaveProperty("id", "call_1");
     expect(mediaType).toBe("image/png");

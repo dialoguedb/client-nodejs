@@ -30,30 +30,19 @@ const BASE64_SHAPE = /^[A-Za-z0-9+/]+={0,2}$/;
 /**
  * Is this a base64 payload the SDK will let through?
  *
- * Whitespace is allowed: line-wrapped base64 is common in copied payloads, and
- * base64 read from a file usually ends with a newline. It is stripped in a
- * separate pass rather than folded into the character class, and that is not a
- * style choice. The single pattern this replaces was
+ * Whitespace is tolerated: line-wrapped base64 is common in copied payloads,
+ * and base64 read from a file usually ends with a newline. It is stripped in a
+ * single pass before the shape is checked, rather than folded into the
+ * character class, so that a long run of whitespace in a mangled payload cannot
+ * make matching cost grow with the square of its length and stall the calling
+ * thread. `source.data` can carry up to 25 MB, so that cost is worth avoiding.
  *
- *   /^(?=\s*[A-Za-z0-9+\/])[A-Za-z0-9+\/\s]+={0,2}\s*$/
+ * Stripping first is also what rejects whitespace ALONE: "   " has nothing to
+ * decode, and the non-empty check at the call site cannot catch it because the
+ * string is not empty.
  *
- * where `[A-Za-z0-9+/\s]+` and the trailing `\s*` can both consume the same
- * whitespace. On a payload that ends up failing, the engine retries the tail
- * from every position inside a whitespace run, which is quadratic in the length
- * of that run: measured on node 20, 50 KB of spaces took 0.9s, 100 KB took 3.5s
- * and 400 KB took 70s, all of it blocking the caller's own thread. source.data
- * carries up to 25 MB and is entirely caller-supplied, so a payload that
- * arrived mangled hangs the process instead of returning the error it was about
- * to return. Both steps below are single-pass.
- *
- * Requiring one real base64 character after the strip is what stops whitespace
- * ALONE from qualifying: "   " has nothing to decode, and the length check at
- * the call site cannot catch it because it is not empty.
- *
- * One payload the old pattern rejected is now accepted: padding that is itself
- * line-wrapped, "AA=\n=". It decodes fine, and the SDK is not supposed to add
- * rejections the API does not make. Verified by differential fuzzing that this
- * is the only direction the two disagree in.
+ * Line-wrapped padding such as "AA=\n=" is accepted. It decodes fine, and this
+ * check is not meant to reject anything the API would accept.
  */
 function isAcceptableBase64(value: string): boolean {
   const withoutWhitespace = value.replace(/\s+/g, "");
@@ -64,18 +53,11 @@ function isAcceptableBase64(value: string): boolean {
  * A data URI, split the way RFC 2397 defines one:
  * `data:[<mediatype>][;<parameter>]*[;base64],<data>`.
  *
- * Deliberately mirrors the API's own parser (the media type, the FULL parameter
- * list, then the payload) instead of hard-coding one shape. The previous
- * pattern required exactly `data:<type>/<subtype>;base64,` with a non-empty
- * media type and no other parameters, so it rejected two forms the API accepts,
- * stores, and returns byte for byte:
+ * The media type is optional and any number of parameters may precede
+ * `;base64`, so both of these are valid and both are accepted:
  *
  *   data:image/png;charset=utf-8;base64,<payload>   extra parameter
  *   data:;base64,<payload>                          media type omitted
- *
- * Both are legal RFC 2397, and the SDK is not supposed to add rejections the
- * API does not make - a caller with either one got INVALID_PARAMETER from us
- * for a payload the API would have taken.
  */
 const DATA_URI_PATTERN = /^data:([^;,]*)((?:;[^;,]*)*),([\s\S]*)$/i;
 
@@ -102,49 +84,43 @@ function parseBase64DataUri(
 /**
  * Does this string begin a data URI?
  *
- * Case-insensitive, matching DATA_URI_PATTERN above and RFC 2397, which makes
- * the scheme case-insensitive. The two gates below used startsWith("data:")
- * while the pattern they guard was already case-insensitive, so an uppercase
- * URI took the early return and skipped validation entirely: the one branch
- * that would have accepted it never ran.
+ * Case-insensitive, matching DATA_URI_PATTERN and RFC 2397, which makes the
+ * scheme case-insensitive: `DATA:image/png;base64,...` is validated exactly
+ * like its lowercase spelling.
  */
 const DATA_URI_PREFIX = /^data:/i;
 
 /**
- * Validates the two image spellings DialogueDB recognizes, and only those.
- * Unrecognized blocks pass through exactly as before.
+ * Validates the two image shapes DialogueDB recognizes, and only those. Any
+ * other content block is passed through untouched.
  *
- * Where this sits relative to the API, stated exactly rather than as a blanket
- * "no new rejections", because two of these checks ARE stricter and a future
- * reader needs to know which:
+ * Which of these checks are local and which mirror the server:
  *
- * - `data:` prefix in the Anthropic `source.data`: the API rejects this too
- *   (INVALID_IMAGE_CONTENT). Offload replaces that field with a pointer, so the
- *   prefix could not be restored on read and content is write-once. Checked
- *   wherever that field holds a string, because that is when the API checks it:
- *   `source.type` does not gate it there and must not gate it here.
- * - data URI shape in `image_url.url`: parsed exactly as the API parses it, so
- *   the two agree on what is a base64 data URI - AND on what is not one. A data
- *   URI with no `;base64` parameter is not a malformed image, it is a
- *   url-origin part, and both sides treat it as one. See DATA_URI_PATTERN.
- * - base64 payload characters, and the media-type allowlist: STRICTER than the
- *   API on purpose. The API stores an unrecognized payload as ordinary content
- *   and never validates a declared media_type at all, so both of those failures
- *   surface much later as "my image was stored but search never matches it".
- *   Catching a typo at the call site is worth the divergence; widening either
- *   check is safe, narrowing the API to match is not.
+ * - A `data:` prefix inside `source.data` (the Anthropic shape): rejected here
+ *   and rejected by the API. `source.data` must hold raw base64. Checked
+ *   whenever that field holds a string, regardless of `source.type`, because
+ *   that is when the API checks it too.
+ * - The data URI shape in `image_url.url` (the OpenAI shape): parsed the same
+ *   way the API parses it, so the two agree on what is a base64 data URI and
+ *   on what is not. A data URI with no `;base64` parameter is not a malformed
+ *   image, it is a url-origin part, and it is stored as one. See
+ *   DATA_URI_PATTERN.
+ * - Base64 payload characters and the media-type allowlist: checked locally
+ *   and stricter than the API. An unreadable payload or an unrecognized
+ *   media_type is stored as ordinary content, so the mistake surfaces much
+ *   later as an image that saved fine but never matches a search. Failing at
+ *   the call site makes a typo obvious straight away.
  *
- * The offending payload is deliberately never attached as the error `value`:
- * a rejected multi-megabyte base64 string must not be copied into an error
- * object that gets logged and serialized.
+ * The rejected payload is never attached to the error: a multi-megabyte base64
+ * string should not be copied into an error object that gets logged and
+ * serialized.
  */
 /**
- * The service API's request body ceiling, in bytes.
+ * The maximum size of a single request body, in bytes.
  *
- * Not a plan limit and not something the caller can raise: it is the express
- * body-parser limit on the ECS surface that serves message writes. Kept here
- * because the SDK is the only layer that can see the whole request before it
- * is sent.
+ * A fixed transport limit rather than a plan limit: it is the same on every
+ * plan and cannot be raised. Checked here because the SDK is the only layer
+ * that can see the whole request before it is sent.
  */
 export const REQUEST_BODY_CEILING_BYTES = 36 * 1024 * 1024;
 
@@ -160,18 +136,14 @@ function encodedLengthOf(base64: string): number {
  * Reject a request whose inline images cannot fit in one body.
  *
  * `maxImageBytes` and `maxImagePartCount` are INDEPENDENT caps, not a budget
- * that multiplies: 20 parts of 25 MB each is 500 MB, and the request ceiling is
- * 36 MB. A caller who reads the documented limits and sends two 20 MB images is
- * inside both, and the request dies at the transport before anything parses it.
+ * that multiplies: 20 parts of 25 MB each is 500 MB, while a single request
+ * body cannot exceed 36 MB. A caller who reads the documented limits and sends
+ * two 20 MB images is inside both and still exceeds the request size.
  *
- * That failure is a bare 413 with no JSON body, naming no image and no limit,
- * because the body parser runs before route matching. It is indistinguishable
- * from an outage and there is no `requestId` to chase.
- *
- * The server cannot improve on it: by the time our code runs the body has
- * already been refused. The SDK can, because it holds the parts before
- * serialising them. This is the one check here that exists purely to turn an
- * opaque transport failure into an actionable message.
+ * Without this check the request is refused in transit: a bare 413 with no JSON
+ * body, naming no image and no limit, and with no `requestId` to follow up on.
+ * Checking before the request is sent turns that into an error that says which
+ * limit was exceeded and what to do about it.
  *
  * URL-origin images are excluded deliberately: they carry no bytes in the
  * request, which is exactly the workaround this error recommends.
@@ -215,16 +187,16 @@ function assertInlineImagesFitOneRequest(
 /**
  * Batch sibling of `assertInlineImagesFitOneRequest`, measured on the real body.
  *
- * The per-message guard above is applied to each message independently, and the
- * batch route serialises ALL of them into one body. Four 12 MiB messages each
- * pass it and the ~48 MiB request dies at the express parser as the same bare,
- * requestId-less 413 that guard exists to eliminate.
+ * The per-message guard above is applied to each message independently, and a
+ * batch sends every message in one body. Four 12 MiB messages each pass it and
+ * the ~48 MiB batch is refused in transit with the same bare, requestId-less
+ * 413 that guard exists to eliminate.
  *
  * Measured on the serialised string rather than by summing base64 lengths,
  * because the batch envelope is not negligible: JSON keys, text parts, metadata
- * and 25 sets of braces all travel in the same body the ceiling applies to. The
- * caller is about to serialise anyway, so the exact number is free and no
- * headroom has to be guessed at.
+ * and up to 25 sets of braces all count toward the same limit. The caller is
+ * about to serialise anyway, so the exact number is free and no headroom has to
+ * be guessed at.
  *
  * Takes the serialised body so it cannot disagree with what is actually sent.
  */
@@ -248,14 +220,11 @@ export function assertBatchBodyFitsOneRequest(body: string): void {
 function validateImagePart(part: Record<string, any>, index: number): void {
   if (part.type === "image" && isPlainObject(part.source)) {
     const source = part.source as Record<string, any>;
-    // Ahead of the source.type gate on purpose. The API reads source.data
-    // first and only falls through to source.url when there is no string there
-    // (helpers/dialogue/images/detect.ts detectAnthropicImage), so it raises
-    // INVALID_IMAGE_CONTENT for a data: URI in this field whatever source.type
-    // says - including when source.type was left off, which is the easiest
-    // field in the shape to forget. Behind the gate, that caller uploaded the
-    // whole payload to be told by the server what we could have told them
-    // before the request left the process.
+    // Checked ahead of the source.type gate on purpose. A string in
+    // source.data identifies the image whatever source.type says, so a "data:"
+    // URI here is rejected even when source.type was left off - the field in
+    // this shape that is easiest to forget. Checking first means the caller
+    // finds out before uploading the whole payload.
     if (typeof source.data === "string" && DATA_URI_PREFIX.test(source.data)) {
       throw errors.invalidParameter(
         "content",
@@ -263,7 +232,8 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       );
     }
     if (source.type !== "base64") {
-      // url-origin images are stored and returned verbatim, not ours to police.
+      // url-origin images are stored and returned verbatim, so there is
+      // nothing for the SDK to validate locally.
       return;
     }
     if (typeof source.data !== "string" || source.data.length === 0) {
@@ -302,7 +272,8 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       );
     }
     if (!DATA_URI_PREFIX.test(url)) {
-      // A genuine remote URL. Stored and returned verbatim, not ours to police.
+      // A genuine remote URL. Stored and returned verbatim, so there is
+      // nothing to validate locally.
       return;
     }
     const dataUri = parseBase64DataUri(url);
@@ -311,12 +282,9 @@ function validateImagePart(part: Record<string, any>, index: number): void {
       // the payload is literal or percent-encoded. `data:image/svg+xml,%3Csvg
       // .../%3E` is the everyday example, `data:image/gif,...` the typo.
       //
-      // The API's parser returns null on exactly this input too
-      // (helpers/dialogue/images/detect.ts parseDataUri) and files the part as
-      // url-origin: stored and returned verbatim, same as a remote URL, no
-      // rejection. Treating it as a malformed base64 URI made an inline SVG the
-      // product accepts fail inside the caller's own dependency, with a message
-      // about base64 they never asked for.
+      // Neither is a malformed image, so neither is rejected. The part is
+      // treated as url-origin and stored and returned verbatim, the same as a
+      // remote URL.
       return;
     }
     if (!isAcceptableBase64(dataUri.base64)) {

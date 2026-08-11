@@ -154,9 +154,9 @@ function validateFilter(filter: unknown): void {
 
   for (const key of Object.keys(filter)) {
     if (key === "hasImage") {
-      // The one non-date filter. Accepted for every object type because the
-      // API accepts it for every object type; see SearchFilterOptions.hasImage
-      // for what it actually does on dialogues and memories.
+      // hasImage is accepted for every object type; see
+      // SearchFilterOptions.hasImage for what it means on dialogues and
+      // memories.
       if (typeof filter[key] !== "boolean") {
         throw errors.invalidParameter(
           "filter.hasImage",
@@ -292,7 +292,7 @@ function validateMetadata(metadata: unknown): void {
 }
 
 /**
- * Validates the new search request shape at the SDK boundary.
+ * Validates the search request shape at the SDK boundary.
  *
  * Catches deprecated date-decomposition fields with a migration hint and
  * obvious shape errors. The server remains the source of truth for full

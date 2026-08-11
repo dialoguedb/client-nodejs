@@ -10,14 +10,15 @@ import {
 import { validateStringField } from "@/utils/validation";
 
 /**
- * Re-raises a per-message validation failure with the batch index folded in.
+ * Re-raises a validation failure with the failing message's position in the
+ * batch.
  *
- * The single-create validator numbers content parts ("item 0: ..."), which
- * identifies the offending part in a message and says nothing about which
- * message. Across a batch every message has an item 0, so the unqualified
- * error points at all fifty at once. The API names the offending element
- * `messages[i].content`; matching that spelling means the local error and the
- * server error read the same way and can be handled the same way.
+ * A validation error for a single message identifies the offending content
+ * part ("item 0: ..."), which is ambiguous once many messages are sent
+ * together. Prefixing the message and each `details[].field` with
+ * `messages[i]` names the message as the caller passed it, and matches the
+ * field paths returned when the request is rejected remotely, so both can be
+ * handled the same way.
  */
 function withBatchIndex(error: unknown, index: number): unknown {
   if (!(error instanceof DialogueDBError)) {
@@ -45,19 +46,17 @@ export async function create(
   },
   settings: SettingsContainer = getConfig()
 ) {
-  // Checked once, up here, and not left to the per-message validator below.
-  // dialogueId is a batch-level query parameter on this route, so a bad one is
-  // not a fault in any particular message and must not be reported against
-  // messages[0].
+  // dialogueId applies to the whole batch, so an invalid one is reported
+  // against "dialogueId" rather than against messages[0].
   if (!input.id) {
     throw errors.missingParameter("dialogueId");
   }
   validateStringField(input.id, "dialogueId", 5);
 
-  // Validate before serializing: a 50-message batch with one broken image part
-  // would otherwise upload every byte only to be rejected server-side. The
-  // batch route takes dialogueId as a query param, so reattach it per message
-  // to reuse the single-create validator unchanged.
+  // Validate every message before sending: a batch with one malformed image
+  // part fails here instead of after uploading the whole payload. dialogueId
+  // is supplied once for the batch, so it is attached to each message for
+  // validation.
   input.messages.forEach((message, index) => {
     try {
       validateCreateMessageInput({ ...message, dialogueId: input.id });
@@ -78,10 +77,9 @@ export async function create(
   }
   const url = `${endpoint}/messages?${params.toString()}`;
 
-  // The per-message validator above cannot see the batch: it checks each
-  // message's inline images against the request ceiling independently, and this
-  // route puts all of them in one body. Measured here, on the exact string about
-  // to be sent, so the envelope is counted too.
+  // Per-message limits are separate caps, not a shared budget, and a batch is
+  // sent as a single request. Measure the serialized payload so the JSON
+  // overhead counts toward the request size limit too.
   const body = JSON.stringify(input.messages);
   assertBatchBodyFitsOneRequest(body);
 

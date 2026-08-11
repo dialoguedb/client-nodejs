@@ -163,11 +163,9 @@ describe("validateCreateMessageInput", () => {
       );
     });
 
-    // detectAnthropicImage reads source.data before it looks at source.type,
-    // and rejects a data: URI there with INVALID_IMAGE_CONTENT. source.type is
-    // the easiest field in the shape to leave off, and behind the type gate
-    // that omission bought the caller a full upload of the payload before the
-    // server said the same thing.
+    // A `data:` URI in `source.data` is rejected whatever `source.type` says,
+    // and when it is missing entirely. The server rejects the same payload, so
+    // catching it locally saves uploading the image first.
     it.each([
       ["source.type is omitted", { media_type: "image/png" }],
       ["source.type says url", { type: "url", media_type: "image/png" }],
@@ -189,8 +187,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("still leaves a url source with no data field alone", () => {
-      // The gate exists for a reason: a url-origin part is stored and returned
-      // verbatim, and nothing about it is the SDK's to police.
+      // An image referenced by URL is stored and returned exactly as given, so
+      // the SDK does not inspect the URL or its media type.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -247,11 +245,9 @@ describe("validateCreateMessageInput", () => {
       );
     });
 
-    // A data URI with no `;base64` parameter is not a broken base64 URI, it is
-    // a different kind of part. The API's parser returns null for it
-    // (helpers/dialogue/images/detect.ts parseDataUri), files it as url-origin
-    // and stores it verbatim, so the SDK must not turn it into an
-    // INVALID_PARAMETER the API would never have raised.
+    // A data URI with no `;base64` parameter is not broken base64, it is a
+    // different kind of part: it is accepted and stored exactly as sent, so the
+    // SDK must not reject it as a malformed base64 URI.
     it.each([
       ["an inline SVG", "data:image/svg+xml,%3Csvg viewBox='0 0 1 1'/%3E"],
       ["a percent-encoded payload", "data:image/gif,%89PNG"],
@@ -267,9 +263,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("still rejects a data URI that declares base64 and is not", () => {
-      // Dropping the rejection for non-base64 data URIs must not drop it for
-      // the ones that do claim `;base64`: that check is the deliberate
-      // divergence documented on validateImagePart.
+      // A data URI that declares `;base64` still has its payload validated.
+      // Only URIs without that parameter are passed through unchecked.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -283,12 +278,10 @@ describe("validateCreateMessageInput", () => {
       ).toThrow("item 0: image_url.url is not a well-formed base64 data URI");
     });
 
-    // RFC 2397 is `data:[<mediatype>][;<parameter>]*[;base64],<data>`. The API
-    // parses the whole parameter list and treats the media type as optional
-    // (helpers/dialogue/images/detect.ts), so both of these are stored and
-    // returned byte for byte. The SDK used to demand exactly one parameter and
-    // a non-empty media type, and rejected them client-side with
-    // INVALID_PARAMETER for a payload the API would have accepted.
+    // RFC 2397 is `data:[<mediatype>][;<parameter>]*[;base64],<data>`: the
+    // media type is optional and any number of parameters may precede
+    // `;base64`. Both forms below are well-formed data URIs, so the SDK
+    // accepts them and they are stored and returned byte for byte.
     it("accepts a data URI carrying parameters besides base64", () => {
       expect(() =>
         validateCreateMessageInput({
@@ -320,8 +313,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("accepts an uppercase base64 parameter", () => {
-      // Matched case-insensitively for the same reason as the scheme: ";BASE64"
-      // is the same declaration, and the API lowercases before comparing.
+      // The `;base64` parameter is case-insensitive, like the scheme itself:
+      // ";BASE64" declares the same encoding.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -336,7 +329,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("still rejects a data URI whose payload is not base64", () => {
-      // Widening the shape must not widen the payload check with it.
+      // The accepted URI shape is permissive, but the payload after
+      // `;base64,` must still be valid base64.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -451,9 +445,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("rejects a whitespace-only base64 payload", () => {
-      // \s is inside the allowed character class so that line-wrapped base64
-      // passes, which also meant whitespace on its own satisfied the pattern.
-      // The length check above cannot catch it either, since "   " is not empty.
+      // Whitespace is allowed inside a payload so that line-wrapped base64
+      // passes, but a payload made only of whitespace is not valid base64.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -486,9 +479,8 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("accepts a payload with a trailing newline after the padding", () => {
-      // The most common line-wrapped form of all: base64 read from a file ends
-      // with a newline. Anchoring the pattern right after the padding rejected
-      // it as invalid, even though it decodes fine.
+      // Base64 read from a file usually ends with a newline, so trailing
+      // whitespace after the padding is accepted.
       expect(() =>
         validateCreateMessageInput({
           ...validInput,
@@ -525,16 +517,10 @@ describe("validateCreateMessageInput", () => {
     });
 
     it("rejects a mangled payload in bounded time instead of hanging", () => {
-      // The payload check used one pattern whose character class and trailing
-      // `\s*` could both consume the same whitespace, so a failing payload was
-      // retried from every position inside a whitespace run: quadratic. 400 KB
-      // of whitespace took 70 seconds of blocked main thread, and source.data
-      // carries up to 25 MB of caller-supplied text.
-      //
-      // 200 KB of whitespace measured ~14 seconds before the fix and ~1
-      // millisecond after, so the budget below has four orders of magnitude of
-      // headroom on any machine and still fails outright on a return to a
-      // pattern with overlapping quantifiers.
+      // `source.data` can carry up to 25 MB of caller-supplied text, and
+      // validation runs on the caller's thread. A malformed payload of that
+      // size has to fail fast rather than stall the call, so this asserts a
+      // budget generously above the ~1 ms the check actually takes.
       const mangled = {
         ...validInput,
         content: [
@@ -720,9 +706,8 @@ describe("validateListMessageFilters", () => {
 });
 
 describe("data URI scheme casing", () => {
-  // RFC 2397 makes the scheme case-insensitive, and DATA_URI_PATTERN already
-  // was. Only the gates in front of it were not, so an uppercase URI took the
-  // early return and skipped every check below it.
+  // RFC 2397 makes the URI scheme case-insensitive, so "DATA:" and "Data:" are
+  // validated exactly like "data:".
   const base = { dialogueId: "dialogue-123", role: "user" as const };
   const payload = "/9j/4AAQSkZJRgABAQ==";
   const withContent = (content: unknown[]) => ({ ...base, content });
@@ -773,9 +758,9 @@ describe("data URI scheme casing", () => {
   });
 
   it("names the real problem when source.data carries an uppercase prefix", () => {
-    // Previously fell through to the generic "not valid base64" message,
-    // because ":" is outside the base64 alphabet. Correct rejection, useless
-    // explanation.
+    // An uppercase "DATA:" prefix gets the same specific error as a lowercase
+    // one, rather than the generic "not valid base64" that a stray ":" would
+    // otherwise produce.
     expect(() =>
       validateCreateMessageInput(
         withContent([
@@ -818,12 +803,11 @@ describe("aggregate inline image size", () => {
   });
 
   it("rejects two images that are each within plan but cannot share a request", () => {
-    // The trap the documented limits create. maxImageBytes 25 MB and
-    // maxImagePartCount 20 are independent caps, so 2 x 20 MB is inside both,
-    // and the request dies at the express body parser before anything parses
-    // it: a bare 413 with no JSON, naming no image, indistinguishable from an
-    // outage. The server cannot improve on that, because by the time its code
-    // runs the body is already refused.
+    // The per-image cap (25 MB) and the per-message part-count cap (20) are
+    // independent limits, not a combined budget, so two 20 MB images sit inside
+    // both and still exceed the request size limit. Without this local check the
+    // caller pays to upload the whole body and gets back a bare 413 that names
+    // no image.
     expect(() =>
       validateCreateMessageInput({
         ...base,
@@ -852,11 +836,9 @@ describe("aggregate inline image size", () => {
   });
 
   it("never puts the payload in the error, in the message OR in details", () => {
-    // These parts are megabytes each and the error is logged and serialised.
-    //
-    // `details` is checked as well as `message`. Inspecting only the message let
-    // this stay green while the payload travelled on the structured field, which
-    // is the half that actually gets logged verbatim by most callers.
+    // These parts are megabytes each and the error gets logged and serialised,
+    // so the payload must appear in neither `message` nor `details`. `details`
+    // is the field most callers log verbatim, so it is asserted too.
     let caught: unknown = null;
     try {
       validateCreateMessageInput({

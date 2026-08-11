@@ -51,13 +51,11 @@ export interface SearchFilterOptions {
    * Restrict message searches to messages that carry at least one image
    * (true) or none (false).
    *
-   * Use it with object "message". It is NOT ignored on the other object types:
-   * the API ANDs it into the vector predicate for whatever is being searched,
-   * and only message vectors are stamped with the flag it tests. So on
-   * object "memory", `hasImage: true` returns an EMPTY result set rather than
-   * an unfiltered one, and on object "dialogue" it drops dialogues that matched
-   * only on their own label. `false` is a no-op on both, because it is written
-   * as "not true" so that records predating image support still match.
+   * Intended for object "message", and it is not ignored on the other object
+   * types. Only messages carry an image flag, so on object "memory",
+   * `hasImage: true` returns an empty result set rather than an unfiltered
+   * one, and on object "dialogue" it drops dialogues that matched only on
+   * their own label. `false` is a no-op on both of those object types.
    */
   hasImage?: boolean;
 }

@@ -131,9 +131,6 @@ describe("validateSearchInput", () => {
     });
 
     it("accepts filter.hasImage as a boolean", () => {
-      // The image-search filter this release adds. The server accepted it from
-      // the start; the SDK validator rejected it client-side, so the filter
-      // was unusable through the SDK even though the docs advertised it.
       expect(() =>
         validateSearchInput({ ...base, filter: { hasImage: true } })
       ).not.toThrow();

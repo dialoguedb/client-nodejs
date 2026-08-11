@@ -289,9 +289,8 @@ export class Dialogue {
   async saveMessages(
     messages: Array<{
       role: string;
-      // Same type as saveMessage (CreateMessageInput.content) and what the API
-      // accepts, including image parts. Keep this referencing MessageContent -
-      // spelling the union out here would let the batch path silently narrow.
+      // Same content the API accepts on saveMessage (CreateMessageInput.content),
+      // including image parts.
       content: MessageContent;
       id?: string;
       created?: string;
@@ -441,7 +440,6 @@ export class Dialogue {
    * @experimental Compact/summarize the dialogue — not yet available.
    */
   async compact(): Promise<any> {
-    // TODO: Implement when backend action endpoint is ready
     throw errors.notImplemented("compact");
   }
 
