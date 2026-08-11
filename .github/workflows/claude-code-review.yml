@@ -52,18 +52,24 @@ jobs:
           track_progress: true
           claude_args: |
             --model ${{ env.CLAUDE_MODEL }}
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
-          
+            --allowedTools "Read,Glob,Grep,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
-            Please review this pull request and provide feedback on:
+            Review this pull request. Read the diff with `gh pr diff` and focus only on the changes in this PR.
+            Look for:
             - Code quality and best practices
             - Potential bugs or issues
             - Performance considerations
             - Security concerns
             - Test coverage
-            Be constructive and helpful in your feedback.
-            Make sure to not reference any issue/PR that is not related to this PR. If you find any issues, please provide specific suggestions for improvement. This is a code review, so focus on the code changes and their implications rather than general comments.
+
+            Output format: ONE summary comment posted via `gh pr comment`. Structure it as:
+            - A one-line verdict (LGTM / needs changes / questions).
+            - Then, if you found issues, a short bulleted list where each bullet names the file and the specific concern (e.g. "`src/api/message.ts:42` - the retry path swallows the error"), with a concrete suggestion. The file and line reference in the bullet text is how a reviewer finds it; do not leave inline comments.
+            - If the change looks good, one to two sentences and stop.
+
+            Be constructive and terse. Do not reference any issue or PR unrelated to this one.
 
           allowed_bots: "dependabot[bot]"
