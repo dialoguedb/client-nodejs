@@ -5,6 +5,8 @@ import {
   CreateMessageInput,
   ListMessageFilters,
   MessageContent,
+  ISummary,
+  SummarizeOptions,
 } from "@/types";
 import * as dialogueApi from "@/api/dialogue";
 import * as messageApi from "@/api/message";
@@ -436,12 +438,30 @@ export class Dialogue {
   }
 
   /**
-   * @internal
-   * @experimental Compact/summarize the dialogue — not yet available.
+   * Summarize the dialogue. Kicks off summarization on the server and returns
+   * the summary record (initially `status: "processing"`). Pass `template` to
+   * drive the summarization with a configured summary template's prompt.
+   *
+   * @example
+   * const summary = await dialogue.summarize({ template: "decisions" });
    */
-  async compact(): Promise<any> {
-    // TODO: Implement when backend action endpoint is ready
-    throw errors.notImplemented("compact");
+  async summarize(options: SummarizeOptions = {}): Promise<ISummary> {
+    return dialogueApi.summarize(
+      {
+        dialogueId: this.#id,
+        ...(this.#namespace !== undefined && { namespace: this.#namespace }),
+        ...options,
+      },
+      this.#settings
+    );
+  }
+
+  /**
+   * @deprecated Use {@link summarize} instead. "Compaction" was renamed to
+   * "summarization"; this delegates to `summarize()`.
+   */
+  async compact(options: SummarizeOptions = {}): Promise<ISummary> {
+    return this.summarize(options);
   }
 
   /**
