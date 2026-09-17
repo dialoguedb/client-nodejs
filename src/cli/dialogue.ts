@@ -127,13 +127,17 @@ export function registerDialogueCommands(program: Command): void {
     );
 
   dialogue
-    .command("compact <id>")
-    .description("Compact/summarize a dialogue (not yet implemented)")
+    .command("summarize <id>")
+    .alias("compact")
+    .description("Summarize a dialogue (optionally with a template)")
     .option("--namespace <namespace>", "Namespace")
+    .option("--template <template>", "Summary template slug")
     .action(
       withErrorHandler(async (id: string, opts) => {
         const d = await loadDialogueOrExit(id, opts.namespace);
-        const result = await d.compact();
+        const result = await d.summarize({
+          ...(opts.template ? { template: opts.template } : {}),
+        });
         output(result);
       })
     );
