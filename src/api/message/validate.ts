@@ -48,7 +48,7 @@ export function validateCreateMessageInput(input: CreateMessageInput): void {
   if (!input.dialogueId) {
     throw errors.missingParameter("dialogueId");
   }
-  validateStringField(input.dialogueId, "dialogueId", 5);
+  validateStringField(input.dialogueId, "dialogueId", 1);
 
   if (!input.role) {
     throw errors.missingParameter("role");
@@ -59,7 +59,7 @@ export function validateCreateMessageInput(input: CreateMessageInput): void {
 
   // Optional fields
   if (input.id !== undefined) {
-    validateStringField(input.id, "id", 5);
+    validateStringField(input.id, "id", 1);
   }
 
   if (input.name !== undefined) {

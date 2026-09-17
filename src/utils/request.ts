@@ -1,12 +1,5 @@
-import { Agent } from "https";
-import fetch, { RequestInit, Response } from "node-fetch";
 import pRetry from "p-retry";
 import { version } from "../../package.json";
-
-// Create a single instance of the https.Agent for connection pooling
-const httpsAgent = new Agent({
-  keepAlive: true,
-});
 
 /**
  * Error types matching the DialogueDB API error responses
@@ -66,7 +59,7 @@ export interface RetryConfig {
 }
 
 /**
- * Makes an API request with the given URL and options, using a persistent HTTPS agent.
+ * Makes an API request with the given URL and options.
  * Automatically retries on transient errors (network errors, 429, 5xx).
  *
  * @param url - The endpoint to which the request is sent.
@@ -99,7 +92,6 @@ export async function apiRequest<T extends Record<string, any> | null>(
   const finalOptions = {
     ...restOfOptions,
     headers: finalHeaders,
-    agent: httpsAgent,
   };
 
   const queryString = params?.toString();
@@ -111,7 +103,17 @@ export async function apiRequest<T extends Record<string, any> | null>(
       response = await fetch(urlWithParams, finalOptions);
     } catch (error: unknown) {
       // Network error (DNS failure, connection refused, timeout, etc.)
-      const message = error instanceof Error ? error.message : "Network error";
+      // The native fetch implementation wraps the real cause (e.g. ECONNREFUSED)
+      // in a generic "fetch failed" TypeError, so surface the cause's message
+      // when present instead of that generic wrapper text.
+      const cause =
+        error instanceof Error && "cause" in error ? error.cause : undefined;
+      const message =
+        cause instanceof Error
+          ? cause.message
+          : error instanceof Error
+          ? error.message
+          : "Network error";
       throw new DialogueDBError(message, "NETWORK_ERROR", "server_error", 0);
     }
 

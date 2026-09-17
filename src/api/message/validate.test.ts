@@ -53,7 +53,10 @@ describe("validateCreateMessageInput", () => {
 
     it("accepts plain object content", () => {
       expect(() =>
-        validateCreateMessageInput({ ...validInput, content: { type: "json" } })
+        validateCreateMessageInput({
+          ...validInput,
+          content: { type: "json" },
+        })
       ).not.toThrow();
     });
 
@@ -99,18 +102,10 @@ describe("validateCreateMessageInput", () => {
 
   it.each([
     ["dialogueId type", { ...validInput, dialogueId: 123 }, "must be a string"],
-    [
-      "dialogueId length",
-      { ...validInput, dialogueId: "abc" },
-      "must have length of at least 5",
-    ],
+    ["dialogueId length", { ...validInput, dialogueId: "" }, "is required"],
     ["role type", { ...validInput, role: 123 }, "must be a string"],
     ["id type", { ...validInput, id: 123 }, "must be a string"],
-    [
-      "id length",
-      { ...validInput, id: "abc" },
-      "must have length of at least 5",
-    ],
+    ["id length", { ...validInput, id: "" }, "must have length of at least 1"],
     ["name type", { ...validInput, name: 123 }, "must be a string"],
     ["tags type", { ...validInput, tags: "not-array" }, "must be an array"],
     [
