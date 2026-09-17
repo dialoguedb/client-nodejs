@@ -519,27 +519,27 @@ describe("apiRequest", () => {
     });
 
     it("should surface the wrapped cause's message for native fetch failures", async () => {
-    const dnsError = new Error("getaddrinfo ENOTFOUND api.example.com");
-    const wrappedFetchError = Object.assign(new TypeError("fetch failed"), {
-      cause: dnsError,
-    });
-    fetchMock.mockRejectedValueOnce(wrappedFetchError);
-
-    try {
-      await apiRequest("https://api.example.com", {
-        headers: { "Content-Type": "application/json" },
+      const dnsError = new Error("getaddrinfo ENOTFOUND api.example.com");
+      const wrappedFetchError = Object.assign(new TypeError("fetch failed"), {
+        cause: dnsError,
       });
-      fail("Expected error to be thrown");
-    } catch (error) {
-      expect(error).toBeInstanceOf(DialogueDBError);
-      const dbError = error as DialogueDBError;
-      expect(dbError.code).toBe("NETWORK_ERROR");
-      expect(dbError.message).toBe("getaddrinfo ENOTFOUND api.example.com");
-      expect(dbError.statusCode).toBe(0);
-    }
-  });
+      fetchMock.mockRejectedValueOnce(wrappedFetchError);
 
-  it("should handle non-Error thrown from fetch (e.g. string)", async () => {
+      try {
+        await apiRequest("https://api.example.com", {
+          headers: { "Content-Type": "application/json" },
+        });
+        fail("Expected error to be thrown");
+      } catch (error) {
+        expect(error).toBeInstanceOf(DialogueDBError);
+        const dbError = error as DialogueDBError;
+        expect(dbError.code).toBe("NETWORK_ERROR");
+        expect(dbError.message).toBe("getaddrinfo ENOTFOUND api.example.com");
+        expect(dbError.statusCode).toBe(0);
+      }
+    });
+
+    it("should handle non-Error thrown from fetch (e.g. string)", async () => {
       fetchMock.mockRejectedValueOnce("socket hang up");
 
       try {
