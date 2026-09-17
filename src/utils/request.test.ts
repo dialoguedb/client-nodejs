@@ -1,13 +1,11 @@
 import { apiRequest, DialogueDBError } from "./request";
-import fetch, { Response } from "node-fetch";
-
-jest.mock("node-fetch", () => jest.fn());
 
 describe("apiRequest", () => {
-  const fetchMock = fetch as jest.MockedFunction<typeof fetch>;
+  const fetchMock = jest.fn() as jest.MockedFunction<typeof fetch>;
 
   beforeEach(() => {
     fetchMock.mockReset();
+    global.fetch = fetchMock;
   });
 
   it("should return data when response is ok", async () => {
@@ -34,7 +32,6 @@ describe("apiRequest", () => {
           "Content-Type": "application/json",
           "User-Agent": expect.stringMatching(/^dialogue-db-nodejs\./),
         },
-        agent: expect.any(Object),
       })
     );
   });
@@ -521,7 +518,28 @@ describe("apiRequest", () => {
       });
     });
 
-    it("should handle non-Error thrown from fetch (e.g. string)", async () => {
+    it("should surface the wrapped cause's message for native fetch failures", async () => {
+    const dnsError = new Error("getaddrinfo ENOTFOUND api.example.com");
+    const wrappedFetchError = Object.assign(new TypeError("fetch failed"), {
+      cause: dnsError,
+    });
+    fetchMock.mockRejectedValueOnce(wrappedFetchError);
+
+    try {
+      await apiRequest("https://api.example.com", {
+        headers: { "Content-Type": "application/json" },
+      });
+      fail("Expected error to be thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DialogueDBError);
+      const dbError = error as DialogueDBError;
+      expect(dbError.code).toBe("NETWORK_ERROR");
+      expect(dbError.message).toBe("getaddrinfo ENOTFOUND api.example.com");
+      expect(dbError.statusCode).toBe(0);
+    }
+  });
+
+  it("should handle non-Error thrown from fetch (e.g. string)", async () => {
       fetchMock.mockRejectedValueOnce("socket hang up");
 
       try {
