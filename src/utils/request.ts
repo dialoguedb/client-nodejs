@@ -112,8 +112,8 @@ export async function apiRequest<T extends Record<string, any> | null>(
         cause instanceof Error
           ? cause.message
           : error instanceof Error
-            ? error.message
-            : "Network error";
+          ? error.message
+          : "Network error";
       throw new DialogueDBError(message, "NETWORK_ERROR", "server_error", 0);
     }
 
